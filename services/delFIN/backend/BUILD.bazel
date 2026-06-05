@@ -3,7 +3,7 @@ load("@rules_scala//scala:scala.bzl", "scala_binary", "scala_library")
 scala_library(
     name = "fin_lib",
     srcs = glob(["src/main/scala/**/*.scala"]),
-    resources = glob(["src/main/resources/**/*"]),
+    resources = glob(["src/main/resources/**/*"]) + ["//db:migrations"],
     deps = [
         "@maven//:ch_qos_logback_logback_classic",
         "@maven//:com_comcast_ip4s_core_3",
@@ -20,9 +20,12 @@ scala_library(
         "@maven//:org_http4s_http4s_server_3",
         "@maven//:org_postgresql_postgresql",
         "@maven//:org_tpolecat_doobie_core_3",
+        "@maven//:org_tpolecat_doobie_free_3",
         "@maven//:org_tpolecat_doobie_hikari_3",
         "@maven//:org_tpolecat_doobie_postgres_3",
+        "@maven//:org_tpolecat_typename_3",
         "@maven//:org_typelevel_cats_core_3",
+        "@maven//:org_typelevel_cats_free_3",
         "@maven//:org_typelevel_cats_effect_3",
         "@maven//:org_typelevel_cats_effect_kernel_3",
         "@maven//:org_typelevel_cats_effect_std_3",

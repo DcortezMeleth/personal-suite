@@ -41,6 +41,7 @@ maven.install(
         "org.http4s:http4s-server_3:0.23.30",
         # Effect runtime — cats-core 2.9.0 avoids TupleParallelSyntax TASTy crash
         "org.typelevel:cats-core_3:2.9.0",
+        "org.typelevel:cats-free_3:2.9.0",
         "org.typelevel:cats-kernel_3:2.9.0",
         "org.typelevel:cats-effect_3:3.5.7",
         "org.typelevel:cats-effect-kernel_3:3.5.7",
@@ -56,8 +57,10 @@ maven.install(
         "io.circe:circe-parser_3:0.14.10",
         # Database (RC4 uses CE 3.5.0 + cats 2.9.0)
         "org.tpolecat:doobie-core_3:1.0.0-RC4",
+        "org.tpolecat:doobie-free_3:1.0.0-RC4",
         "org.tpolecat:doobie-postgres_3:1.0.0-RC4",
         "org.tpolecat:doobie-hikari_3:1.0.0-RC4",
+        "org.tpolecat:typename_3:1.1.0",
         "org.postgresql:postgresql:42.7.11",
         # Migrations (pure Java, no Scala version dependency)
         "org.flywaydb:flyway-core:12.8.0",
