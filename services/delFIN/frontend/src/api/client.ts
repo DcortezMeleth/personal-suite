@@ -156,9 +156,9 @@ export interface BondWithValue {
   bond: TreasuryBond;
   accountName: string;
   invested: number;
-  accrued: number;
+  accruedInterest: number;
   currentValue: number;
-  gainPct: number;
+  gainLossPct: number;
 }
 
 export interface Deposit {
@@ -175,16 +175,16 @@ export interface Deposit {
 export interface DepositWithValue {
   deposit: Deposit;
   accountName: string;
-  accrued: number;
+  accruedInterest: number;
   currentValue: number;
-  gainPct: number;
+  gainLossPct: number;
 }
 
 export interface TypeAllocation {
-  name: string;
+  typeName: string;
   currentValue: number;
   invested: number;
-  allocationPct: number;
+  pct: number;
 }
 
 export interface PortfolioSummary {

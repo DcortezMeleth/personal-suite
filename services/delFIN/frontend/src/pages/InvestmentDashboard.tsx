@@ -131,12 +131,12 @@ export function InvestmentDashboard() {
                 <Pie
                   data={summary.byType}
                   dataKey="currentValue"
-                  nameKey="name"
+                  nameKey="typeName"
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  label={({ name, allocationPct }) =>
-                    `${name} ${allocationPct.toFixed(1)}%`
+                  label={({ typeName, pct }: { typeName: string; pct: number }) =>
+                    `${typeName} ${pct.toFixed(1)}%`
                   }
                 >
                   {summary.byType.map((_, i) => (
@@ -275,11 +275,11 @@ export function InvestmentDashboard() {
                     <td className="py-2 pr-4 text-neutral-500">{b.accountName}</td>
                     <td className="py-2 pr-4 text-right font-mono">{b.bond.quantity}</td>
                     <td className="py-2 pr-4 text-right font-mono">{PLN(b.invested)}</td>
-                    <td className="py-2 pr-4 text-right font-mono text-green-600">{PLN(b.accrued)}</td>
+                    <td className="py-2 pr-4 text-right font-mono text-green-600">{PLN(b.accruedInterest)}</td>
                     <td className="py-2 pr-4 text-right font-mono">{PLN(b.currentValue)}</td>
                     <td className="py-2 pr-4 text-right font-mono">{b.bond.annualRatePct}%</td>
                     <td className="py-2 pr-4 text-neutral-500">{b.bond.maturityDate}</td>
-                    <td className="py-2 text-right font-mono text-green-600">{PCT(b.gainPct)}</td>
+                    <td className="py-2 text-right font-mono text-green-600">{PCT(b.gainLossPct)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -287,7 +287,7 @@ export function InvestmentDashboard() {
                 <tr className="border-t-2 border-neutral-300 font-semibold">
                   <td colSpan={3} className="pt-2 text-neutral-700">Total</td>
                   <td className="pt-2 text-right font-mono">{PLN(bonds.reduce((s, b) => s + b.invested, 0))}</td>
-                  <td className="pt-2 text-right font-mono text-green-600">{PLN(bonds.reduce((s, b) => s + b.accrued, 0))}</td>
+                  <td className="pt-2 text-right font-mono text-green-600">{PLN(bonds.reduce((s, b) => s + b.accruedInterest, 0))}</td>
                   <td className="pt-2 text-right font-mono">{PLN(bonds.reduce((s, b) => s + b.currentValue, 0))}</td>
                   <td colSpan={3} />
                 </tr>
@@ -327,12 +327,12 @@ export function InvestmentDashboard() {
                     <td className="py-2 pr-4 text-right font-mono">{d.deposit.interestRate}%</td>
                     <td className="py-2 pr-4 text-neutral-500">{d.deposit.startDate}</td>
                     <td className="py-2 pr-4 text-neutral-500">{d.deposit.endDate}</td>
-                    <td className="py-2 pr-4 text-right font-mono text-green-600">{PLN(d.accrued)}</td>
+                    <td className="py-2 pr-4 text-right font-mono text-green-600">{PLN(d.accruedInterest)}</td>
                     <td className="py-2 pr-4 text-right font-mono">{PLN(d.currentValue)}</td>
                     <td className="py-2 pr-4">
                       <StatusBadge status={d.deposit.status} />
                     </td>
-                    <td className="py-2 text-right font-mono text-green-600">{PCT(d.gainPct)}</td>
+                    <td className="py-2 text-right font-mono text-green-600">{PCT(d.gainLossPct)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -341,7 +341,7 @@ export function InvestmentDashboard() {
                   <td className="pt-2 text-neutral-700">Total</td>
                   <td className="pt-2 text-right font-mono">{PLN(deposits.reduce((s, d) => s + d.deposit.amount, 0))}</td>
                   <td colSpan={3} />
-                  <td className="pt-2 text-right font-mono text-green-600">{PLN(deposits.reduce((s, d) => s + d.accrued, 0))}</td>
+                  <td className="pt-2 text-right font-mono text-green-600">{PLN(deposits.reduce((s, d) => s + d.accruedInterest, 0))}</td>
                   <td className="pt-2 text-right font-mono">{PLN(deposits.reduce((s, d) => s + d.currentValue, 0))}</td>
                   <td colSpan={2} />
                 </tr>
