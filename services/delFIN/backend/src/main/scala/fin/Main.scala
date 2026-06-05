@@ -9,6 +9,7 @@ import fin.api.*
 import fin.db.Database
 import fin.repository.*
 import fin.service.*
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.server.Router
 import org.http4s.ember.server.EmberServerBuilder
 
@@ -22,23 +23,30 @@ object Main extends IOApp.Simple:
     val serverPort = Port.fromInt(portInt).getOrElse(Port.fromInt(8080).get)
 
     Database.migrate(config) >>
-      Database.transactor(config).use { xa =>
+      (for
+        xa         <- Database.transactor(config)
+        httpClient <- EmberClientBuilder.default[IO].build
+      yield (xa, httpClient)).use { case (xa, httpClient) =>
         val accountRepo  = AccountRepository(xa)
         val categoryRepo = CategoryRepository(xa)
         val txRepo       = TransactionRepository(xa)
         val budgetRepo   = BudgetRepository(xa)
         val spendingRepo = SpendingRepository(xa)
+        val investRepo   = InvestmentRepository(xa)
 
-        val txService      = TransactionService(txRepo, categoryRepo)
+        val txService       = TransactionService(txRepo, categoryRepo)
         val spendingService = SpendingService(spendingRepo)
+        val investService   = InvestmentService(investRepo, accountRepo)
+        val inflationSvc    = InflationService(httpClient, investRepo)
 
         val apiRoutes =
-          AccountRoutes(accountRepo).routes       <+>
-          ImportRoutes(accountRepo, txService).routes <+>
-          TransactionRoutes(txRepo).routes        <+>
-          CategoryRoutes(categoryRepo).routes     <+>
-          BudgetRoutes(budgetRepo).routes         <+>
-          SpendingRoutes(spendingService).routes
+          AccountRoutes(accountRepo).routes                              <+>
+          ImportRoutes(accountRepo, txService, investService).routes     <+>
+          TransactionRoutes(txRepo).routes                               <+>
+          CategoryRoutes(categoryRepo).routes                            <+>
+          BudgetRoutes(budgetRepo).routes                                <+>
+          SpendingRoutes(spendingService).routes                         <+>
+          InvestmentRoutes(investRepo, investService, inflationSvc).routes
 
         EmberServerBuilder
           .default[IO]

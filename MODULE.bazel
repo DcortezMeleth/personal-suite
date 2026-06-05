@@ -35,6 +35,7 @@ maven.install(
         # HTTP server (0.23.30 = last release on cats-effect 3.5.x)
         "org.http4s:http4s-core_3:0.23.30",
         "org.http4s:http4s-ember-server_3:0.23.30",
+        "org.http4s:http4s-client_3:0.23.30",
         "org.http4s:http4s-ember-client_3:0.23.30",
         "org.http4s:http4s-circe_3:0.23.30",
         "org.http4s:http4s-dsl_3:0.23.30",

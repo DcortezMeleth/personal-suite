@@ -16,6 +16,8 @@ scala_library(
         "@maven//:org_http4s_http4s_circe_3",
         "@maven//:org_http4s_http4s_core_3",
         "@maven//:org_http4s_http4s_dsl_3",
+        "@maven//:org_http4s_http4s_client_3",
+        "@maven//:org_http4s_http4s_ember_client_3",
         "@maven//:org_http4s_http4s_ember_server_3",
         "@maven//:org_http4s_http4s_server_3",
         "@maven//:org_postgresql_postgresql",

@@ -116,3 +116,108 @@ export interface ImportResult {
   skipped: number;
   transfersDetected: number;
 }
+
+// ── Investment types ─────────────────────────────────────────────────────────
+
+export type InstrumentType = "ETF" | "STOCK" | "TREASURY_BOND" | "DEPOSIT" | "FUND";
+export type InvestmentTxType = "BUY" | "SELL" | "DIVIDEND" | "INTEREST" | "COUPON" | "MATURITY";
+export type DepositStatus = "ACTIVE" | "MATURED" | "BROKEN";
+
+export interface PositionDetail {
+  instrumentId: string;
+  symbol: string | null;
+  name: string;
+  instrumentType: InstrumentType;
+  currency: string;
+  accountId: string;
+  accountName: string;
+  quantity: number;
+  avgBuyPrice: number | null;
+  currentPrice: number | null;
+  costBasis: number | null;
+  currentValue: number | null;
+  gainLoss: number | null;
+  gainLossPct: number | null;
+}
+
+export interface TreasuryBond {
+  id: string;
+  accountId: string;
+  series: string;
+  nominalValue: number;
+  quantity: number;
+  purchaseDate: string;
+  maturityDate: string;
+  annualRatePct: number;
+  interestType: string;
+}
+
+export interface BondWithValue {
+  bond: TreasuryBond;
+  accountName: string;
+  invested: number;
+  accrued: number;
+  currentValue: number;
+  gainPct: number;
+}
+
+export interface Deposit {
+  id: string;
+  accountId: string;
+  amount: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  interestRate: number;
+  status: DepositStatus;
+}
+
+export interface DepositWithValue {
+  deposit: Deposit;
+  accountName: string;
+  accrued: number;
+  currentValue: number;
+  gainPct: number;
+}
+
+export interface TypeAllocation {
+  name: string;
+  currentValue: number;
+  invested: number;
+  allocationPct: number;
+}
+
+export interface PortfolioSummary {
+  owner: string;
+  totalCurrentValue: number;
+  totalInvested: number;
+  totalGainLoss: number;
+  totalGainLossPct: number;
+  byType: TypeAllocation[];
+}
+
+export interface InflationPoint {
+  yearMonth: string;
+  cpiIndex: number;
+}
+
+export interface CreateTreasuryBond {
+  accountId: string;
+  series: string;
+  nominalValue: number;
+  quantity: number;
+  purchaseDate: string;
+  maturityDate: string;
+  annualRatePct: number;
+  interestType: string;
+}
+
+export interface CreateDeposit {
+  accountId: string;
+  amount: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  interestRate: number;
+  status: DepositStatus;
+}

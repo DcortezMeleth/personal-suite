@@ -17,3 +17,16 @@ object DoobieMeta:
       s => scala.util.Try(RuleMatchType.valueOf(s)).toOption,
       _.toString
     )
+
+  given Meta[InstrumentType] =
+    pgEnumStringOpt("instrument_type", s => scala.util.Try(InstrumentType.valueOf(s)).toOption, _.toString)
+
+  given Meta[InvestmentTxType] =
+    pgEnumStringOpt(
+      "investment_tx_type",
+      s => scala.util.Try(InvestmentTxType.valueOf(s)).toOption,
+      _.toString
+    )
+
+  given Meta[DepositStatus] =
+    pgEnumStringOpt("deposit_status", s => scala.util.Try(DepositStatus.valueOf(s)).toOption, _.toString)
