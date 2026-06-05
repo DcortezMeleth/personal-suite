@@ -1,0 +1,5 @@
+packages:
+  - "libs/*"
+  - "services/*/frontend"
+allowBuilds:
+  esbuild: true

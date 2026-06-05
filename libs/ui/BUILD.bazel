@@ -1,0 +1,20 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
+ts_project(
+    name = "ui_ts",
+    srcs = glob(["src/**/*.ts", "src/**/*.tsx"]),
+    tsconfig = ":tsconfig.json",
+    deps = [
+        "//:node_modules/@types/react",
+        "//:node_modules/react",
+    ],
+    declaration = True,
+    visibility = ["//visibility:public"],
+)
+
+js_library(
+    name = "ui",
+    srcs = [":ui_ts"],
+    visibility = ["//visibility:public"],
+)

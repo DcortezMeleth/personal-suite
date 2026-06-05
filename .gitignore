@@ -1,0 +1,41 @@
+# Bazel
+bazel-*
+
+# Node / pnpm
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+**/.vite/
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Scala / JVM
+target/
+**/target/
+*.class
+*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.metals/
+.bloop/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Env / secrets
+.env
+.env.local
+**/.env.local
+
+# Claude Code
+.claude/
+
+# Logs
+*.log

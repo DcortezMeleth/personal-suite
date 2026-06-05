@@ -1,0 +1,17 @@
+# Enable bzlmod (default in Bazel 7+, explicit here for clarity)
+common --enable_bzlmod
+
+# Java 17 toolchain
+build --java_runtime_version=17
+build --tool_java_runtime_version=17
+
+# Disable Java header compilation so Bazel passes full JARs to scalac.
+# rules_jvm_external otherwise produces stripped header jars that lose Scala 3
+# TASTy metadata, causing AssertionErrors in the dotty compiler.
+build --nojava_header_compilation
+
+# Show errors in tests
+test --test_output=errors
+
+# Avoid sandbox issues with pnpm on macOS
+build --sandbox_writable_path=/private/tmp

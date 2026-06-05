@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@delfin/ui": ["../../../libs/ui/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}
