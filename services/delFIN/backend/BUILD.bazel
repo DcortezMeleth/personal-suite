@@ -1,4 +1,4 @@
-load("@rules_scala//scala:scala.bzl", "scala_binary", "scala_library")
+load("@rules_scala//scala:scala.bzl", "scala_binary", "scala_library", "scala_test")
 
 scala_library(
     name = "fin_lib",
@@ -51,4 +51,10 @@ scala_binary(
     main_class = "fin.Main",
     deps = [":fin_lib"],
     visibility = ["//visibility:public"],
+)
+
+scala_test(
+    name = "importer_test",
+    srcs = glob(["src/test/scala/fin/importer/*.scala"]),
+    deps = [":fin_lib"],
 )

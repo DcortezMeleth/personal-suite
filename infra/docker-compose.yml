@@ -3,9 +3,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: delfin
-      POSTGRES_USER: delfin
-      POSTGRES_PASSWORD: delfin
+      POSTGRES_DB: ${POSTGRES_DB:-delfin}
+      POSTGRES_USER: ${POSTGRES_USER:-delfin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/.env — copy infra/.env.example}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../db/migrations:/docker-entrypoint-initdb.d:ro
@@ -23,9 +23,9 @@ services:
     volumes:
       - ../services/delFIN/backend:/app/src:ro
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/delfin
-      DATABASE_USER: delfin
-      DATABASE_PASSWORD: delfin
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-delfin}
+      DATABASE_USER: ${POSTGRES_USER:-delfin}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/.env — copy infra/.env.example}
       SERVER_PORT: "8080"
     ports:
       - "8080:8080"

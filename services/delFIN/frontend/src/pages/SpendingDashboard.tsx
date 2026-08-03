@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { AlertBanner, DataCard } from "@delfin/ui";
 import { ImportModal } from "../components/ImportModal";
+import { AddAccountModal } from "../components/AddAccountModal";
 import {
   api,
   Account,
@@ -19,49 +20,63 @@ function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
 }
 
-function currentYearMonth() {
+function currentMonthStr() {
   const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function ym() {
-  const { year, month } = currentYearMonth();
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
+type ViewMode = "month" | "all";
 
 export function SpendingDashboard() {
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthStr());
+
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [summary, setSummary] = useState<MonthlySummary | null>(null);
   const [trend, setTrend] = useState<MonthlyTrend[]>([]);
   const [topTx, setTopTx] = useState<TransactionRow[]>([]);
   const [budgets, setBudgets] = useState<BudgetStatus[]>([]);
   const [showImport, setShowImport] = useState(false);
+  const [showAddAccount, setShowAddAccount] = useState(false);
   const [loading, setLoading] = useState(true);
   const [importMsg, setImportMsg] = useState<string | null>(null);
-
-  const { year, month } = currentYearMonth();
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [accs, sum, tr, top, bdg] = await Promise.all([
-        api.get<Account[]>("/accounts"),
-        api.get<MonthlySummary>(`/spending/summary?month=${ym()}`),
-        api.get<MonthlyTrend[]>("/spending/trend?months=12"),
-        api.get<TransactionRow[]>(`/transactions/top?year=${year}&month=${month}&limit=10`),
-        api.get<BudgetStatus[]>(`/budgets/status?month=${ym()}`),
-      ]);
-      setAccounts(accs);
-      setSummary(sum);
-      setTrend(tr);
-      setTopTx(top);
-      setBudgets(bdg);
+      if (viewMode === "all") {
+        const [accs, sum, tr, top] = await Promise.all([
+          api.get<Account[]>("/accounts"),
+          api.get<MonthlySummary>("/spending/summary/all-time"),
+          api.get<MonthlyTrend[]>("/spending/trend?months=12"),
+          api.get<TransactionRow[]>("/transactions/top/all-time?limit=10"),
+        ]);
+        setAccounts(accs);
+        setSummary(sum);
+        setTrend(tr);
+        setTopTx(top);
+        setBudgets([]);
+      } else {
+        const [year, month] = selectedMonth.split("-").map(Number);
+        const [accs, sum, tr, top, bdg] = await Promise.all([
+          api.get<Account[]>("/accounts"),
+          api.get<MonthlySummary>(`/spending/summary?month=${selectedMonth}`),
+          api.get<MonthlyTrend[]>("/spending/trend?months=12"),
+          api.get<TransactionRow[]>(`/transactions/top?year=${year}&month=${month}&limit=10`),
+          api.get<BudgetStatus[]>(`/budgets/status?month=${selectedMonth}`),
+        ]);
+        setAccounts(accs);
+        setSummary(sum);
+        setTrend(tr);
+        setTopTx(top);
+        setBudgets(bdg);
+      }
     } catch (_) {
       // backend not reachable yet — leave state empty
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, [viewMode, selectedMonth]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -75,18 +90,54 @@ export function SpendingDashboard() {
   const breached  = budgets.filter((b) => b.isBreached);
   const warnings  = budgets.filter((b) => b.isWarning && !b.isBreached);
   const noData    = !loading && summary?.spendingByCategory.length === 0;
+  const periodLabel = viewMode === "all" ? "All Time" : selectedMonth;
 
   return (
     <div className="space-y-6">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-900">Spending — {ym()}</h1>
-        <button
-          onClick={() => setShowImport(true)}
-          className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-        >
-          Import Statement
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-neutral-900">Spending — {periodLabel}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex rounded-md border border-neutral-300 bg-white p-0.5 shadow-sm">
+            <button
+              onClick={() => setViewMode("month")}
+              className={`rounded px-3 py-1.5 text-sm font-medium ${
+                viewMode === "month" ? "bg-primary-600 text-white" : "text-neutral-600 hover:bg-neutral-50"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setViewMode("all")}
+              className={`rounded px-3 py-1.5 text-sm font-medium ${
+                viewMode === "all" ? "bg-primary-600 text-white" : "text-neutral-600 hover:bg-neutral-50"
+              }`}
+            >
+              All Time
+            </button>
+          </div>
+          {viewMode === "month" && (
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          )}
+          <button
+            onClick={() => setShowAddAccount(true)}
+            className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50"
+          >
+            + Account
+          </button>
+          <button
+            onClick={() => setShowImport(true)}
+            disabled={accounts.length === 0}
+            className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          >
+            Import Statement
+          </button>
+        </div>
       </div>
 
       {/* ── Alerts ─────────────────────────────────────────────── */}
@@ -107,10 +158,20 @@ export function SpendingDashboard() {
           message={`Budget warning: ${b.categoryName} — ${fmt(b.spent)} / ${fmt(b.monthlyLimit)} (${b.pct}%)`}
         />
       ))}
-      {noData && (
+      {!loading && accounts.length === 0 && (
         <AlertBanner
           level="info"
-          message="No transactions this month. Click 'Import Statement' to get started."
+          message="No accounts yet. Click '+ Account' to add one before importing a statement."
+        />
+      )}
+      {noData && accounts.length > 0 && (
+        <AlertBanner
+          level="info"
+          message={
+            viewMode === "all"
+              ? "No transactions yet. Click 'Import Statement' to get started."
+              : `No transactions in ${selectedMonth}. Try a different month, or click 'Import Statement' to get started.`
+          }
         />
       )}
 
@@ -119,7 +180,7 @@ export function SpendingDashboard() {
         <SummaryTile
           label="Total Spent"
           value={summary ? fmt(summary.totalSpent) : "—"}
-          sub={summary && summary.deltaVsPrevMonth !== 0
+          sub={viewMode === "month" && summary && summary.deltaVsPrevMonth !== 0
             ? `${summary.deltaVsPrevMonth > 0 ? "+" : ""}${fmt(summary.deltaVsPrevMonth)} vs last month`
             : undefined}
         />
@@ -130,7 +191,7 @@ export function SpendingDashboard() {
 
       {/* ── Charts ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DataCard title="Spending by Category">
+        <DataCard title={`Spending by Category — ${periodLabel}`}>
           {summary && summary.spendingByCategory.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -175,7 +236,7 @@ export function SpendingDashboard() {
       </div>
 
       {/* ── Top transactions ───────────────────────────────────── */}
-      <DataCard title="Top Expenses This Month">
+      <DataCard title={`Top Expenses — ${periodLabel}`}>
         {topTx.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -192,7 +253,7 @@ export function SpendingDashboard() {
                 {topTx.map((tx) => (
                   <tr key={tx.id} className="border-b border-neutral-100 last:border-0">
                     <td className="py-2 pr-4 text-neutral-500">{tx.date}</td>
-                    <td className="py-2 pr-4 text-neutral-900 max-w-xs truncate">{tx.description}</td>
+                    <td className="py-2 pr-4 text-neutral-900 max-w-xs truncate" title={tx.description}>{tx.description}</td>
                     <td className="py-2 pr-4 text-neutral-500">{tx.accountName}</td>
                     <td className="py-2 pr-4">
                       {tx.categoryName ? (
@@ -225,6 +286,14 @@ export function SpendingDashboard() {
           accounts={accounts}
           onClose={() => setShowImport(false)}
           onImported={handleImported}
+        />
+      )}
+
+      {/* ── Add account modal ──────────────────────────────────── */}
+      {showAddAccount && (
+        <AddAccountModal
+          onClose={() => setShowAddAccount(false)}
+          onSaved={() => loadData()}
         />
       )}
     </div>

@@ -16,6 +16,9 @@ class SpendingRoutes(service: SpendingService):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
+    case GET -> Root / "spending" / "summary" / "all-time" =>
+      service.summaryAllTime.flatMap(s => Ok(s.asJson))
+
     case GET -> Root / "spending" / "summary" :? SpendingMonthParam(monthOpt) =>
       val ym = monthOpt
         .flatMap(s => scala.util.Try(YearMonth.parse(s)).toOption)

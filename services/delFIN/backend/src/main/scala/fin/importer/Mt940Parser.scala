@@ -6,9 +6,11 @@ import java.time.format.DateTimeFormatter
 
 object Mt940Parser:
 
-  // :61: field format: YYMMDD[MMDD][C|D]Amount[NTRF|other][Reference]
-  // Amount uses comma as decimal separator (Polish/European format)
-  private val field61Pattern = """(\d{6})(?:\d{4})?([CD])(\d+,\d+).*""".r
+  // :61: field format: YYMMDD[MMDD][C|D][fundsCode]Amount[NTRF|other][Reference]
+  // Amount uses comma as decimal separator (Polish/European format).
+  // Some banks (e.g. PKO BP) emit an optional single-letter funds code between
+  // the C/D mark and the amount even for domestic PLN entries.
+  private val field61Pattern = """(\d{6})(?:\d{4})?([CD])[A-Z]?(\d+,\d+).*""".r
   private val dateFormat     = DateTimeFormatter.ofPattern("yyyyMMdd")
 
   def parse(content: String): Either[String, List[ParsedTransaction]] =
@@ -20,11 +22,22 @@ object Mt940Parser:
       while i < lines.length do
         val line = lines(i)
         if line.startsWith(":61:") then
-          val field61 = collectField(lines, i).stripPrefix(":61:")
-          val descIdx = findNextField(lines, i + 1, ":86:")
-          val desc    = if descIdx >= 0 then collectField(lines, descIdx).stripPrefix(":86:").trim else ""
-          parseEntry(field61, desc).foreach(result += _)
-          i = if descIdx >= 0 then descIdx + 1 else i + 1
+          // Field 61 itself is always a single line in practice; some exports
+          // insert a free-text transaction-type label line directly after it
+          // (e.g. "Transakcja karta debetowa") before the :86: field. That
+          // label is not a SWIFT continuation of field 61, so it must not be
+          // folded into the amount/date match.
+          val field61  = line.stripPrefix(":61:")
+          val labelIdx = i + 1
+          val hasLabel = labelIdx < lines.length &&
+                         !lines(labelIdx).startsWith(":") &&
+                         lines(labelIdx).nonEmpty
+          val label      = if hasLabel then lines(labelIdx).trim else ""
+          val searchFrom = if hasLabel then labelIdx + 1 else labelIdx
+          val descIdx    = findNextField(lines, searchFrom, ":86:")
+          val desc       = if descIdx >= 0 then collectField(lines, descIdx).stripPrefix(":86:").trim else ""
+          parseEntry(field61, label, desc).foreach(result += _)
+          i = if descIdx >= 0 then descIdx + 1 else searchFrom
         else
           i += 1
 
@@ -45,23 +58,18 @@ object Mt940Parser:
       j += 1
     if j < lines.length && lines(j).startsWith(prefix) then j else -1
 
-  private def parseEntry(field61: String, description: String): Option[ParsedTransaction] =
+  private def parseEntry(field61: String, label: String, description: String): Option[ParsedTransaction] =
     field61.trim match
       case field61Pattern(dateStr, indicator, amountStr) =>
         val date      = LocalDate.parse("20" + dateStr, dateFormat)
         val absAmount = BigDecimal(amountStr.replace(",", "."))
         val amount    = if indicator == "D" then -absAmount else absAmount
+        val raw       = (label + "\n" + description).trim
         Some(ParsedTransaction(
           date           = date,
           amount         = amount,
           currency       = "PLN",
-          description    = sanitise(description),
-          rawDescription = description.trim
+          description    = DescriptionFormatter.extractTitle(raw),
+          rawDescription = raw
         ))
       case _ => None
-
-  private def sanitise(raw: String): String =
-    raw.replaceAll("""~\d{2}""", " ")
-       .replaceAll("""\s+""", " ")
-       .trim
-       .take(500)

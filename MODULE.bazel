@@ -1,5 +1,5 @@
 module(
-    name = "delfin_monorepo",
+    name = "personal_suite",
     version = "0.0.0",
 )
 
@@ -28,6 +28,7 @@ scala_deps = use_extension(
     "scala_deps",
 )
 scala_deps.scala()
+scala_deps.scalatest()
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(

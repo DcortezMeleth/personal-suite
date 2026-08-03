@@ -17,6 +17,9 @@ class TransactionRoutes(repo: TransactionRepository):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
+    case GET -> Root / "transactions" / "top" / "all-time" :? LimitParam(limitOpt) =>
+      repo.findTopAll(limitOpt.getOrElse(10)).flatMap(list => Ok(list.asJson))
+
     case GET -> Root / "transactions" :? YearParam(year) +& MonthParam(month) =>
       repo.findByMonth(year, month).flatMap(list => Ok(list.asJson))
 

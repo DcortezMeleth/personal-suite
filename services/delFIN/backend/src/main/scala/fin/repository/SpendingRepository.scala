@@ -23,6 +23,29 @@ class SpendingRepository(xa: Transactor[IO]):
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
 
+  def spendingByCategoryAll: IO[List[CategorySpending]] =
+    sql"""
+      SELECT c.id, c.name, c.color, COALESCE(SUM(-t.amount), 0) AS total
+      FROM categories c
+      JOIN transactions t ON t.category_id = c.id
+      WHERE t.amount < 0
+        AND NOT t.is_internal_transfer
+      GROUP BY c.id, c.name, c.color
+      ORDER BY total DESC
+    """.query[CategorySpending].to[List].transact(xa)
+
+  def totalSpentAll: IO[BigDecimal] =
+    sql"""
+      SELECT COALESCE(SUM(-amount), 0) FROM transactions
+      WHERE amount < 0 AND NOT is_internal_transfer
+    """.query[BigDecimal].unique.transact(xa)
+
+  def totalIncomeAll: IO[BigDecimal] =
+    sql"""
+      SELECT COALESCE(SUM(amount), 0) FROM transactions
+      WHERE amount > 0 AND NOT is_internal_transfer
+    """.query[BigDecimal].unique.transact(xa)
+
   def totalSpent(ym: YearMonth): IO[BigDecimal] =
     val start = ym.atDay(1)
     val end   = ym.atEndOfMonth()

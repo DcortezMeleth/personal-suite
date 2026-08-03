@@ -23,6 +23,20 @@ class SpendingService(spendingRepo: SpendingRepository):
       spendingByCategory   = byCategory
     )
 
+  def summaryAllTime: IO[MonthlySummary] =
+    for
+      byCategory  <- spendingRepo.spendingByCategoryAll
+      totalSpent  <- spendingRepo.totalSpentAll
+      totalIncome <- spendingRepo.totalIncomeAll
+    yield MonthlySummary(
+      month              = "ALL",
+      totalSpent         = totalSpent,
+      totalIncome        = totalIncome,
+      netCashflow        = totalIncome - totalSpent,
+      deltaVsPrevMonth   = 0,
+      spendingByCategory = byCategory
+    )
+
   def trend(months: Int): IO[List[MonthlyTrend]] =
     val startDate = YearMonth.now().minusMonths(months.toLong).atDay(1)
     spendingRepo.monthlyTrend(startDate)

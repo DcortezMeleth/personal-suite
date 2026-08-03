@@ -1,10 +1,12 @@
 package fin.repository
 
 import cats.effect.IO
+import cats.syntax.traverse.*
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
 import fin.domain.*
+import fin.importer.DescriptionFormatter
 import java.time.LocalDate
 import java.util.UUID
 
@@ -53,6 +55,33 @@ class TransactionRepository(xa: Transactor[IO]):
       ORDER BY t.amount ASC
       LIMIT $limit
     """.query[TransactionRow].to[List].transact(xa)
+
+  def findTopAll(limit: Int): IO[List[TransactionRow]] =
+    sql"""
+      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.description,
+             t.category_id, c.name, c.color, t.is_internal_transfer
+      FROM transactions t
+      JOIN accounts a ON a.id = t.account_id
+      LEFT JOIN categories c ON c.id = t.category_id
+      WHERE NOT t.is_internal_transfer
+        AND t.amount < 0
+      ORDER BY t.amount ASC
+      LIMIT $limit
+    """.query[TransactionRow].to[List].transact(xa)
+
+  // Regenerates `description` from the durable `raw_description` using the current
+  // DescriptionFormatter rules. Safe to re-run any time that formatting logic changes —
+  // no re-import needed, since raw_description already holds the full original data.
+  def backfillDescriptions: IO[Int] =
+    sql"SELECT id, raw_description FROM transactions"
+      .query[(UUID, String)].to[List].transact(xa)
+      .flatMap { rows =>
+        rows.traverse { case (id, raw) =>
+          val title = DescriptionFormatter.extractTitle(raw)
+          sql"UPDATE transactions SET description = $title WHERE id = $id".update.run
+        }.transact(xa)
+      }
+      .map(_.sum)
 
   def updateCategory(id: UUID, categoryId: UUID): IO[Int] =
     sql"UPDATE transactions SET category_id = $categoryId WHERE id = $id"

@@ -46,7 +46,8 @@ object Main extends IOApp.Simple:
           CategoryRoutes(categoryRepo).routes                            <+>
           BudgetRoutes(budgetRepo).routes                                <+>
           SpendingRoutes(spendingService).routes                         <+>
-          InvestmentRoutes(investRepo, investService, inflationSvc).routes
+          InvestmentRoutes(investRepo, investService, inflationSvc).routes <+>
+          AdminRoutes(txRepo).routes
 
         EmberServerBuilder
           .default[IO]
