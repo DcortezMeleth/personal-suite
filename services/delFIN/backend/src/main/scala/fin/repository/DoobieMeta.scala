@@ -18,6 +18,13 @@ object DoobieMeta:
       _.toString
     )
 
+  given Meta[RuleDirection] =
+    pgEnumStringOpt(
+      "rule_direction",
+      s => scala.util.Try(RuleDirection.valueOf(s)).toOption,
+      _.toString
+    )
+
   given Meta[InstrumentType] =
     pgEnumStringOpt("instrument_type", s => scala.util.Try(InstrumentType.valueOf(s)).toOption, _.toString)
 

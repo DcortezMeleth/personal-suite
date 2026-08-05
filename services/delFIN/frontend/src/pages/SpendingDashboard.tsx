@@ -243,7 +243,7 @@ export function SpendingDashboard() {
               <thead>
                 <tr className="border-b border-neutral-200 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
                   <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Description</th>
+                  <th className="py-2 pr-4">Title</th>
                   <th className="py-2 pr-4">Account</th>
                   <th className="py-2 pr-4">Category</th>
                   <th className="py-2 text-right">Amount</th>
@@ -253,7 +253,7 @@ export function SpendingDashboard() {
                 {topTx.map((tx) => (
                   <tr key={tx.id} className="border-b border-neutral-100 last:border-0">
                     <td className="py-2 pr-4 text-neutral-500">{tx.date}</td>
-                    <td className="py-2 pr-4 text-neutral-900 max-w-xs truncate" title={tx.description}>{tx.description}</td>
+                    <td className="py-2 pr-4 text-neutral-900 max-w-xs truncate" title={tx.title}>{tx.title}</td>
                     <td className="py-2 pr-4 text-neutral-500">{tx.accountName}</td>
                     <td className="py-2 pr-4">
                       {tx.categoryName ? (

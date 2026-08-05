@@ -38,19 +38,20 @@ object AliorCsvParser:
     if cols.length < 7 then None
     else
       scala.util.Try {
-        val date        = LocalDate.parse(cols(0), dateFormat)
-        val opType      = if cols.length > 2 then cols(2) else ""
-        val title       = if cols.length > 3 then cols(3) else ""
-        val counterpart = if cols.length > 4 then cols(4) else ""
-        val description = List(opType, title, counterpart).filter(_.nonEmpty).mkString(" | ")
-        val rawDesc     = cols.take(6).mkString(";")
-        val amount      = BigDecimal(cols(6).replace(" ", "").replace(",", "."))
-        val currency    = if cols.length > 8 then cols(8) else "PLN"
+        val date         = LocalDate.parse(cols(0), dateFormat)
+        val opType       = if cols.length > 2 then cols(2) else ""
+        val paymentTitle = if cols.length > 3 then cols(3) else ""
+        val counterpart  = if cols.length > 4 then cols(4).trim else ""
+        val title        = List(opType, paymentTitle).filter(_.nonEmpty).mkString(" | ")
+        val rawDesc      = cols.take(6).mkString(";")
+        val amount       = BigDecimal(cols(6).replace(" ", "").replace(",", "."))
+        val currency     = if cols.length > 8 then cols(8) else "PLN"
         ParsedTransaction(
           date           = date,
           amount         = amount,
           currency       = currency,
-          description    = description.take(500),
+          title          = (if title.nonEmpty then title else counterpart).take(500),
+          counterparty   = Option(counterpart).filter(_.nonEmpty),
           rawDescription = rawDesc
         )
       }.toOption

@@ -15,11 +15,11 @@ class TransactionRepository(xa: Transactor[IO]):
   def insert(t: ParsedTransaction, accountId: UUID, categoryId: Option[UUID]): IO[Transaction] =
     sql"""
       INSERT INTO transactions
-        (account_id, date, amount, currency, description, raw_description, category_id)
+        (account_id, date, amount, currency, title, counterparty, raw_description, category_id)
       VALUES
-        ($accountId, ${t.date}, ${t.amount}, ${t.currency}, ${t.description}, ${t.rawDescription}, $categoryId)
-      RETURNING id, account_id, date, amount, currency, description, raw_description,
-                category_id, is_internal_transfer, transfer_peer_id, imported_at
+        ($accountId, ${t.date}, ${t.amount}, ${t.currency}, ${t.title}, ${t.counterparty}, ${t.rawDescription}, $categoryId)
+      RETURNING id, account_id, date, amount, currency, title, counterparty, raw_description,
+                category_id, is_internal_transfer, transfer_peer_id, imported_at, notes
     """.query[Transaction].unique.transact(xa)
 
   def existsDuplicate(accountId: UUID, date: LocalDate, amount: BigDecimal, rawDesc: String): IO[Boolean] =
@@ -31,7 +31,7 @@ class TransactionRepository(xa: Transactor[IO]):
 
   def findByMonth(year: Int, month: Int): IO[List[TransactionRow]] =
     sql"""
-      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.description,
+      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
              t.category_id, c.name, c.color, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
@@ -43,7 +43,7 @@ class TransactionRepository(xa: Transactor[IO]):
 
   def findTopByMonth(year: Int, month: Int, limit: Int): IO[List[TransactionRow]] =
     sql"""
-      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.description,
+      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
              t.category_id, c.name, c.color, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
@@ -58,7 +58,7 @@ class TransactionRepository(xa: Transactor[IO]):
 
   def findTopAll(limit: Int): IO[List[TransactionRow]] =
     sql"""
-      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.description,
+      SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
              t.category_id, c.name, c.color, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
@@ -69,16 +69,75 @@ class TransactionRepository(xa: Transactor[IO]):
       LIMIT $limit
     """.query[TransactionRow].to[List].transact(xa)
 
-  // Regenerates `description` from the durable `raw_description` using the current
-  // DescriptionFormatter rules. Safe to re-run any time that formatting logic changes —
-  // no re-import needed, since raw_description already holds the full original data.
-  def backfillDescriptions: IO[Int] =
-    sql"SELECT id, raw_description FROM transactions"
-      .query[(UUID, String)].to[List].transact(xa)
+  // sortBy/sortDir are expected to already be validated against a fixed whitelist
+  // by the route layer — interpolated via Fragment.const, never as bind parameters.
+  def search(
+    dateFrom:   Option[LocalDate],
+    dateTo:     Option[LocalDate],
+    categoryId: Option[UUID],
+    search:     Option[String],
+    minAmount:  Option[BigDecimal],
+    maxAmount:  Option[BigDecimal],
+    sortBy:     String,
+    sortDir:    String,
+    page:       Int,
+    pageSize:   Int
+  ): IO[TransactionSearchResult] =
+    val filters = Fragments.whereAndOpt(
+      dateFrom.map(d => fr"t.date >= $d"),
+      dateTo.map(d => fr"t.date <= $d"),
+      categoryId.map(c => fr"t.category_id = $c"),
+      search.map(s => fr"""(t.title ILIKE ${"%" + s + "%"}
+                            OR t.counterparty ILIKE ${"%" + s + "%"}
+                            OR t.raw_description ILIKE ${"%" + s + "%"}
+                            OR t.notes ILIKE ${"%" + s + "%"})"""),
+      minAmount.map(a => fr"t.amount >= $a"),
+      maxAmount.map(a => fr"t.amount <= $a")
+    )
+
+    val orderBy = (sortBy, sortDir) match
+      case ("amount", "asc") => Fragment.const("ORDER BY t.amount ASC, t.id")
+      case ("amount", _)     => Fragment.const("ORDER BY t.amount DESC, t.id")
+      case (_, "asc")        => Fragment.const("ORDER BY t.date ASC, t.id")
+      case _                 => Fragment.const("ORDER BY t.date DESC, t.id")
+
+    val fromClause = fr"""
+      FROM transactions t
+      JOIN accounts a ON a.id = t.account_id
+      LEFT JOIN categories c ON c.id = t.category_id
+    """
+
+    val selectFr =
+      fr"""
+        SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
+               t.category_id, c.name, c.color, t.is_internal_transfer
+      """ ++ fromClause ++ filters ++ orderBy ++ fr"LIMIT $pageSize OFFSET ${page * pageSize}"
+
+    val countFr = fr"SELECT COUNT(*)" ++ fromClause ++ filters
+
+    for
+      items <- selectFr.query[TransactionRow].to[List].transact(xa)
+      total <- countFr.query[Long].unique.transact(xa)
+    yield TransactionSearchResult(items, total)
+
+  // Regenerates `title` and `counterparty` from the durable `raw_description`
+  // using the current DescriptionFormatter rules. Safe to re-run any time that
+  // formatting logic changes — no re-import needed, since raw_description already
+  // holds the full original data. Ordered per-account by (date, imported_at) and
+  // run through the same threadFeeInfo pass Mt940Parser uses, so already-imported
+  // card-fee rows also pick up their preceding purchase's title and counterparty —
+  // that fix isn't limited to future imports.
+  def backfillDerivedFields: IO[Int] =
+    sql"SELECT id, account_id, raw_description FROM transactions ORDER BY account_id, date, imported_at"
+      .query[(UUID, UUID, String)].to[List].transact(xa)
       .flatMap { rows =>
-        rows.traverse { case (id, raw) =>
-          val title = DescriptionFormatter.extractTitle(raw)
-          sql"UPDATE transactions SET description = $title WHERE id = $id".update.run
+        val updates = rows.groupBy(_._2).values.flatMap { group =>
+          val rawInfo  = group.map((_, _, raw) => (DescriptionFormatter.extractTitle(raw), DescriptionFormatter.extractCounterparty(raw)))
+          val threaded = DescriptionFormatter.threadFeeInfo(rawInfo)
+          group.zip(threaded).map { case ((id, _, _), (title, counterparty)) => (id, title, counterparty) }
+        }.toList
+        updates.traverse { case (id, title, counterparty) =>
+          sql"UPDATE transactions SET title = $title, counterparty = $counterparty WHERE id = $id".update.run
         }.transact(xa)
       }
       .map(_.sum)
@@ -86,6 +145,18 @@ class TransactionRepository(xa: Transactor[IO]):
   def updateCategory(id: UUID, categoryId: UUID): IO[Int] =
     sql"UPDATE transactions SET category_id = $categoryId WHERE id = $id"
       .update.run.transact(xa)
+
+  def updateNotes(id: UUID, notes: Option[String]): IO[Int] =
+    sql"UPDATE transactions SET notes = $notes WHERE id = $id"
+      .update.run.transact(xa)
+
+  /** The best available label for a transaction to seed an auto-generated
+    * category rule from (counterparty if present, else title), plus its own
+    * amount so the rule can default to that same cash-flow direction.
+    */
+  def findRulePatternSeed(id: UUID): IO[Option[(String, BigDecimal)]] =
+    sql"SELECT COALESCE(counterparty, title), amount FROM transactions WHERE id = $id"
+      .query[(String, BigDecimal)].option.transact(xa)
 
   def detectAndLinkTransfers: IO[Int] =
     sql"""

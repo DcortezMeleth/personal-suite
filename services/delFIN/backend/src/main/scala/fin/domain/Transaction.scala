@@ -11,12 +11,14 @@ case class Transaction(
   date: LocalDate,
   amount: BigDecimal,
   currency: String,
-  description: String,
+  title: String,
+  counterparty: Option[String],
   rawDescription: String,
   categoryId: Option[UUID],
   isInternalTransfer: Boolean,
   transferPeerId: Option[UUID],
-  importedAt: OffsetDateTime
+  importedAt: OffsetDateTime,
+  notes: Option[String]
 )
 
 object Transaction:
@@ -30,7 +32,9 @@ case class TransactionRow(
   date: LocalDate,
   amount: BigDecimal,
   currency: String,
-  description: String,
+  title: String,
+  counterparty: Option[String],
+  notes: Option[String],
   categoryId: Option[UUID],
   categoryName: Option[String],
   categoryColor: Option[String],
@@ -40,14 +44,28 @@ case class TransactionRow(
 object TransactionRow:
   given Encoder[TransactionRow] = deriveEncoder
 
+case class TransactionSearchResult(items: List[TransactionRow], total: Long)
+
+object TransactionSearchResult:
+  given Encoder[TransactionSearchResult] = deriveEncoder
+
 case class ParsedTransaction(
   date: LocalDate,
   amount: BigDecimal,
   currency: String,
-  description: String,
+  title: String,
+  counterparty: Option[String],
   rawDescription: String
 )
 
 case class SetCategory(categoryId: UUID)
 object SetCategory:
   given Decoder[SetCategory] = deriveDecoder
+
+case class SetNotes(notes: Option[String])
+object SetNotes:
+  given Decoder[SetNotes] = deriveDecoder
+
+case class CreateRuleFromTransaction(categoryId: UUID, scope: RecategorizeScope)
+object CreateRuleFromTransaction:
+  given Decoder[CreateRuleFromTransaction] = deriveDecoder

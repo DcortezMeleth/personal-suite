@@ -10,6 +10,6 @@ class AdminRoutes(txRepo: TransactionRepository):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
-    case POST -> Root / "admin" / "backfill-descriptions" =>
-      txRepo.backfillDescriptions.flatMap(n => Ok(s"""{"updated":$n}"""))
+    case POST -> Root / "admin" / "backfill-titles" =>
+      txRepo.backfillDerivedFields.flatMap(n => Ok(s"""{"updated":$n}"""))
   }

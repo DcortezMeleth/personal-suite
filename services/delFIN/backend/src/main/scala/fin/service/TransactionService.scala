@@ -20,7 +20,7 @@ class TransactionService(
                      .flatMap {
                        case true  => IO.pure(false)
                        case false =>
-                         val catId = matchCategory(pt.rawDescription, rules)
+                         val catId = matchCategory(pt, rules)
                          txRepo.insert(pt, accountId, catId).as(true)
                      }
                  }
@@ -28,11 +28,25 @@ class TransactionService(
       transferred <- txRepo.detectAndLinkTransfers
     yield ImportResult(imported, results.length - imported, transferred)
 
-  private def matchCategory(rawDesc: String, rules: List[CategoryRule]): Option[UUID] =
+  // Matches against title/counterparty as well as the raw dump — a rule created
+  // from a transaction's (borrowed) title must also catch that same transaction,
+  // even when the raw statement text itself never mentions the merchant (e.g.
+  // card-fee lines, which inherit their title from the preceding purchase).
+  private[service] def matchCategory(pt: ParsedTransaction, rules: List[CategoryRule]): Option[UUID] =
+    val fields = List(pt.title, pt.counterparty.getOrElse(""), pt.rawDescription)
     rules.find { r =>
-      r.matchType match
-        case RuleMatchType.CONTAINS => rawDesc.toUpperCase.contains(r.pattern.toUpperCase)
-        case RuleMatchType.EXACT    => rawDesc.equalsIgnoreCase(r.pattern)
-        case RuleMatchType.REGEX    =>
-          scala.util.Try(r.pattern.r.findFirstIn(rawDesc).isDefined).getOrElse(false)
+      directionMatches(r.direction, pt.amount) && (r.matchType match
+        case RuleMatchType.CONTAINS =>
+          fields.exists(_.toUpperCase.contains(r.pattern.toUpperCase))
+        case RuleMatchType.EXACT =>
+          fields.exists(_.equalsIgnoreCase(r.pattern))
+        case RuleMatchType.REGEX =>
+          // Case-insensitive to match the retroactive sweep's Postgres `~*` semantics.
+          fields.exists(f => scala.util.Try(s"(?i)${r.pattern}".r.findFirstIn(f).isDefined).getOrElse(false)))
     }.map(_.categoryId)
+
+  private def directionMatches(direction: RuleDirection, amount: BigDecimal): Boolean =
+    direction match
+      case RuleDirection.ANY     => true
+      case RuleDirection.INCOME  => amount > 0
+      case RuleDirection.EXPENSE => amount < 0

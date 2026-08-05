@@ -41,7 +41,13 @@ object Mt940Parser:
         else
           i += 1
 
-      result.toList
+      // Second pass: card-fee lines carry no merchant reference of their own, so
+      // borrow the preceding entry's title AND counterparty. Kept as a separate
+      // pass (rather than resolved per-entry above) so the exact same logic in
+      // DescriptionFormatter can also run retroactively over already-imported
+      // rows — see backfillDerivedFields.
+      val threaded = DescriptionFormatter.threadFeeInfo(result.map(pt => (pt.title, pt.counterparty)).toSeq)
+      result.zip(threaded).map { case (pt, (title, counterparty)) => pt.copy(title = title, counterparty = counterparty) }.toList
     }.toEither.left.map(e => s"MT940 parse error: ${e.getMessage}")
 
   private def collectField(lines: Vector[String], start: Int): String =
@@ -64,12 +70,16 @@ object Mt940Parser:
         val date      = LocalDate.parse("20" + dateStr, dateFormat)
         val absAmount = BigDecimal(amountStr.replace(",", "."))
         val amount    = if indicator == "D" then -absAmount else absAmount
-        val raw       = (label + "\n" + description).trim
+        // Deliberately not trimmed as a whole: when label is empty this keeps a
+        // leading "\n" that tells DescriptionFormatter "no label" rather than
+        // misattributing the first line of a multi-line :86: body as the label.
+        val raw       = label + "\n" + description
         Some(ParsedTransaction(
           date           = date,
           amount         = amount,
           currency       = "PLN",
-          description    = DescriptionFormatter.extractTitle(raw),
+          title          = DescriptionFormatter.extractTitle(raw),
+          counterparty   = DescriptionFormatter.extractCounterparty(raw),
           rawDescription = raw
         ))
       case _ => None

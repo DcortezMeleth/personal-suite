@@ -26,6 +26,16 @@ async function patch<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function put<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PUT ${path} → ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
 async function del(path: string): Promise<void> {
   const res = await fetch(`${BASE}${path}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`DELETE ${path} → ${res.status}`);
@@ -40,7 +50,7 @@ async function upload<T>(path: string, formData: FormData): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const api = { get, post, patch, del, upload };
+export const api = { get, post, patch, put, del, upload };
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,11 +73,49 @@ export interface TransactionRow {
   date: string;
   amount: number;
   currency: string;
-  description: string;
+  title: string;
+  counterparty: string | null;
+  notes: string | null;
   categoryId: string | null;
   categoryName: string | null;
   categoryColor: string | null;
   isInternalTransfer: boolean;
+}
+
+export interface TransactionSearchResult {
+  items: TransactionRow[];
+  total: number;
+}
+
+export interface CreateRuleResult {
+  ruleCreated: boolean;
+  rulePattern: string | null;
+  affected: number;
+}
+
+export type RuleMatchType = "CONTAINS" | "REGEX" | "EXACT";
+export type RuleDirection = "ANY" | "INCOME" | "EXPENSE";
+export type RecategorizeScope = "NONE" | "UNCATEGORIZED_ONLY" | "ALL";
+
+export interface CategoryRule {
+  id: string;
+  categoryId: string;
+  pattern: string;
+  matchType: RuleMatchType;
+  priority: number;
+  direction: RuleDirection;
+}
+
+export interface CategoryRuleForm {
+  categoryId: string;
+  pattern: string;
+  matchType: RuleMatchType;
+  priority: number;
+  direction: RuleDirection;
+}
+
+export interface ReapplyResult {
+  affected: number;
 }
 
 export interface Category {
