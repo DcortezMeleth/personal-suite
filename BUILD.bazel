@@ -1,5 +1,18 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
 exports_files([
     "package.json",
     "pnpm-lock.yaml",
     "tsconfig.base.json",
 ])
+
+npm_link_all_packages(name = "node_modules")
+
+# ts_config's `deps` (extended tsconfigs) must be copy_to_bin'd from the same
+# package that declares them, per aspect_rules_ts convention.
+copy_to_bin(
+    name = "tsconfig_base",
+    srcs = ["tsconfig.base.json"],
+    visibility = ["//visibility:public"],
+)

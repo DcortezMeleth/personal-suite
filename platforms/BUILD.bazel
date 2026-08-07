@@ -1,0 +1,11 @@
+# Target platform for container images (Proxmox + GitHub Actions runners are
+# both linux/amd64). Only used explicitly when building image targets — day to
+# day `bazel build`/`test` still targets the host platform, unaffected.
+platform(
+    name = "linux_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)

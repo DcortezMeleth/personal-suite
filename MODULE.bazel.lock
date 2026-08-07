@@ -341,6 +341,30 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "@@aspect_rules_ts+//ts:extensions.bzl%ext": {
+      "general": {
+        "bzlTransitiveDigest": "XQyG/pNDNTKYobWyPdbo1p8twKShTk51G5mVUm9v4/4=",
+        "usagesDigest": "/7c7I38S4GHxrwtkqHSxWUL9gutd0L6rEYYy6shYfEo=",
+        "recordedInputs": [
+          "REPO_MAPPING:aspect_rules_ts+,aspect_rules_ts aspect_rules_ts+",
+          "REPO_MAPPING:aspect_rules_ts+,bazel_tools bazel_tools",
+          "FILE:@@//package.json 87801fc6e3af32a69d8472010801e9370dd4f78678306452b97357b7d9d3d990"
+        ],
+        "generatedRepoSpecs": {
+          "npm_typescript": {
+            "repoRuleId": "@@aspect_rules_ts+//ts/private:npm_repositories.bzl%http_archive_version",
+            "attributes": {
+              "version": "",
+              "version_from": "@@//:package.json",
+              "integrity": "",
+              "urls": [
+                "https://registry.npmjs.org/typescript/-/typescript-{}.tgz"
+              ]
+            }
+          }
+        }
+      }
+    },
     "@@aspect_tools_telemetry+//:extension.bzl%telemetry": {
       "general": {
         "bzlTransitiveDigest": "cl5A2O84vDL6Tt+Qga8FCj1DUDGqn+e7ly5rZ+4xvcc=",
@@ -358,6 +382,64 @@
                 "aspect_rules_ts": "3.8.10",
                 "aspect_tools_telemetry": "0.3.3"
               }
+            }
+          }
+        }
+      }
+    },
+    "@@pybind11_bazel+//:internal_configure.bzl%internal_configure_extension": {
+      "general": {
+        "bzlTransitiveDigest": "b+RP7Sgl8KN0VHamrgTqzGLuYPcQ/Mo4ptNkkHUIIlA=",
+        "usagesDigest": "D1r3lfzMuUBFxgG8V6o0bQTLMk3GkaGOaPzw53wrwyw=",
+        "recordedInputs": [
+          "REPO_MAPPING:pybind11_bazel+,bazel_tools bazel_tools",
+          "FILE:@@pybind11_bazel+//MODULE.bazel e6f4c20442eaa7c90d7190d8dc539d0ab422f95c65a57cc59562170c58ae3d34"
+        ],
+        "generatedRepoSpecs": {
+          "pybind11": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file": "@@pybind11_bazel+//:pybind11-BUILD.bazel",
+              "strip_prefix": "pybind11-2.12.0",
+              "urls": [
+                "https://github.com/pybind/pybind11/archive/v2.12.0.zip"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "@@rules_android+//bzlmod_extensions:apksig.bzl%apksig_extension": {
+      "general": {
+        "bzlTransitiveDigest": "IiT2UgJGnHaKiyP2A1yh3U/QWN4W9g/Byolrm78hC/s=",
+        "usagesDigest": "zr/niBQ/s2fHozWAsg4vI70wAxcuFjG+QtM15qGkq9o=",
+        "recordedInputs": [
+          "REPO_MAPPING:rules_android+,bazel_tools bazel_tools"
+        ],
+        "generatedRepoSpecs": {
+          "apksig": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "url": "https://android.googlesource.com/platform/tools/apksig/+archive/24e3075e68ebe17c0b529bb24bfda819db5e2f3b.tar.gz",
+              "build_file": "@@rules_android+//bzlmod_extensions:apksig.BUILD"
+            }
+          }
+        }
+      }
+    },
+    "@@rules_android+//bzlmod_extensions:com_android_dex.bzl%com_android_dex_extension": {
+      "general": {
+        "bzlTransitiveDigest": "toD4gOZwGNfBEM+xec6eRi3BM2Z9EZ4oQrORZQH3sNY=",
+        "usagesDigest": "c1Y/KGGjUYCyd8zNIVTUh1bynVXRFz6xGKaSCBpQANM=",
+        "recordedInputs": [
+          "REPO_MAPPING:rules_android+,bazel_tools bazel_tools"
+        ],
+        "generatedRepoSpecs": {
+          "com_android_dex": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "url": "https://android.googlesource.com/platform/dalvik/+archive/5a81c499a569731e2395f7c8d13c0e0d4e17a2b6.tar.gz",
+              "build_file": "@@rules_android+//bzlmod_extensions:com_android_dex.BUILD"
             }
           }
         }
@@ -504,6 +586,205 @@
               "user_node_repository_name": "nodejs"
             }
           }
+        }
+      }
+    },
+    "@@rules_oci+//oci:extensions.bzl%oci": {
+      "general": {
+        "bzlTransitiveDigest": "H23W9dvwCQM6h+Wt8PjIahx08EkAU5eSbUxAyx9Mopc=",
+        "usagesDigest": "SIP3PMQEgTxucBUSI0Un+rDotzIIDqqkw+Cgsweh6TI=",
+        "recordedInputs": [
+          "REPO_MAPPING:aspect_bazel_lib+,bazel_tools bazel_tools",
+          "REPO_MAPPING:bazel_features+,bazel_tools bazel_tools",
+          "REPO_MAPPING:rules_oci+,aspect_bazel_lib aspect_bazel_lib+",
+          "REPO_MAPPING:rules_oci+,bazel_features bazel_features+",
+          "REPO_MAPPING:rules_oci+,bazel_skylib bazel_skylib+",
+          "REPO_MAPPING:rules_oci+,platforms platforms",
+          "REPO_MAPPING:rules_oci+,tar.bzl tar.bzl+"
+        ],
+        "generatedRepoSpecs": {
+          "temurin_jre_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "library/eclipse-temurin",
+              "identifier": "17-jre-jammy",
+              "platform": "linux/amd64",
+              "target_name": "temurin_jre_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "temurin_jre": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "temurin_jre",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "library/eclipse-temurin",
+              "identifier": "17-jre-jammy",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@temurin_jre_linux_amd64"
+              },
+              "bzlmod_repository": "temurin_jre",
+              "reproducible": true
+            }
+          },
+          "nginx_base_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "library/nginx",
+              "identifier": "1.27-alpine",
+              "platform": "linux/amd64",
+              "target_name": "nginx_base_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "nginx_base": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "nginx_base",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "library/nginx",
+              "identifier": "1.27-alpine",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@nginx_base_linux_amd64"
+              },
+              "bzlmod_repository": "nginx_base",
+              "reproducible": true
+            }
+          },
+          "oci_crane_darwin_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "darwin_amd64",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_darwin_arm64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "darwin_arm64",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_linux_arm64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "linux_arm64",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_linux_armv6": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "linux_armv6",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_linux_i386": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "linux_i386",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_linux_s390x": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "linux_s390x",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "linux_amd64",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_windows_armv6": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "windows_armv6",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_windows_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
+            "attributes": {
+              "platform": "windows_amd64",
+              "crane_version": "v0.18.0"
+            }
+          },
+          "oci_crane_toolchains": {
+            "repoRuleId": "@@rules_oci+//oci/private:toolchains_repo.bzl%toolchains_repo",
+            "attributes": {
+              "toolchain_type": "@rules_oci//oci:crane_toolchain_type",
+              "toolchain": "@oci_crane_{platform}//:crane_toolchain"
+            }
+          },
+          "oci_regctl_darwin_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "darwin_amd64"
+            }
+          },
+          "oci_regctl_darwin_arm64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "darwin_arm64"
+            }
+          },
+          "oci_regctl_linux_arm64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "linux_arm64"
+            }
+          },
+          "oci_regctl_linux_s390x": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "linux_s390x"
+            }
+          },
+          "oci_regctl_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "linux_amd64"
+            }
+          },
+          "oci_regctl_windows_amd64": {
+            "repoRuleId": "@@rules_oci+//oci:repositories.bzl%regctl_repositories",
+            "attributes": {
+              "platform": "windows_amd64"
+            }
+          },
+          "oci_regctl_toolchains": {
+            "repoRuleId": "@@rules_oci+//oci/private:toolchains_repo.bzl%toolchains_repo",
+            "attributes": {
+              "toolchain_type": "@rules_oci//oci:regctl_toolchain_type",
+              "toolchain": "@oci_regctl_{platform}//:regctl_toolchain"
+            }
+          }
+        },
+        "moduleExtensionMetadata": {
+          "explicitRootModuleDirectDeps": [
+            "temurin_jre",
+            "temurin_jre_linux_amd64",
+            "nginx_base",
+            "nginx_base_linux_amd64"
+          ],
+          "explicitRootModuleDirectDevDeps": [],
+          "useAllRepos": "NO",
+          "reproducible": false
         }
       }
     },

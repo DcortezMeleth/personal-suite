@@ -116,3 +116,19 @@ use_repo(rules_ts_ext, "npm_typescript")
 # ── Container images ──────────────────────────────────────────────────────────
 
 bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "temurin_jre",
+    image = "eclipse-temurin",
+    tag = "17-jre-jammy",
+    platforms = ["linux/amd64"],
+)
+oci.pull(
+    name = "nginx_base",
+    image = "nginx",
+    tag = "1.27-alpine",
+    platforms = ["linux/amd64"],
+)
+use_repo(oci, "temurin_jre", "temurin_jre_linux_amd64", "nginx_base", "nginx_base_linux_amd64")

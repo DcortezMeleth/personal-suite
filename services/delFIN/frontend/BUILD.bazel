@@ -1,38 +1,94 @@
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("@npm//:vite/package_json.bzl", vite_bin = "bin")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//services/delFIN/frontend:vite/package_json.bzl", vite_bin = "bin")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+
+npm_link_all_packages(name = "node_modules")
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    deps = ["//:tsconfig_base"],
+)
 
 ts_project(
     name = "app_ts",
     srcs = glob(["src/**/*.ts", "src/**/*.tsx"]),
-    tsconfig = ":tsconfig.json",
+    tsconfig = ":tsconfig",
     deps = [
-        "//:node_modules/@types/react",
-        "//:node_modules/@types/react-dom",
-        "//:node_modules/react",
-        "//:node_modules/react-dom",
-        "//:node_modules/react-router-dom",
-        "//:node_modules/recharts",
+        ":node_modules/@types/react",
+        ":node_modules/@types/react-dom",
+        ":node_modules/react",
+        ":node_modules/react-dom",
+        ":node_modules/react-router-dom",
+        ":node_modules/recharts",
         "//libs/ui:ui",
     ],
+    # tsconfig.base.json sets noEmit: true — this is a pure type-check gate,
+    # producing no .js or .d.ts at all. Vite (below) transpiles the actual JS
+    # straight from these .ts/.tsx sources.
     declaration = True,
+    declaration_map = True,
+    source_map = True,
+    resolve_json_module = True,
+    no_emit = True,
     visibility = ["//visibility:private"],
 )
 
 vite_bin.vite(
     name = "build",
     args = ["build"],
+    chdir = package_name(),
     srcs = [
+        # :app_ts is a pure type-check gate (no_emit) — kept here so a type
+        # error fails this build too, but Vite reads these raw sources itself
+        # (it does its own transpiling), hence the glob alongside it.
         ":app_ts",
         "index.html",
         "tailwind.config.js",
         "postcss.config.js",
         "vite.config.ts",
-        "//:node_modules/vite",
-        "//:node_modules/@vitejs/plugin-react",
-        "//:node_modules/tailwindcss",
-        "//:node_modules/autoprefixer",
-    ] + glob(["public/**"]),
+        ":node_modules/vite",
+        ":node_modules/@vitejs/plugin-react",
+        ":node_modules/tailwindcss",
+        ":node_modules/autoprefixer",
+        "//libs/ui:ui",
+    ] + glob(["src/**"]) + glob(["public/**"]),
     out_dirs = ["dist"],
     visibility = ["//visibility:public"],
+)
+
+# ── Container image ─────────────────────────────────────────────────────────
+# Static files are architecture-independent — no cross-platform transition
+# needed here (unlike the backend's embedded JVM).
+
+pkg_tar(
+    name = "dist_layer",
+    srcs = [":build"],
+    strip_prefix = "dist",
+    package_dir = "/usr/share/nginx/html",
+)
+
+pkg_tar(
+    name = "nginx_conf_layer",
+    srcs = ["//infra/nginx:default.conf"],
+    package_dir = "/etc/nginx/conf.d",
+)
+
+oci_image(
+    name = "frontend_image",
+    base = "@nginx_base",
+    tars = [
+        ":dist_layer",
+        ":nginx_conf_layer",
+    ],
+    exposed_ports = ["80"],
+)
+
+oci_load(
+    name = "frontend_image_load",
+    image = ":frontend_image",
+    repo_tags = ["delfin-frontend:local"],
 )

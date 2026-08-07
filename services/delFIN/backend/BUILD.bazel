@@ -1,4 +1,7 @@
 load("@rules_scala//scala:scala.bzl", "scala_binary", "scala_library", "scala_test")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 
 scala_library(
     name = "fin_lib",
@@ -51,6 +54,60 @@ scala_binary(
     main_class = "fin.Main",
     deps = [":fin_lib"],
     visibility = ["//visibility:public"],
+)
+
+# ── Container image ─────────────────────────────────────────────────────────
+# Packages `:server`'s launcher script AND its runfiles tree (jars, resources —
+# migrations included, since //db:migrations is a fin_lib resource) as-is, the
+# same way they'd appear under bazel-bin. No deploy jar needed.
+#
+# `:server` itself is built for whatever platform you're on (e.g. darwin/arm64
+# on a Mac) — its embedded JDK would be a macOS binary, useless inside a Linux
+# container. `platform_transition_filegroup` cross-builds just this target for
+# linux/amd64 (matching Proxmox and GitHub Actions runners) without needing a
+# global `--platforms` flag, which would also force host-side build/run tooling
+# (e.g. the `tar`/`docker load` step below) onto the wrong platform to execute.
+
+platform_transition_filegroup(
+    name = "server_linux_amd64",
+    srcs = [":server"],
+    target_platform = "//platforms:linux_amd64",
+)
+
+pkg_tar(
+    name = "server_layer",
+    srcs = [":server_linux_amd64"],
+    include_runfiles = True,
+    package_dir = "/app",
+)
+
+oci_image(
+    name = "server_image",
+    base = "@temurin_jre",
+    tars = [":server_layer"],
+    entrypoint = ["/app/server"],
+    # The generated launcher script auto-detects its runfiles dir by convention,
+    # but pkg_tar's include_runfiles names it after the jar, not the launcher
+    # (`server.jar.runfiles`, not `server.runfiles`) — set it explicitly rather
+    # than relying on the script's fragile self-detection. Both vars are needed:
+    # JAVA_RUNFILES builds the classpath, TEST_SRCDIR locates the JVM binary —
+    # and TEST_SRCDIR is normally only derived FROM JAVA_RUNFILES inside the
+    # auto-detect block, which presetting JAVA_RUNFILES skips entirely.
+    env = {
+        "JAVA_RUNFILES": "/app/server.jar.runfiles",
+        "TEST_SRCDIR": "/app/server.jar.runfiles",
+    },
+    exposed_ports = ["8080"],
+)
+
+# `bazel build` alone produces a portable tar (bazel-bin/.../server_image_load/tarball.tar) —
+# copy that to the Proxmox box and `docker load` it there, no registry needed.
+# `bazel run //services/delFIN/backend:server_image_load` additionally loads it
+# into the local Docker daemon straight away, for docker-compose to reference.
+oci_load(
+    name = "server_image_load",
+    image = ":server_image",
+    repo_tags = ["delfin-backend:local"],
 )
 
 scala_test(
