@@ -4,11 +4,13 @@ import { SpendingDashboard } from "./pages/SpendingDashboard";
 import { InvestmentDashboard } from "./pages/InvestmentDashboard";
 import { TransactionsPage } from "./pages/TransactionsPage";
 import { RulesPage } from "./pages/RulesPage";
+import { CategoriesPage } from "./pages/CategoriesPage";
 
 const NAV_ITEMS = [
   { label: "Spending", href: "/" },
   { label: "Transactions", href: "/transactions" },
   { label: "Rules", href: "/rules" },
+  { label: "Categories", href: "/categories" },
   { label: "Investments", href: "/investments" },
 ];
 
@@ -26,6 +28,7 @@ export default function App() {
         <Route path="/" element={<SpendingDashboard />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/rules" element={<RulesPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/investments" element={<InvestmentDashboard />} />
       </Routes>
     </PageLayout>

@@ -38,7 +38,10 @@ async function put<T>(path: string, body: unknown): Promise<T> {
 
 async function del(path: string): Promise<void> {
   const res = await fetch(`${BASE}${path}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`DELETE ${path} → ${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null) as { error?: string } | null;
+    throw new Error(body?.error || `DELETE ${path} → ${res.status}`);
+  }
 }
 
 async function upload<T>(path: string, formData: FormData): Promise<T> {
@@ -120,6 +123,13 @@ export interface ReapplyResult {
 
 export interface Category {
   id: string;
+  name: string;
+  color: string;
+  icon: string | null;
+  parentId: string | null;
+}
+
+export interface CategoryForm {
   name: string;
   color: string;
   icon: string | null;

@@ -15,6 +15,32 @@ class CategoryRepository(xa: Transactor[IO]):
       SELECT id, name, color, icon, parent_id FROM categories ORDER BY name
     """.query[Category].to[List].transact(xa)
 
+  def createCategory(cmd: CreateCategory): IO[Category] =
+    sql"""
+      INSERT INTO categories (name, color, icon, parent_id)
+      VALUES (${cmd.name}, ${cmd.color}, ${cmd.icon}, ${cmd.parentId})
+      RETURNING id, name, color, icon, parent_id
+    """.query[Category].unique.transact(xa)
+
+  def updateCategory(id: UUID, cmd: UpdateCategory): IO[Option[Category]] =
+    sql"""
+      UPDATE categories
+      SET name = ${cmd.name}, color = ${cmd.color}, icon = ${cmd.icon}, parent_id = ${cmd.parentId}
+      WHERE id = $id
+      RETURNING id, name, color, icon, parent_id
+    """.query[Category].option.transact(xa)
+
+  // No ON DELETE CASCADE/SET NULL on category_id anywhere on purpose — deleting
+  // a category that's still in use (transactions, rules, budgets, or as a
+  // parent) should fail loudly rather than silently orphan/cascade data.
+  def deleteCategory(id: UUID): IO[Either[String, Unit]] =
+    sql"DELETE FROM categories WHERE id = $id".update.run.transact(xa).attempt.map {
+      case Left(e: org.postgresql.util.PSQLException) if e.getSQLState == "23503" =>
+        Left("This category is still in use (transactions, rules, budgets, or a subcategory) — reassign or remove those first.")
+      case Left(e) => throw e
+      case Right(_) => Right(())
+    }
+
   def findAllRules: IO[List[CategoryRule]] =
     sql"""
       SELECT id, category_id, pattern, match_type, priority, direction

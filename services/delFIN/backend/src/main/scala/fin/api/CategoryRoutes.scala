@@ -1,6 +1,7 @@
 package fin.api
 
 import cats.effect.IO
+import io.circe.Json
 import io.circe.syntax.*
 import org.http4s.*
 import org.http4s.circe.CirceEntityCodec.*
@@ -19,6 +20,23 @@ class CategoryRoutes(repo: CategoryRepository):
 
     case GET -> Root / "categories" =>
       repo.findAll.flatMap(list => Ok(list.asJson))
+
+    case req @ POST -> Root / "categories" =>
+      req.as[CreateCategory].flatMap(cmd => repo.createCategory(cmd).flatMap(cat => Created(cat.asJson)))
+
+    case req @ PUT -> Root / "categories" / UUIDVar(id) =>
+      req.as[UpdateCategory].flatMap { cmd =>
+        repo.updateCategory(id, cmd).flatMap {
+          case Some(cat) => Ok(cat.asJson)
+          case None      => NotFound(s"""{"error":"No category with id $id"}""")
+        }
+      }
+
+    case DELETE -> Root / "categories" / UUIDVar(id) =>
+      repo.deleteCategory(id).flatMap {
+        case Right(())  => NoContent()
+        case Left(msg)  => Conflict(Json.obj("error" -> Json.fromString(msg)))
+      }
 
     case GET -> Root / "category-rules" =>
       repo.findAllRules.flatMap(list => Ok(list.asJson))

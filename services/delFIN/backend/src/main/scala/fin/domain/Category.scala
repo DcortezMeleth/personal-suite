@@ -48,6 +48,26 @@ object Category:
   given Encoder[Category] = deriveEncoder
   given Decoder[Category] = deriveDecoder
 
+case class CreateCategory(
+  name: String,
+  color: String,
+  icon: Option[String],
+  parentId: Option[UUID]
+)
+
+object CreateCategory:
+  given Decoder[CreateCategory] = deriveDecoder
+
+case class UpdateCategory(
+  name: String,
+  color: String,
+  icon: Option[String],
+  parentId: Option[UUID]
+)
+
+object UpdateCategory:
+  given Decoder[UpdateCategory] = deriveDecoder
+
 case class CategoryRule(
   id: UUID,
   categoryId: UUID,
