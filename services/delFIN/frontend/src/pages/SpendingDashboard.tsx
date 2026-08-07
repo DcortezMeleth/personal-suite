@@ -202,8 +202,8 @@ export function SpendingDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={90}
-                  label={({ categoryName, percent }) =>
-                    `${categoryName} ${(percent * 100).toFixed(0)}%`
+                  label={({ categoryName, icon, percent }) =>
+                    `${icon ? icon + " " : ""}${categoryName} ${(percent * 100).toFixed(0)}%`
                   }
                 >
                   {summary.spendingByCategory.map((entry) => (
@@ -258,9 +258,10 @@ export function SpendingDashboard() {
                     <td className="py-2 pr-4">
                       {tx.categoryName ? (
                         <span
-                          className="inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
                           style={{ backgroundColor: tx.categoryColor ?? "#94a3b8" }}
                         >
+                          {tx.categoryIcon && <span>{tx.categoryIcon}</span>}
                           {tx.categoryName}
                         </span>
                       ) : (

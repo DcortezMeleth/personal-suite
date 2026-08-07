@@ -32,7 +32,7 @@ class TransactionRepository(xa: Transactor[IO]):
   def findByMonth(year: Int, month: Int): IO[List[TransactionRow]] =
     sql"""
       SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
-             t.category_id, c.name, c.color, t.is_internal_transfer
+             t.category_id, c.name, c.color, c.icon, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
       LEFT JOIN categories c ON c.id = t.category_id
@@ -44,7 +44,7 @@ class TransactionRepository(xa: Transactor[IO]):
   def findTopByMonth(year: Int, month: Int, limit: Int): IO[List[TransactionRow]] =
     sql"""
       SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
-             t.category_id, c.name, c.color, t.is_internal_transfer
+             t.category_id, c.name, c.color, c.icon, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
       LEFT JOIN categories c ON c.id = t.category_id
@@ -59,7 +59,7 @@ class TransactionRepository(xa: Transactor[IO]):
   def findTopAll(limit: Int): IO[List[TransactionRow]] =
     sql"""
       SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
-             t.category_id, c.name, c.color, t.is_internal_transfer
+             t.category_id, c.name, c.color, c.icon, t.is_internal_transfer
       FROM transactions t
       JOIN accounts a ON a.id = t.account_id
       LEFT JOIN categories c ON c.id = t.category_id
@@ -110,7 +110,7 @@ class TransactionRepository(xa: Transactor[IO]):
     val selectFr =
       fr"""
         SELECT t.id, t.account_id, a.name, t.date, t.amount, t.currency, t.title, t.counterparty, t.notes,
-               t.category_id, c.name, c.color, t.is_internal_transfer
+               t.category_id, c.name, c.color, c.icon, t.is_internal_transfer
       """ ++ fromClause ++ filters ++ orderBy ++ fr"LIMIT $pageSize OFFSET ${page * pageSize}"
 
     val countFr = fr"SELECT COUNT(*)" ++ fromClause ++ filters

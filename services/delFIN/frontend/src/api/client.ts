@@ -82,6 +82,7 @@ export interface TransactionRow {
   categoryId: string | null;
   categoryName: string | null;
   categoryColor: string | null;
+  categoryIcon: string | null;
   isInternalTransfer: boolean;
 }
 
@@ -140,6 +141,7 @@ export interface CategorySpending {
   categoryId: string;
   categoryName: string;
   color: string;
+  icon: string | null;
   amount: number;
 }
 

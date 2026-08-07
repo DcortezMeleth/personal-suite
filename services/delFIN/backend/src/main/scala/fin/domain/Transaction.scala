@@ -38,6 +38,7 @@ case class TransactionRow(
   categoryId: Option[UUID],
   categoryName: Option[String],
   categoryColor: Option[String],
+  categoryIcon: Option[String],
   isInternalTransfer: Boolean
 )
 

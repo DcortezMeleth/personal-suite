@@ -85,7 +85,7 @@ export function TransactionsPage() {
         ...result,
         items: result.items.map((tx) =>
           tx.id === txId
-            ? { ...tx, categoryId: newCategoryId, categoryName: category?.name ?? null, categoryColor: category?.color ?? null }
+            ? { ...tx, categoryId: newCategoryId, categoryName: category?.name ?? null, categoryColor: category?.color ?? null, categoryIcon: category?.icon ?? null }
             : tx
         ),
       });
@@ -174,7 +174,7 @@ export function TransactionsPage() {
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
               <option value="">All</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
               ))}
             </select>
           </Field>
@@ -237,7 +237,7 @@ export function TransactionsPage() {
                         >
                           <option value="">Uncategorized</option>
                           {categories.map((c) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
+                            <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
                           ))}
                         </select>
                       </td>

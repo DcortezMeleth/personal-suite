@@ -8,6 +8,7 @@ case class CategorySpending(
   categoryId: UUID,
   categoryName: String,
   color: String,
+  icon: Option[String],
   amount: BigDecimal
 )
 
