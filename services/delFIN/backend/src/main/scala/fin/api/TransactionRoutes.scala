@@ -94,6 +94,13 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
         repo.bulkAssignTag(cmd.transactionIds, cmd.tagId).flatMap(n => Ok(Json.obj("assigned" -> Json.fromInt(n))))
       }
 
+    // Single-transaction counterpart to bulk-assign, for the common "just one
+    // or two transactions" case where going through select mode is overkill.
+    case req @ POST -> Root / "transactions" / UUIDVar(id) / "tags" =>
+      req.as[AssignTag].flatMap { cmd =>
+        repo.bulkAssignTag(List(id), cmd.tagId).flatMap(_ => Ok("""{"ok":true}"""))
+      }
+
     case DELETE -> Root / "transactions" / UUIDVar(id) / "tags" / UUIDVar(tagId) =>
       repo.removeTag(id, tagId).flatMap(_ => NoContent())
 

@@ -71,6 +71,10 @@ case class BulkAssignTag(transactionIds: List[UUID], tagId: UUID)
 object BulkAssignTag:
   given Decoder[BulkAssignTag] = deriveDecoder
 
+case class AssignTag(tagId: UUID)
+object AssignTag:
+  given Decoder[AssignTag] = deriveDecoder
+
 case class ParsedTransaction(
   date: LocalDate,
   amount: BigDecimal,

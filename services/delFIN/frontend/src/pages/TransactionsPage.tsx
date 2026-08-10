@@ -145,9 +145,11 @@ export function TransactionsPage() {
     });
   }
 
-  function selectAllVisible() {
+  const allVisibleSelected = !!result && result.items.length > 0 && result.items.every((tx) => selectedIds.has(tx.id));
+
+  function toggleSelectAllVisible() {
     if (!result) return;
-    setSelectedIds(new Set(result.items.map((tx) => tx.id)));
+    setSelectedIds(allVisibleSelected ? new Set() : new Set(result.items.map((tx) => tx.id)));
   }
 
   async function handleBulkAssignTag() {
@@ -166,6 +168,26 @@ export function TransactionsPage() {
       });
       setRuleMsg(`Tagged ${selectedIds.size} transaction${selectedIds.size === 1 ? "" : "s"} with "${tag.name}".`);
       setSelectedIds(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to assign tag");
+    }
+  }
+
+  // Single-transaction counterpart to handleBulkAssignTag — for the common
+  // case of just tagging one or two rows, going through select mode is
+  // overkill.
+  async function handleAssignTag(txId: string, tagId: string) {
+    if (!result) return;
+    const tag = tags.find((t) => t.id === tagId);
+    if (!tag) return;
+    try {
+      await api.post(`/transactions/${txId}/tags`, { tagId });
+      setResult({
+        ...result,
+        items: result.items.map((tx) =>
+          tx.id === txId && !tx.tags.some((t) => t.id === tagId) ? { ...tx, tags: [...tx.tags, tag] } : tx
+        ),
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to assign tag");
     }
@@ -307,8 +329,8 @@ export function TransactionsPage() {
       {tagMode && (
         <DataCard title="Bulk tag">
           <div className="flex flex-wrap items-center gap-3">
-            <button onClick={selectAllVisible} className={pagerBtnCls}>
-              Select all visible ({result?.items.length ?? 0})
+            <button onClick={toggleSelectAllVisible} className={pagerBtnCls}>
+              {allVisibleSelected ? "Unselect all" : `Select all visible (${result?.items.length ?? 0})`}
             </button>
             <span className="text-sm text-neutral-600">{selectedIds.size} selected</span>
             <select value={bulkTagId} onChange={(e) => setBulkTagId(e.target.value)} className={inputCls + " max-w-xs"}>
@@ -403,6 +425,10 @@ export function TransactionsPage() {
                               </button>
                             </span>
                           ))}
+                          <AddTagButton
+                            options={tags.filter((t) => !tx.tags.some((existing) => existing.id === t.id))}
+                            onAdd={(tagId) => handleAssignTag(tx.id, tagId)}
+                          />
                         </div>
                       </td>
                       <td className={`py-2 text-right font-medium ${tx.amount < 0 ? "text-red-600" : "text-green-600"}`}>
@@ -451,6 +477,43 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label className="mb-1 block text-xs font-medium text-neutral-600">{label}</label>
       {children}
     </div>
+  );
+}
+
+function AddTagButton({ options, onAdd }: { options: Tag[]; onAdd: (tagId: string) => void }) {
+  const [picking, setPicking] = useState(false);
+
+  if (options.length === 0) return null;
+
+  if (!picking) {
+    return (
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        title="Add a tag"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-neutral-300 text-xs text-neutral-400 hover:border-neutral-400 hover:text-neutral-600"
+      >
+        +
+      </button>
+    );
+  }
+
+  return (
+    <select
+      autoFocus
+      value=""
+      onChange={(e) => {
+        if (e.target.value) onAdd(e.target.value);
+        setPicking(false);
+      }}
+      onBlur={() => setPicking(false)}
+      className="rounded-md border border-neutral-300 bg-white px-1 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+    >
+      <option value="" disabled>Add tag…</option>
+      {options.map((t) => (
+        <option key={t.id} value={t.id}>{t.name}</option>
+      ))}
+    </select>
   );
 }
 
