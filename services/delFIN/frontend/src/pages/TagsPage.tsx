@@ -92,9 +92,10 @@ export function TagsPage() {
                   <tr key={tag.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
                     <td className="py-2 pr-4">
                       <span
-                        className="inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
                         style={{ backgroundColor: tag.color }}
                       >
+                        {tag.icon && <span>{tag.icon}</span>}
                         {tag.name}
                       </span>
                     </td>

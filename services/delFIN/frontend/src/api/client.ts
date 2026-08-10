@@ -142,11 +142,13 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
+  icon: string | null;
 }
 
 export interface TagForm {
   name: string;
   color: string;
+  icon: string | null;
 }
 
 export interface CategorySpending {
@@ -161,6 +163,7 @@ export interface TagSpending {
   tagId: string;
   tagName: string;
   color: string;
+  icon: string | null;
   amount: number;
 }
 

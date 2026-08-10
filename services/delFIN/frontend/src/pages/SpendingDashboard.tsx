@@ -243,12 +243,12 @@ export function SpendingDashboard() {
         {summary && summary.spendingByTag.length > 0 ? (
           <ResponsiveContainer width="100%" height={Math.max(120, summary.spendingByTag.length * 40)}>
             <BarChart
-              data={summary.spendingByTag}
+              data={summary.spendingByTag.map((t) => ({ ...t, label: t.icon ? `${t.icon} ${t.tagName}` : t.tagName }))}
               layout="vertical"
               margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
             >
               <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="tagName" type="category" width={140} tick={{ fontSize: 12 }} />
+              <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 12 }} />
               <BarTooltip formatter={(v: number) => fmt(v)} />
               <Bar dataKey="amount" name="Spent">
                 {summary.spendingByTag.map((entry) => (

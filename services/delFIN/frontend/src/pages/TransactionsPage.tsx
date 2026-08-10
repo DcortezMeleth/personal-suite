@@ -7,6 +7,10 @@ function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
 }
 
+function tagLabel(t: Tag) {
+  return t.icon ? `${t.icon} ${t.name}` : t.name;
+}
+
 type SortBy = "date" | "amount";
 type SortDir = "asc" | "desc";
 
@@ -317,7 +321,7 @@ export function TransactionsPage() {
                         : { backgroundColor: "transparent", color: t.color, border: `1px solid ${t.color}` }
                     }
                   >
-                    {t.name}
+                    {tagLabel(t)}
                   </button>
                 );
               })}
@@ -336,7 +340,7 @@ export function TransactionsPage() {
             <select value={bulkTagId} onChange={(e) => setBulkTagId(e.target.value)} className={inputCls + " max-w-xs"}>
               <option value="">Choose a tag…</option>
               {tags.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+                <option key={t.id} value={t.id}>{tagLabel(t)}</option>
               ))}
             </select>
             <button
@@ -415,7 +419,7 @@ export function TransactionsPage() {
                               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
                               style={{ backgroundColor: tag.color }}
                             >
-                              {tag.name}
+                              {tagLabel(tag)}
                               <button
                                 onClick={() => handleRemoveTag(tx.id, tag.id)}
                                 className="leading-none opacity-80 hover:opacity-100"
@@ -511,7 +515,7 @@ function AddTagButton({ options, onAdd }: { options: Tag[]; onAdd: (tagId: strin
     >
       <option value="" disabled>Add tag…</option>
       {options.map((t) => (
-        <option key={t.id} value={t.id}>{t.name}</option>
+        <option key={t.id} value={t.id}>{tagLabel(t)}</option>
       ))}
     </select>
   );

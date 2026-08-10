@@ -23,6 +23,7 @@ case class TagSpending(
   tagId: UUID,
   tagName: String,
   color: String,
+  icon: Option[String],
   amount: BigDecimal
 )
 

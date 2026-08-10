@@ -11,6 +11,7 @@ export function TagFormModal({ initial, onSave, onClose }: Props) {
   const [form, setForm] = useState<TagForm>({
     name: initial?.name ?? "",
     color: initial?.color ?? "#64748b",
+    icon: initial?.icon ?? "",
   });
 
   function set<K extends keyof TagForm>(k: K, v: TagForm[K]) {
@@ -19,7 +20,7 @@ export function TagFormModal({ initial, onSave, onClose }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave(form);
+    onSave({ ...form, icon: form.icon?.trim() || null });
   }
 
   return (
@@ -38,22 +39,33 @@ export function TagFormModal({ initial, onSave, onClose }: Props) {
             />
           </Field>
 
-          <Field label="Color">
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={form.color}
-                onChange={(e) => set("color", e.target.value)}
-                className="h-8 w-10 shrink-0 cursor-pointer rounded border border-neutral-300"
-              />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Color">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={form.color}
+                  onChange={(e) => set("color", e.target.value)}
+                  className="h-8 w-10 shrink-0 cursor-pointer rounded border border-neutral-300"
+                />
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={(e) => set("color", e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+            </Field>
+            <Field label="Icon (emoji)">
               <input
                 type="text"
-                value={form.color}
-                onChange={(e) => set("color", e.target.value)}
+                value={form.icon ?? ""}
+                onChange={(e) => set("icon", e.target.value)}
                 className={inputCls}
+                placeholder="🏖"
               />
-            </div>
-          </Field>
+            </Field>
+          </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button

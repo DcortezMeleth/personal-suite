@@ -38,26 +38,26 @@ class SpendingRepository(xa: Transactor[IO]):
     val start = ym.atDay(1)
     val end   = ym.atEndOfMonth()
     sql"""
-      SELECT tg.id, tg.name, tg.color, COALESCE(SUM(-t.amount), 0) AS total
+      SELECT tg.id, tg.name, tg.color, tg.icon, COALESCE(SUM(-t.amount), 0) AS total
       FROM tags tg
       JOIN transaction_tags tt ON tt.tag_id = tg.id
       JOIN transactions t ON t.id = tt.transaction_id
       WHERE t.date BETWEEN $start AND $end
         AND t.amount < 0
         AND NOT t.is_internal_transfer
-      GROUP BY tg.id, tg.name, tg.color
+      GROUP BY tg.id, tg.name, tg.color, tg.icon
       ORDER BY total DESC
     """.query[TagSpending].to[List].transact(xa)
 
   def spendingByTagAll: IO[List[TagSpending]] =
     sql"""
-      SELECT tg.id, tg.name, tg.color, COALESCE(SUM(-t.amount), 0) AS total
+      SELECT tg.id, tg.name, tg.color, tg.icon, COALESCE(SUM(-t.amount), 0) AS total
       FROM tags tg
       JOIN transaction_tags tt ON tt.tag_id = tg.id
       JOIN transactions t ON t.id = tt.transaction_id
       WHERE t.amount < 0
         AND NOT t.is_internal_transfer
-      GROUP BY tg.id, tg.name, tg.color
+      GROUP BY tg.id, tg.name, tg.color, tg.icon
       ORDER BY total DESC
     """.query[TagSpending].to[List].transact(xa)
 
