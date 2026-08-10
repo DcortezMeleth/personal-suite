@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Tag, TagForm } from "../api/client";
+import { EmojiInput } from "./EmojiInput";
 
 interface Props {
   initial?: Tag;
@@ -57,10 +58,9 @@ export function TagFormModal({ initial, onSave, onClose }: Props) {
               </div>
             </Field>
             <Field label="Icon (emoji)">
-              <input
-                type="text"
+              <EmojiInput
                 value={form.icon ?? ""}
-                onChange={(e) => set("icon", e.target.value)}
+                onChange={(v) => set("icon", v)}
                 className={inputCls}
                 placeholder="🏖"
               />
