@@ -1,5 +1,6 @@
 package fin.repository
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.traverse.*
 import doobie.*
@@ -78,6 +79,7 @@ class TransactionRepository(xa: Transactor[IO]):
     search:     Option[String],
     minAmount:  Option[BigDecimal],
     maxAmount:  Option[BigDecimal],
+    tagIds:     List[UUID],
     sortBy:     String,
     sortDir:    String,
     page:       Int,
@@ -92,7 +94,14 @@ class TransactionRepository(xa: Transactor[IO]):
                             OR t.raw_description ILIKE ${"%" + s + "%"}
                             OR t.notes ILIKE ${"%" + s + "%"})"""),
       minAmount.map(a => fr"t.amount >= $a"),
-      maxAmount.map(a => fr"t.amount <= $a")
+      maxAmount.map(a => fr"t.amount <= $a"),
+      // ANY match: a transaction with at least one of the selected tags —
+      // not all of them. Multiple tags on one transaction are independent
+      // labels (e.g. "Portugal 2026" and "With Kids"), not a combined filter.
+      NonEmptyList.fromList(tagIds).map(ids =>
+        fr"EXISTS (SELECT 1 FROM transaction_tags tt WHERE tt.transaction_id = t.id AND" ++
+          Fragments.in(fr"tt.tag_id", ids) ++ fr")"
+      )
     )
 
     val orderBy = (sortBy, sortDir) match

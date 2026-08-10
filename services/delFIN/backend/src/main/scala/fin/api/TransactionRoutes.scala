@@ -25,6 +25,7 @@ object SortByParam    extends OptionalQueryParamDecoderMatcher[String]("sortBy")
 object SortDirParam   extends OptionalQueryParamDecoderMatcher[String]("sortDir")
 object PageParam      extends OptionalQueryParamDecoderMatcher[Int]("page")
 object PageSizeParam  extends OptionalQueryParamDecoderMatcher[Int]("pageSize")
+object TagIdsParam    extends OptionalQueryParamDecoderMatcher[String]("tagIds")
 
 class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepository, tagRepo: TagRepository):
 
@@ -33,6 +34,7 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
     case GET -> Root / "transactions" / "search"
         :? DateFromParam(dateFromOpt) +& DateToParam(dateToOpt) +& CategoryParam(categoryIdOpt)
         +& SearchParam(searchOpt) +& MinAmountParam(minAmountOpt) +& MaxAmountParam(maxAmountOpt)
+        +& TagIdsParam(tagIdsOpt)
         +& SortByParam(sortByOpt) +& SortDirParam(sortDirOpt) +& PageParam(pageOpt) +& PageSizeParam(pageSizeOpt) =>
       scala.util.Try {
         val dateFrom   = dateFromOpt.map(LocalDate.parse)
@@ -40,16 +42,17 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
         val categoryId = categoryIdOpt.map(UUID.fromString)
         val minAmount  = minAmountOpt.map(BigDecimal(_))
         val maxAmount  = maxAmountOpt.map(BigDecimal(_))
-        (dateFrom, dateTo, categoryId, minAmount, maxAmount)
+        val tagIds     = tagIdsOpt.filter(_.nonEmpty).map(_.split(",").toList.map(UUID.fromString)).getOrElse(Nil)
+        (dateFrom, dateTo, categoryId, minAmount, maxAmount, tagIds)
       } match
         case scala.util.Failure(e) =>
           BadRequest(s"""{"error":"Invalid query parameter: ${e.getMessage}"}""")
-        case scala.util.Success((dateFrom, dateTo, categoryId, minAmount, maxAmount)) =>
+        case scala.util.Success((dateFrom, dateTo, categoryId, minAmount, maxAmount, tagIds)) =>
           val sortBy   = if sortByOpt.contains("amount") then "amount" else "date"
           val sortDir  = if sortDirOpt.contains("asc") then "asc" else "desc"
           val page     = math.max(0, pageOpt.getOrElse(0))
           val pageSize = math.min(500, math.max(1, pageSizeOpt.getOrElse(50)))
-          repo.search(dateFrom, dateTo, categoryId, searchOpt, minAmount, maxAmount, sortBy, sortDir, page, pageSize)
+          repo.search(dateFrom, dateTo, categoryId, searchOpt, minAmount, maxAmount, tagIds, sortBy, sortDir, page, pageSize)
             .flatMap { result =>
               tagRepo.findTagsForTransactions(result.items.map(_.id)).flatMap { tagsByTx =>
                 val enriched = result.items.map(row => TransactionRowWithTags(row, tagsByTx.getOrElse(row.id, Nil)))

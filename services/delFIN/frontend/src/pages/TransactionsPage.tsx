@@ -38,6 +38,7 @@ export function TransactionsPage() {
   const [search, setSearch] = useState("");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
+  const [filterTagIds, setFilterTagIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(0);
@@ -47,7 +48,15 @@ export function TransactionsPage() {
     api.get<Tag[]>("/tags").then(setTags).catch(() => {});
   }, []);
 
-  useEffect(() => { setPage(0); }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, sortBy, sortDir]);
+  useEffect(() => { setPage(0); }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir]);
+
+  function toggleFilterTag(id: string) {
+    setFilterTagIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,6 +69,7 @@ export function TransactionsPage() {
       if (search.trim()) params.set("search", search.trim());
       if (minAmount) params.set("minAmount", minAmount);
       if (maxAmount) params.set("maxAmount", maxAmount);
+      if (filterTagIds.size > 0) params.set("tagIds", [...filterTagIds].join(","));
       params.set("sortBy", sortBy);
       params.set("sortDir", sortDir);
       params.set("page", String(page));
@@ -71,7 +81,7 @@ export function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, sortBy, sortDir, page]);
+  }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir, page]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -266,6 +276,32 @@ export function TransactionsPage() {
             <input type="number" step="0.01" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} className={inputCls} />
           </Field>
         </div>
+        {tags.length > 0 && (
+          <div className="mt-3">
+            <label className="mb-1 block text-xs font-medium text-neutral-600">
+              Tags {filterTagIds.size > 0 && "(any of)"}
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((t) => {
+                const active = filterTagIds.has(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => toggleFilterTag(t.id)}
+                    className="rounded-full px-2.5 py-1 text-xs font-medium transition"
+                    style={
+                      active
+                        ? { backgroundColor: t.color, color: "white" }
+                        : { backgroundColor: "transparent", color: t.color, border: `1px solid ${t.color}` }
+                    }
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </DataCard>
 
       {tagMode && (
