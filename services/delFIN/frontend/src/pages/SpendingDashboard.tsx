@@ -235,6 +235,35 @@ export function SpendingDashboard() {
         </DataCard>
       </div>
 
+      {/* ── Spending by tag ─────────────────────────────────────── */}
+      {/* A bar chart, not a pie: tags overlap (one transaction can carry
+          several), so these amounts aren't a partition of totalSpent the
+          way spendingByCategory is. */}
+      <DataCard title={`Spending by Tag — ${periodLabel}`}>
+        {summary && summary.spendingByTag.length > 0 ? (
+          <ResponsiveContainer width="100%" height={Math.max(120, summary.spendingByTag.length * 40)}>
+            <BarChart
+              data={summary.spendingByTag}
+              layout="vertical"
+              margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+            >
+              <XAxis type="number" tick={{ fontSize: 11 }} />
+              <YAxis dataKey="tagName" type="category" width={140} tick={{ fontSize: 12 }} />
+              <BarTooltip formatter={(v: number) => fmt(v)} />
+              <Bar dataKey="amount" name="Spent">
+                {summary.spendingByTag.map((entry) => (
+                  <Cell key={entry.tagId} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-neutral-500">
+            No tagged spending yet — tag transactions on the Transactions page (e.g. for a trip) to see their total here.
+          </p>
+        )}
+      </DataCard>
+
       {/* ── Top transactions ───────────────────────────────────── */}
       <DataCard title={`Top Expenses — ${periodLabel}`}>
         {topTx.length > 0 ? (

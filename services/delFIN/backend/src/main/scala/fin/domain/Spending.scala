@@ -15,13 +15,28 @@ case class CategorySpending(
 object CategorySpending:
   given Encoder[CategorySpending] = deriveEncoder
 
+// Unlike CategorySpending, these amounts aren't a partition of totalSpent —
+// a transaction can carry several tags at once, so it contributes its full
+// amount to each of them independently (and untagged transactions, the
+// common case, contribute to none).
+case class TagSpending(
+  tagId: UUID,
+  tagName: String,
+  color: String,
+  amount: BigDecimal
+)
+
+object TagSpending:
+  given Encoder[TagSpending] = deriveEncoder
+
 case class MonthlySummary(
   month: String,
   totalSpent: BigDecimal,
   totalIncome: BigDecimal,
   netCashflow: BigDecimal,
   deltaVsPrevMonth: BigDecimal,
-  spendingByCategory: List[CategorySpending]
+  spendingByCategory: List[CategorySpending],
+  spendingByTag: List[TagSpending]
 )
 
 object MonthlySummary:

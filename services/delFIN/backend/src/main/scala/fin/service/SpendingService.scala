@@ -11,6 +11,7 @@ class SpendingService(spendingRepo: SpendingRepository):
     val prev = ym.minusMonths(1)
     for
       byCategory   <- spendingRepo.spendingByCategory(ym)
+      byTag        <- spendingRepo.spendingByTag(ym)
       totalSpent   <- spendingRepo.totalSpent(ym)
       totalIncome  <- spendingRepo.totalIncome(ym)
       prevSpent    <- spendingRepo.totalSpent(prev)
@@ -20,12 +21,14 @@ class SpendingService(spendingRepo: SpendingRepository):
       totalIncome          = totalIncome,
       netCashflow          = totalIncome - totalSpent,
       deltaVsPrevMonth     = totalSpent - prevSpent,
-      spendingByCategory   = byCategory
+      spendingByCategory   = byCategory,
+      spendingByTag        = byTag
     )
 
   def summaryAllTime: IO[MonthlySummary] =
     for
       byCategory  <- spendingRepo.spendingByCategoryAll
+      byTag       <- spendingRepo.spendingByTagAll
       totalSpent  <- spendingRepo.totalSpentAll
       totalIncome <- spendingRepo.totalIncomeAll
     yield MonthlySummary(
@@ -34,7 +37,8 @@ class SpendingService(spendingRepo: SpendingRepository):
       totalIncome        = totalIncome,
       netCashflow        = totalIncome - totalSpent,
       deltaVsPrevMonth   = 0,
-      spendingByCategory = byCategory
+      spendingByCategory = byCategory,
+      spendingByTag      = byTag
     )
 
   def trend(months: Int): IO[List[MonthlyTrend]] =

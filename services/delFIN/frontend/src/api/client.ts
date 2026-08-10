@@ -157,6 +157,13 @@ export interface CategorySpending {
   amount: number;
 }
 
+export interface TagSpending {
+  tagId: string;
+  tagName: string;
+  color: string;
+  amount: number;
+}
+
 export interface MonthlySummary {
   month: string;
   totalSpent: number;
@@ -164,6 +171,7 @@ export interface MonthlySummary {
   netCashflow: number;
   deltaVsPrevMonth: number;
   spendingByCategory: CategorySpending[];
+  spendingByTag: TagSpending[];
 }
 
 export interface MonthlyTrend {
