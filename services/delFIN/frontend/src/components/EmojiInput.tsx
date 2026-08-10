@@ -10,6 +10,14 @@ const SUGGESTED_EMOJI = [
   "🎵", "📚", "🔧", "🧱", "🎬",
 ];
 
+// A grab bag of common travel destinations — good fit for trip tags
+// specifically, kept as their own group rather than mixed into the list above.
+const SUGGESTED_FLAGS = [
+  "🇵🇱", "🇵🇹", "🇪🇸", "🇫🇷", "🇮🇹", "🇬🇷", "🇩🇪", "🇬🇧", "🇳🇱", "🇧🇪",
+  "🇨🇭", "🇦🇹", "🇨🇿", "🇭🇷", "🇸🇮", "🇭🇺", "🇮🇪", "🇮🇸", "🇳🇴", "🇸🇪",
+  "🇩🇰", "🇫🇮", "🇹🇷", "🇪🇬", "🇦🇪", "🇺🇸", "🇨🇦", "🇲🇽", "🇯🇵", "🇹🇭",
+];
+
 interface Props {
   value: string;
   onChange: (value: string) => void;
@@ -53,20 +61,30 @@ export function EmojiInput({ value, onChange, placeholder, className }: Props) {
       </div>
       {open && (
         <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-md border border-neutral-200 bg-white p-2 shadow-lg">
-          <div className="grid grid-cols-8 gap-0.5">
-            {SUGGESTED_EMOJI.map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => { onChange(emoji); setOpen(false); }}
-                className="rounded p-1 text-lg hover:bg-neutral-100"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+          <EmojiGrid emojis={SUGGESTED_EMOJI} onPick={(e) => { onChange(e); setOpen(false); }} />
+          <p className="mb-1 mt-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+            Trips
+          </p>
+          <EmojiGrid emojis={SUGGESTED_FLAGS} onPick={(e) => { onChange(e); setOpen(false); }} />
         </div>
       )}
+    </div>
+  );
+}
+
+function EmojiGrid({ emojis, onPick }: { emojis: string[]; onPick: (emoji: string) => void }) {
+  return (
+    <div className="grid grid-cols-8 gap-0.5">
+      {emojis.map((emoji) => (
+        <button
+          key={emoji}
+          type="button"
+          onClick={() => onPick(emoji)}
+          className="rounded p-1 text-lg hover:bg-neutral-100"
+        >
+          {emoji}
+        </button>
+      ))}
     </div>
   );
 }
