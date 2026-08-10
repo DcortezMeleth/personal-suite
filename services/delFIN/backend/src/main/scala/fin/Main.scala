@@ -33,6 +33,7 @@ object Main extends IOApp.Simple:
         val budgetRepo   = BudgetRepository(xa)
         val spendingRepo = SpendingRepository(xa)
         val investRepo   = InvestmentRepository(xa)
+        val tagRepo      = TagRepository(xa)
 
         val txService       = TransactionService(txRepo, categoryRepo)
         val spendingService = SpendingService(spendingRepo)
@@ -47,6 +48,7 @@ object Main extends IOApp.Simple:
           BudgetRoutes(budgetRepo).routes                                <+>
           SpendingRoutes(spendingService).routes                         <+>
           InvestmentRoutes(investRepo, investService, inflationSvc).routes <+>
+          TagRoutes(tagRepo).routes                                       <+>
           AdminRoutes(txRepo).routes
 
         EmberServerBuilder

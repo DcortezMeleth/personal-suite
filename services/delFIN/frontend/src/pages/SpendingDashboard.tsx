@@ -96,7 +96,7 @@ export function SpendingDashboard() {
     <div className="space-y-6">
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-neutral-900">Spending — {periodLabel}</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">Dashboard — {periodLabel}</h1>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex rounded-md border border-neutral-300 bg-white p-0.5 shadow-sm">
             <button

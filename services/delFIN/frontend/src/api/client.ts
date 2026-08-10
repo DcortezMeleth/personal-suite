@@ -137,6 +137,17 @@ export interface CategoryForm {
   parentId: string | null;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TagForm {
+  name: string;
+  color: string;
+}
+
 export interface CategorySpending {
   categoryId: string;
   categoryName: string;

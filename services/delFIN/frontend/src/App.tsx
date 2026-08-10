@@ -5,12 +5,14 @@ import { InvestmentDashboard } from "./pages/InvestmentDashboard";
 import { TransactionsPage } from "./pages/TransactionsPage";
 import { RulesPage } from "./pages/RulesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
+import { TagsPage } from "./pages/TagsPage";
 
 const NAV_ITEMS = [
-  { label: "Spending", href: "/" },
+  { label: "Dashboard", href: "/" },
   { label: "Transactions", href: "/transactions" },
   { label: "Rules", href: "/rules" },
   { label: "Categories", href: "/categories" },
+  { label: "Tags", href: "/tags" },
   { label: "Investments", href: "/investments" },
 ];
 
@@ -29,6 +31,7 @@ export default function App() {
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/rules" element={<RulesPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/tags" element={<TagsPage />} />
         <Route path="/investments" element={<InvestmentDashboard />} />
       </Routes>
     </PageLayout>
