@@ -150,6 +150,21 @@ class TransactionRepository(xa: Transactor[IO]):
     sql"UPDATE transactions SET notes = $notes WHERE id = $id"
       .update.run.transact(xa)
 
+  // ON CONFLICT DO NOTHING: bulk-assigning a tag that's already on some of
+  // the selected transactions (e.g. re-running over an overlapping date
+  // range) is a no-op for those rows, not an error.
+  def bulkAssignTag(transactionIds: List[UUID], tagId: UUID): IO[Int] =
+    transactionIds.traverse { txId =>
+      sql"""
+        INSERT INTO transaction_tags (transaction_id, tag_id) VALUES ($txId, $tagId)
+        ON CONFLICT DO NOTHING
+      """.update.run
+    }.transact(xa).map(_.sum)
+
+  def removeTag(transactionId: UUID, tagId: UUID): IO[Int] =
+    sql"DELETE FROM transaction_tags WHERE transaction_id = $transactionId AND tag_id = $tagId"
+      .update.run.transact(xa)
+
   /** The best available label for a transaction to seed an auto-generated
     * category rule from (counterparty if present, else title), plus its own
     * amount so the rule can default to that same cash-flow direction.

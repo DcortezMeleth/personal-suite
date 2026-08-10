@@ -2,8 +2,9 @@ package fin.domain
 
 import java.time.{LocalDate, OffsetDateTime}
 import java.util.UUID
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.*
+import io.circe.syntax.*
 
 case class Transaction(
   id: UUID,
@@ -49,6 +50,26 @@ case class TransactionSearchResult(items: List[TransactionRow], total: Long)
 
 object TransactionSearchResult:
   given Encoder[TransactionSearchResult] = deriveEncoder
+
+// Tags come from a separate many-to-many join, not a plain SQL column, so
+// they can't just be another field on TransactionRow (doobie derives Read
+// positionally from SELECT columns). Reuses TransactionRow's own encoder via
+// deepMerge instead of repeating every field.
+case class TransactionRowWithTags(row: TransactionRow, tags: List[Tag])
+
+object TransactionRowWithTags:
+  given Encoder[TransactionRowWithTags] = Encoder.instance { rt =>
+    rt.row.asJson.deepMerge(Json.obj("tags" -> rt.tags.asJson))
+  }
+
+case class TransactionSearchResultWithTags(items: List[TransactionRowWithTags], total: Long)
+
+object TransactionSearchResultWithTags:
+  given Encoder[TransactionSearchResultWithTags] = deriveEncoder
+
+case class BulkAssignTag(transactionIds: List[UUID], tagId: UUID)
+object BulkAssignTag:
+  given Decoder[BulkAssignTag] = deriveDecoder
 
 case class ParsedTransaction(
   date: LocalDate,

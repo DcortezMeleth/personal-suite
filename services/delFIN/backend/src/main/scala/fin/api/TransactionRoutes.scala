@@ -8,7 +8,7 @@ import org.http4s.*
 import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import fin.domain.*
-import fin.repository.{CategoryRepository, TransactionRepository}
+import fin.repository.{CategoryRepository, TagRepository, TransactionRepository}
 import java.time.LocalDate
 import java.util.UUID
 
@@ -26,7 +26,7 @@ object SortDirParam   extends OptionalQueryParamDecoderMatcher[String]("sortDir"
 object PageParam      extends OptionalQueryParamDecoderMatcher[Int]("page")
 object PageSizeParam  extends OptionalQueryParamDecoderMatcher[Int]("pageSize")
 
-class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepository):
+class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepository, tagRepo: TagRepository):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
@@ -50,7 +50,12 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
           val page     = math.max(0, pageOpt.getOrElse(0))
           val pageSize = math.min(500, math.max(1, pageSizeOpt.getOrElse(50)))
           repo.search(dateFrom, dateTo, categoryId, searchOpt, minAmount, maxAmount, sortBy, sortDir, page, pageSize)
-            .flatMap(result => Ok(result.asJson))
+            .flatMap { result =>
+              tagRepo.findTagsForTransactions(result.items.map(_.id)).flatMap { tagsByTx =>
+                val enriched = result.items.map(row => TransactionRowWithTags(row, tagsByTx.getOrElse(row.id, Nil)))
+                Ok(TransactionSearchResultWithTags(enriched, result.total).asJson)
+              }
+            }
 
     case GET -> Root / "transactions" / "top" / "all-time" :? LimitParam(limitOpt) =>
       repo.findTopAll(limitOpt.getOrElse(10)).flatMap(list => Ok(list.asJson))
@@ -77,6 +82,17 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
       req.as[SetNotes].flatMap { cmd =>
         repo.updateNotes(id, cmd.notes).flatMap(_ => Ok("""{"ok":true}"""))
       }
+
+    // Bulk-assigns one tag to a set of transactions at once — the intended flow
+    // is filter the list down to a trip's date range, select the rows, then tag
+    // all of them in one go, rather than tagging one at a time.
+    case req @ POST -> Root / "transactions" / "tags" / "bulk-assign" =>
+      req.as[BulkAssignTag].flatMap { cmd =>
+        repo.bulkAssignTag(cmd.transactionIds, cmd.tagId).flatMap(n => Ok(Json.obj("assigned" -> Json.fromInt(n))))
+      }
+
+    case DELETE -> Root / "transactions" / UUIDVar(id) / "tags" / UUIDVar(tagId) =>
+      repo.removeTag(id, tagId).flatMap(_ => NoContent())
 
     // Explicit, separate action: generalise this transaction's (counterparty or
     // title, category) pairing into a standing rule. `scope` decides whether/how

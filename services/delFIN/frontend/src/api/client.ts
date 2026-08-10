@@ -84,6 +84,7 @@ export interface TransactionRow {
   categoryColor: string | null;
   categoryIcon: string | null;
   isInternalTransfer: boolean;
+  tags: Tag[];
 }
 
 export interface TransactionSearchResult {

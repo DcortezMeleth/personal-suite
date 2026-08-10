@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DataCard, AlertBanner } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
-import { api, Category, CreateRuleResult, RecategorizeScope, TransactionSearchResult } from "../api/client";
+import { api, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
 
 function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
@@ -21,11 +21,16 @@ const PAGE_SIZE = 50;
 
 export function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [result, setResult] = useState<TransactionSearchResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingRule, setPendingRule] = useState<PendingRule | null>(null);
   const [ruleMsg, setRuleMsg] = useState<string | null>(null);
+
+  const [tagMode, setTagMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkTagId, setBulkTagId] = useState("");
 
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -39,6 +44,7 @@ export function TransactionsPage() {
 
   useEffect(() => {
     api.get<Category[]>("/categories").then(setCategories).catch(() => {});
+    api.get<Tag[]>("/tags").then(setTags).catch(() => {});
   }, []);
 
   useEffect(() => { setPage(0); }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, sortBy, sortDir]);
@@ -116,6 +122,60 @@ export function TransactionsPage() {
     }
   }
 
+  function toggleTagMode() {
+    setTagMode((on) => !on);
+    setSelectedIds(new Set());
+  }
+
+  function toggleRowSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAllVisible() {
+    if (!result) return;
+    setSelectedIds(new Set(result.items.map((tx) => tx.id)));
+  }
+
+  async function handleBulkAssignTag() {
+    if (!result || !bulkTagId || selectedIds.size === 0) return;
+    const tag = tags.find((t) => t.id === bulkTagId);
+    if (!tag) return;
+    try {
+      await api.post("/transactions/tags/bulk-assign", { transactionIds: [...selectedIds], tagId: bulkTagId });
+      setResult({
+        ...result,
+        items: result.items.map((tx) =>
+          selectedIds.has(tx.id) && !tx.tags.some((t) => t.id === tag.id)
+            ? { ...tx, tags: [...tx.tags, tag] }
+            : tx
+        ),
+      });
+      setRuleMsg(`Tagged ${selectedIds.size} transaction${selectedIds.size === 1 ? "" : "s"} with "${tag.name}".`);
+      setSelectedIds(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to assign tag");
+    }
+  }
+
+  async function handleRemoveTag(txId: string, tagId: string) {
+    if (!result) return;
+    try {
+      await api.del(`/transactions/${txId}/tags/${tagId}`);
+      setResult({
+        ...result,
+        items: result.items.map((tx) =>
+          tx.id === txId ? { ...tx, tags: tx.tags.filter((t) => t.id !== tagId) } : tx
+        ),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to remove tag");
+    }
+  }
+
   async function handleCreateRule(scope: RecategorizeScope) {
     if (!pendingRule) return;
     try {
@@ -149,7 +209,19 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-neutral-900">Transactions</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-neutral-900">Transactions</h1>
+        <button
+          onClick={toggleTagMode}
+          className={`rounded-md border px-4 py-2 text-sm font-medium ${
+            tagMode
+              ? "border-primary-600 bg-primary-600 text-white hover:bg-primary-700"
+              : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+          }`}
+        >
+          {tagMode ? "Done selecting" : "Select / Tag"}
+        </button>
+      </div>
 
       {error && <AlertBanner level="danger" message={error} />}
       {ruleMsg && <AlertBanner level="success" message={ruleMsg} onDismiss={() => setRuleMsg(null)} />}
@@ -196,6 +268,30 @@ export function TransactionsPage() {
         </div>
       </DataCard>
 
+      {tagMode && (
+        <DataCard title="Bulk tag">
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={selectAllVisible} className={pagerBtnCls}>
+              Select all visible ({result?.items.length ?? 0})
+            </button>
+            <span className="text-sm text-neutral-600">{selectedIds.size} selected</span>
+            <select value={bulkTagId} onChange={(e) => setBulkTagId(e.target.value)} className={inputCls + " max-w-xs"}>
+              <option value="">Choose a tag…</option>
+              {tags.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleBulkAssignTag}
+              disabled={!bulkTagId || selectedIds.size === 0}
+              className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              Apply to {selectedIds.size} transaction{selectedIds.size === 1 ? "" : "s"}
+            </button>
+          </div>
+        </DataCard>
+      )}
+
       <DataCard title={result ? `${result.total} transactions` : "Transactions"}>
         {loading && !result ? (
           <p className="py-6 text-center text-sm text-neutral-500">Loading…</p>
@@ -205,18 +301,30 @@ export function TransactionsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-200 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    {tagMode && <th className="py-2 pr-2 w-8"></th>}
                     <SortableHeader label="Date" col="date" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
                     <th className="py-2 pr-4">Title</th>
                     <th className="py-2 pr-4">Counterparty</th>
                     <th className="py-2 pr-4">Account</th>
                     <th className="py-2 pr-4">Notes</th>
                     <th className="py-2 pr-4">Category</th>
+                    <th className="py-2 pr-4">Tags</th>
                     <SortableHeader label="Amount" col="amount" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} align="right" />
                   </tr>
                 </thead>
                 <tbody>
                   {result.items.map((tx) => (
                     <tr key={tx.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
+                      {tagMode && (
+                        <td className="py-2 pr-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(tx.id)}
+                            onChange={() => toggleRowSelected(tx.id)}
+                            className="h-4 w-4 cursor-pointer"
+                          />
+                        </td>
+                      )}
                       <td className="py-2 pr-4 text-neutral-500">{tx.date}</td>
                       <td className="py-2 pr-4 text-neutral-900 max-w-xs truncate" title={tx.title}>
                         {tx.title}
@@ -240,6 +348,26 @@ export function TransactionsPage() {
                             <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
                           ))}
                         </select>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <div className="flex max-w-[10rem] flex-wrap gap-1">
+                          {tx.tags.map((tag) => (
+                            <span
+                              key={tag.id}
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                              style={{ backgroundColor: tag.color }}
+                            >
+                              {tag.name}
+                              <button
+                                onClick={() => handleRemoveTag(tx.id, tag.id)}
+                                className="leading-none opacity-80 hover:opacity-100"
+                                title={`Remove "${tag.name}"`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td className={`py-2 text-right font-medium ${tx.amount < 0 ? "text-red-600" : "text-green-600"}`}>
                         {fmt(tx.amount)}

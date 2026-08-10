@@ -43,7 +43,7 @@ object Main extends IOApp.Simple:
         val apiRoutes =
           AccountRoutes(accountRepo).routes                              <+>
           ImportRoutes(accountRepo, txService, investService).routes     <+>
-          TransactionRoutes(txRepo, categoryRepo).routes                 <+>
+          TransactionRoutes(txRepo, categoryRepo, tagRepo).routes        <+>
           CategoryRoutes(categoryRepo).routes                            <+>
           BudgetRoutes(budgetRepo).routes                                <+>
           SpendingRoutes(spendingService).routes                         <+>
