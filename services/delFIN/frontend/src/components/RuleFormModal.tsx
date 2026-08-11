@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Category, CategoryRule, CategoryRuleForm, RuleDirection, RuleMatchType } from "../api/client";
+import { CategoryOptionGroups } from "./CategoryOptionGroups";
 
 interface Props {
   categories: Category[];
@@ -9,8 +10,12 @@ interface Props {
 }
 
 export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
+  // Default to the first assignable category — a category with subcategories
+  // is a rollup container and can't be a rule's target.
+  const firstAssignable = categories.find((c) => !categories.some((child) => child.parentId === c.id));
+
   const [form, setForm] = useState<CategoryRuleForm>({
-    categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
+    categoryId: initial?.categoryId ?? firstAssignable?.id ?? "",
     pattern: initial?.pattern ?? "",
     matchType: initial?.matchType ?? "CONTAINS",
     priority: initial?.priority ?? 10,
@@ -62,9 +67,7 @@ export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Category">
               <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputCls}>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
-                ))}
+                <CategoryOptionGroups categories={categories} />
               </select>
             </Field>
             <Field label="Priority (lower = checked first)">

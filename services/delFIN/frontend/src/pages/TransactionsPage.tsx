@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { DataCard, AlertBanner } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
+import { CategoryOptionGroups } from "../components/CategoryOptionGroups";
 import { api, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
 
 function fmt(amount: number) {
@@ -9,6 +10,10 @@ function fmt(amount: number) {
 
 function tagLabel(t: Tag) {
   return t.icon ? `${t.icon} ${t.name}` : t.name;
+}
+
+function categoryLabel(c: Category) {
+  return c.icon ? `${c.icon} ${c.name}` : c.name;
 }
 
 type SortBy = "date" | "amount";
@@ -279,10 +284,18 @@ export function TransactionsPage() {
             <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} />
           </Field>
           <Field label="Category">
+            {/* A filter, not an assignment — a parent stays selectable here
+                (and rolls its children in, per the backend), so this is a
+                flat, indented list rather than the assignment optgroups. */}
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
               <option value="">All</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
+              {categories.filter((c) => !c.parentId).map((top) => (
+                <Fragment key={top.id}>
+                  <option value={top.id}>{categoryLabel(top)}</option>
+                  {categories.filter((c) => c.parentId === top.id).map((child) => (
+                    <option key={child.id} value={child.id}>{"  ↳ " + categoryLabel(child)}</option>
+                  ))}
+                </Fragment>
               ))}
             </select>
           </Field>
@@ -406,9 +419,7 @@ export function TransactionsPage() {
                           style={tx.categoryColor ? { color: tx.categoryColor } : undefined}
                         >
                           <option value="">Uncategorized</option>
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
-                          ))}
+                          <CategoryOptionGroups categories={categories} />
                         </select>
                       </td>
                       <td className="py-2 pr-4">

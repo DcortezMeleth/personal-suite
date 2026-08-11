@@ -1,8 +1,15 @@
 const BASE = "/api";
 
+// Backend validation errors come back as {"error": "..."} — surface that
+// message instead of a bare status code whenever the body has one.
+async function errorFor(res: Response, fallback: string): Promise<Error> {
+  const body = await res.json().catch(() => null) as { error?: string } | null;
+  return new Error(body?.error || fallback);
+}
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  if (!res.ok) throw await errorFor(res, `GET ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
 
@@ -12,7 +19,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
+  if (!res.ok) throw await errorFor(res, `POST ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
 
@@ -22,7 +29,7 @@ async function patch<T>(path: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PATCH ${path} → ${res.status}`);
+  if (!res.ok) throw await errorFor(res, `PATCH ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
 
@@ -32,16 +39,13 @@ async function put<T>(path: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${path} → ${res.status}`);
+  if (!res.ok) throw await errorFor(res, `PUT ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
 
 async function del(path: string): Promise<void> {
   const res = await fetch(`${BASE}${path}`, { method: "DELETE" });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null) as { error?: string } | null;
-    throw new Error(body?.error || `DELETE ${path} → ${res.status}`);
-  }
+  if (!res.ok) throw await errorFor(res, `DELETE ${path} → ${res.status}`);
 }
 
 async function upload<T>(path: string, formData: FormData): Promise<T> {

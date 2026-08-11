@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { DataCard, AlertBanner } from "@delfin/ui";
 import { CategoryFormModal } from "../components/CategoryFormModal";
 import { api, Category, CategoryForm } from "../api/client";
@@ -26,7 +26,8 @@ export function CategoriesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const categoryById = new Map(categories.map((c) => [c.id, c]));
+  const topLevel = categories.filter((c) => !c.parentId);
+  const childrenOf = (parentId: string) => categories.filter((c) => c.parentId === parentId);
 
   async function handleCreate(form: CategoryForm) {
     try {
@@ -86,42 +87,17 @@ export function CategoriesPage() {
               <thead>
                 <tr className="border-b border-neutral-200 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
                   <th className="py-2 pr-4">Category</th>
-                  <th className="py-2 pr-4">Parent</th>
                   <th className="py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {categories.map((category) => (
-                  <tr key={category.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
-                    <td className="py-2 pr-4">
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        {category.icon && <span>{category.icon}</span>}
-                        {category.name}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4 text-neutral-500">
-                      {category.parentId ? categoryById.get(category.parentId)?.name ?? "—" : <span className="text-neutral-300">—</span>}
-                    </td>
-                    <td className="py-2 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingCategory(category)}
-                          className="rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(category)}
-                          className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                {topLevel.map((top) => (
+                  <Fragment key={top.id}>
+                    <CategoryRow category={top} onEdit={setEditingCategory} onDelete={handleDelete} />
+                    {childrenOf(top.id).map((child) => (
+                      <CategoryRow key={child.id} category={child} indented onEdit={setEditingCategory} onDelete={handleDelete} />
+                    ))}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -141,5 +117,47 @@ export function CategoriesPage() {
         />
       )}
     </div>
+  );
+}
+
+function CategoryRow({
+  category, indented = false, onEdit, onDelete,
+}: {
+  category: Category;
+  indented?: boolean;
+  onEdit: (c: Category) => void;
+  onDelete: (c: Category) => void;
+}) {
+  return (
+    <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
+      <td className="py-2 pr-4">
+        <div className={indented ? "flex items-center gap-1.5 pl-6" : "flex items-center gap-1.5"}>
+          {indented && <span className="text-neutral-300">↳</span>}
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+            style={{ backgroundColor: category.color }}
+          >
+            {category.icon && <span>{category.icon}</span>}
+            {category.name}
+          </span>
+        </div>
+      </td>
+      <td className="py-2 text-right">
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => onEdit(category)}
+            className="rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onDelete(category)}
+            className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }

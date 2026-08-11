@@ -40,14 +40,16 @@ export function SpendingDashboard() {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [loading, setLoading] = useState(true);
   const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [majorCategoriesOnly, setMajorCategoriesOnly] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const rollup = majorCategoriesOnly ? "true" : "false";
       if (viewMode === "all") {
         const [accs, sum, tr, top] = await Promise.all([
           api.get<Account[]>("/accounts"),
-          api.get<MonthlySummary>("/spending/summary/all-time"),
+          api.get<MonthlySummary>(`/spending/summary/all-time?rollup=${rollup}`),
           api.get<MonthlyTrend[]>("/spending/trend?months=12"),
           api.get<TransactionRow[]>("/transactions/top/all-time?limit=10"),
         ]);
@@ -60,7 +62,7 @@ export function SpendingDashboard() {
         const [year, month] = selectedMonth.split("-").map(Number);
         const [accs, sum, tr, top, bdg] = await Promise.all([
           api.get<Account[]>("/accounts"),
-          api.get<MonthlySummary>(`/spending/summary?month=${selectedMonth}`),
+          api.get<MonthlySummary>(`/spending/summary?month=${selectedMonth}&rollup=${rollup}`),
           api.get<MonthlyTrend[]>("/spending/trend?months=12"),
           api.get<TransactionRow[]>(`/transactions/top?year=${year}&month=${month}&limit=10`),
           api.get<BudgetStatus[]>(`/budgets/status?month=${selectedMonth}`),
@@ -76,7 +78,7 @@ export function SpendingDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [viewMode, selectedMonth]);
+  }, [viewMode, selectedMonth, majorCategoriesOnly]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -191,7 +193,20 @@ export function SpendingDashboard() {
 
       {/* ── Charts ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DataCard title={`Spending by Category — ${periodLabel}`}>
+        <DataCard
+          title={`Spending by Category — ${periodLabel}`}
+          actions={
+            <label className="flex items-center gap-1.5 text-xs font-normal normal-case text-neutral-600">
+              <input
+                type="checkbox"
+                checked={majorCategoriesOnly}
+                onChange={(e) => setMajorCategoriesOnly(e.target.checked)}
+                className="h-3.5 w-3.5 cursor-pointer"
+              />
+              Major categories only
+            </label>
+          }
+        >
           {summary && summary.spendingByCategory.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>

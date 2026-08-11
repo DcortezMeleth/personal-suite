@@ -26,10 +26,11 @@ export function CategoryFormModal({ categories, initial, onSave, onClose }: Prop
     onSave({ ...form, icon: form.icon?.trim() || null, parentId: form.parentId || null });
   }
 
-  // A category can't be its own parent, and (to keep this simple) can't be
-  // set as a parent of one of its own children either — not worth a full
-  // cycle check for a couple of nesting levels of personal-finance categories.
-  const parentOptions = categories.filter((c) => c.id !== initial?.id);
+  // Capped at 2 levels: only top-level categories (no parent of their own)
+  // can be picked as a parent, and a category that already has children
+  // can't become a subcategory itself — the backend enforces both too.
+  const parentOptions = categories.filter((c) => c.id !== initial?.id && !c.parentId);
+  const selfHasChildren = !!initial && categories.some((c) => c.parentId === initial.id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
@@ -75,12 +76,18 @@ export function CategoryFormModal({ categories, initial, onSave, onClose }: Prop
           </div>
 
           <Field label="Parent category (optional)">
-            <select value={form.parentId ?? ""} onChange={(e) => set("parentId", e.target.value)} className={inputCls}>
-              <option value="">None</option>
-              {parentOptions.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            {selfHasChildren ? (
+              <p className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-sm text-neutral-500">
+                This category has subcategories, so it can't itself be nested under another.
+              </p>
+            ) : (
+              <select value={form.parentId ?? ""} onChange={(e) => set("parentId", e.target.value)} className={inputCls}>
+                <option value="">None</option>
+                {parentOptions.map((c) => (
+                  <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ${c.name}` : c.name}</option>
+                ))}
+              </select>
+            )}
           </Field>
 
           <div className="flex justify-end gap-3 pt-2">
