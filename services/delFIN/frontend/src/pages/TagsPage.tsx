@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { DataCard, AlertBanner } from "@delfin/ui";
+import { DataCard, AlertBanner, ConfirmDialog } from "@delfin/ui";
 import { TagFormModal } from "../components/TagFormModal";
 import { api, Tag, TagForm } from "../api/client";
 
@@ -10,6 +10,7 @@ export function TagsPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Tag | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,8 +47,10 @@ export function TagsPage() {
     }
   }
 
-  async function handleDelete(tag: Tag) {
-    if (!window.confirm(`Delete tag "${tag.name}"? This removes it from any transactions it's on.`)) return;
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const tag = pendingDelete;
+    setPendingDelete(null);
     try {
       await api.del(`/tags/${tag.id}`);
       load();
@@ -108,7 +111,7 @@ export function TagsPage() {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(tag)}
+                          onClick={() => setPendingDelete(tag)}
                           className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                         >
                           Delete
@@ -126,6 +129,15 @@ export function TagsPage() {
       {showForm && <TagFormModal onSave={handleCreate} onClose={() => setShowForm(false)} />}
       {editingTag && (
         <TagFormModal initial={editingTag} onSave={handleUpdate} onClose={() => setEditingTag(null)} />
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete tag"
+          message={`Delete tag "${pendingDelete.name}"? This removes it from any transactions it's on.`}
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );

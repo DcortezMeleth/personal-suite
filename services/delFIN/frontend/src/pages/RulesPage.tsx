@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { DataCard, AlertBanner } from "@delfin/ui";
+import { DataCard, AlertBanner, ConfirmDialog } from "@delfin/ui";
 import { RuleFormModal } from "../components/RuleFormModal";
 import { ReapplyRuleModal } from "../components/ReapplyRuleModal";
 import {
@@ -33,6 +33,7 @@ export function RulesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState<CategoryRule | null>(null);
   const [reapplyingRule, setReapplyingRule] = useState<CategoryRule | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<CategoryRule | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,9 +79,10 @@ export function RulesPage() {
     }
   }
 
-  async function handleDelete(rule: CategoryRule) {
-    const category = categoryById.get(rule.categoryId);
-    if (!window.confirm(`Delete rule "${rule.pattern}" → ${category?.name ?? "?"}?`)) return;
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const rule = pendingDelete;
+    setPendingDelete(null);
     try {
       await api.del(`/category-rules/${rule.id}`);
       load();
@@ -170,7 +172,7 @@ export function RulesPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(rule)}
+                            onClick={() => setPendingDelete(rule)}
                             className="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                           >
                             Delete
@@ -202,6 +204,15 @@ export function RulesPage() {
           ruleLabel={`"${reapplyingRule.pattern}" → ${categoryById.get(reapplyingRule.categoryId)?.name ?? "?"}`}
           onConfirm={handleReapply}
           onClose={() => setReapplyingRule(null)}
+        />
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete rule"
+          message={`Delete rule "${pendingDelete.pattern}" → ${categoryById.get(pendingDelete.categoryId)?.name ?? "?"}?`}
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
         />
       )}
     </div>

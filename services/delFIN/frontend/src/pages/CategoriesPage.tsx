@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { DataCard, AlertBanner } from "@delfin/ui";
+import { DataCard, AlertBanner, ConfirmDialog } from "@delfin/ui";
 import { CategoryFormModal } from "../components/CategoryFormModal";
 import { api, Category, CategoryForm } from "../api/client";
 
@@ -11,6 +11,7 @@ export function CategoriesPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,8 +51,10 @@ export function CategoriesPage() {
     }
   }
 
-  async function handleDelete(category: Category) {
-    if (!window.confirm(`Delete category "${category.name}"?`)) return;
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const category = pendingDelete;
+    setPendingDelete(null);
     try {
       await api.del(`/categories/${category.id}`);
       setStatusMsg(`Deleted "${category.name}".`);
@@ -93,9 +96,9 @@ export function CategoriesPage() {
               <tbody>
                 {topLevel.map((top) => (
                   <Fragment key={top.id}>
-                    <CategoryRow category={top} onEdit={setEditingCategory} onDelete={handleDelete} />
+                    <CategoryRow category={top} onEdit={setEditingCategory} onDelete={setPendingDelete} />
                     {childrenOf(top.id).map((child) => (
-                      <CategoryRow key={child.id} category={child} indented onEdit={setEditingCategory} onDelete={handleDelete} />
+                      <CategoryRow key={child.id} category={child} indented onEdit={setEditingCategory} onDelete={setPendingDelete} />
                     ))}
                   </Fragment>
                 ))}
@@ -114,6 +117,15 @@ export function CategoriesPage() {
           initial={editingCategory}
           onSave={handleUpdate}
           onClose={() => setEditingCategory(null)}
+        />
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete category"
+          message={`Delete category "${pendingDelete.name}"?`}
+          confirmLabel="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
         />
       )}
     </div>
