@@ -88,7 +88,9 @@ class TransactionRepository(xa: Transactor[IO]):
     val filters = Fragments.whereAndOpt(
       dateFrom.map(d => fr"t.date >= $d"),
       dateTo.map(d => fr"t.date <= $d"),
-      categoryId.map(c => fr"t.category_id = $c"),
+      // A parent category rolls its children in — filtering by "Car" should
+      // also surface VW/Audi transactions, matching the dashboard's rollup.
+      categoryId.map(c => fr"t.category_id IN (SELECT id FROM categories WHERE id = $c OR parent_id = $c)"),
       search.map(s => fr"""(t.title ILIKE ${"%" + s + "%"}
                             OR t.counterparty ILIKE ${"%" + s + "%"}
                             OR t.raw_description ILIKE ${"%" + s + "%"}

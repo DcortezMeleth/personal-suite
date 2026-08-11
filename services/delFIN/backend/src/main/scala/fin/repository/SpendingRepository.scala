@@ -34,6 +34,38 @@ class SpendingRepository(xa: Transactor[IO]):
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
 
+  // Rolls a child's spending into its parent's total — for each transaction,
+  // resolve to its category's parent if it has one, else the category itself
+  // (COALESCE(c.parent_id, c.id)). Correct as long as nesting stays capped at
+  // 2 levels (enforced in CategoryRepository), since this only walks up one
+  // hop; a true multi-level tree would need a recursive CTE instead.
+  def spendingByCategoryRolledUp(ym: YearMonth): IO[List[CategorySpending]] =
+    val start = ym.atDay(1)
+    val end   = ym.atEndOfMonth()
+    sql"""
+      SELECT top.id, top.name, top.color, top.icon, COALESCE(SUM(-t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      JOIN categories top ON top.id = COALESCE(c.parent_id, c.id)
+      WHERE t.date BETWEEN $start AND $end
+        AND t.amount < 0
+        AND NOT t.is_internal_transfer
+      GROUP BY top.id, top.name, top.color, top.icon
+      ORDER BY total DESC
+    """.query[CategorySpending].to[List].transact(xa)
+
+  def spendingByCategoryRolledUpAll: IO[List[CategorySpending]] =
+    sql"""
+      SELECT top.id, top.name, top.color, top.icon, COALESCE(SUM(-t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      JOIN categories top ON top.id = COALESCE(c.parent_id, c.id)
+      WHERE t.amount < 0
+        AND NOT t.is_internal_transfer
+      GROUP BY top.id, top.name, top.color, top.icon
+      ORDER BY total DESC
+    """.query[CategorySpending].to[List].transact(xa)
+
   def spendingByTag(ym: YearMonth): IO[List[TagSpending]] =
     val start = ym.atDay(1)
     val end   = ym.atEndOfMonth()

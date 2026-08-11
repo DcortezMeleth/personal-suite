@@ -30,6 +30,43 @@ class CategoryRepository(xa: Transactor[IO]):
       RETURNING id, name, color, icon, parent_id
     """.query[Category].option.transact(xa)
 
+  def hasChildren(id: UUID): IO[Boolean] =
+    sql"SELECT COUNT(*) > 0 FROM categories WHERE parent_id = $id".query[Boolean].unique.transact(xa)
+
+  // None means "no such category" — distinct from Some(false).
+  def isTopLevel(id: UUID): IO[Option[Boolean]] =
+    sql"SELECT parent_id IS NULL FROM categories WHERE id = $id".query[Boolean].option.transact(xa)
+
+  // Categories with subcategories are pure rollup containers — a transaction
+  // (or a rule, which just sets a transaction's category_id) can only ever be
+  // assigned to a leaf/standalone category, never to something that itself
+  // has children. Otherwise a parent's rolled-up total (its own transactions
+  // + its children's) would double-count or become ambiguous.
+  def assertAssignable(id: UUID): IO[Option[String]] =
+    hasChildren(id).map { has =>
+      if has then Some("This category has subcategories — pick one of its subcategories instead of the parent.")
+      else None
+    }
+
+  // Capped at 2 levels (top-level categories + their direct children, no
+  // grandchildren) — enough for every real case (Car/VW+Audi, Taxes/ZUS+VAT),
+  // and it keeps this check simple: no cycle detection needed, no recursion.
+  def validateParent(parentId: Option[UUID], selfId: Option[UUID]): IO[Option[String]] =
+    parentId match
+      case None => IO.pure(None)
+      case Some(pid) if selfId.contains(pid) =>
+        IO.pure(Some("A category can't be its own parent."))
+      case Some(pid) =>
+        for
+          topOpt       <- isTopLevel(pid)
+          selfHasKids  <- selfId.fold(IO.pure(false))(hasChildren)
+        yield topOpt match
+          case None        => Some("Parent category not found.")
+          case Some(false) => Some("Can't nest under a category that already has a parent (max 2 levels).")
+          case Some(true) if selfHasKids =>
+            Some("This category has subcategories — a category with subcategories can't itself become one.")
+          case _ => None
+
   // No ON DELETE CASCADE/SET NULL on category_id anywhere on purpose — deleting
   // a category that's still in use (transactions, rules, budgets, or as a
   // parent) should fail loudly rather than silently orphan/cascade data.

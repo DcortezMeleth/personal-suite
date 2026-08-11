@@ -7,10 +7,10 @@ import java.time.YearMonth
 
 class SpendingService(spendingRepo: SpendingRepository):
 
-  def summary(ym: YearMonth): IO[MonthlySummary] =
+  def summary(ym: YearMonth, rollup: Boolean): IO[MonthlySummary] =
     val prev = ym.minusMonths(1)
     for
-      byCategory   <- spendingRepo.spendingByCategory(ym)
+      byCategory   <- if rollup then spendingRepo.spendingByCategoryRolledUp(ym) else spendingRepo.spendingByCategory(ym)
       byTag        <- spendingRepo.spendingByTag(ym)
       totalSpent   <- spendingRepo.totalSpent(ym)
       totalIncome  <- spendingRepo.totalIncome(ym)
@@ -25,9 +25,9 @@ class SpendingService(spendingRepo: SpendingRepository):
       spendingByTag        = byTag
     )
 
-  def summaryAllTime: IO[MonthlySummary] =
+  def summaryAllTime(rollup: Boolean): IO[MonthlySummary] =
     for
-      byCategory  <- spendingRepo.spendingByCategoryAll
+      byCategory  <- if rollup then spendingRepo.spendingByCategoryRolledUpAll else spendingRepo.spendingByCategoryAll
       byTag       <- spendingRepo.spendingByTagAll
       totalSpent  <- spendingRepo.totalSpentAll
       totalIncome <- spendingRepo.totalIncomeAll

@@ -76,7 +76,10 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
     // the user explicitly asks for that via POST .../category-rule below.
     case req @ PATCH -> Root / "transactions" / UUIDVar(id) / "category" =>
       req.as[SetCategory].flatMap { cmd =>
-        repo.updateCategory(id, cmd.categoryId).flatMap(_ => Ok("""{"ok":true}"""))
+        categoryRepo.assertAssignable(cmd.categoryId).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None      => repo.updateCategory(id, cmd.categoryId).flatMap(_ => Ok("""{"ok":true}"""))
+        }
       }
 
     // Free-text per-transaction annotation, independent of title/counterparty
@@ -111,20 +114,24 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
     // payment to "ZUS" shouldn't silently also catch an incoming refund from "ZUS".
     case req @ POST -> Root / "transactions" / UUIDVar(id) / "category-rule" =>
       req.as[CreateRuleFromTransaction].flatMap { cmd =>
-        for
-          seedOpt  <- repo.findRulePatternSeed(id)
-          ruleOpt  <- seedOpt.traverse { case (seed, amount) =>
-                        val direction = if amount > 0 then RuleDirection.INCOME else RuleDirection.EXPENSE
-                        categoryRepo.createRuleFromCorrection(seed, cmd.categoryId, direction)
-                      }.map(_.flatten)
-          affected <- ruleOpt.traverse(categoryRepo.recategoriseByRule(_, cmd.scope)).map(_.getOrElse(0))
-          resp     <- Ok(
-                        Json.obj(
-                          "ruleCreated" -> Json.fromBoolean(ruleOpt.isDefined),
-                          "rulePattern" -> ruleOpt.map(r => Json.fromString(r.pattern)).getOrElse(Json.Null),
-                          "affected"    -> Json.fromInt(affected)
-                        )
-                      )
-        yield resp
+        categoryRepo.assertAssignable(cmd.categoryId).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None =>
+            for
+              seedOpt  <- repo.findRulePatternSeed(id)
+              ruleOpt  <- seedOpt.traverse { case (seed, amount) =>
+                            val direction = if amount > 0 then RuleDirection.INCOME else RuleDirection.EXPENSE
+                            categoryRepo.createRuleFromCorrection(seed, cmd.categoryId, direction)
+                          }.map(_.flatten)
+              affected <- ruleOpt.traverse(categoryRepo.recategoriseByRule(_, cmd.scope)).map(_.getOrElse(0))
+              resp     <- Ok(
+                            Json.obj(
+                              "ruleCreated" -> Json.fromBoolean(ruleOpt.isDefined),
+                              "rulePattern" -> ruleOpt.map(r => Json.fromString(r.pattern)).getOrElse(Json.Null),
+                              "affected"    -> Json.fromInt(affected)
+                            )
+                          )
+            yield resp
+        }
       }
   }

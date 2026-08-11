@@ -22,13 +22,22 @@ class CategoryRoutes(repo: CategoryRepository):
       repo.findAll.flatMap(list => Ok(list.asJson))
 
     case req @ POST -> Root / "categories" =>
-      req.as[CreateCategory].flatMap(cmd => repo.createCategory(cmd).flatMap(cat => Created(cat.asJson)))
+      req.as[CreateCategory].flatMap { cmd =>
+        repo.validateParent(cmd.parentId, selfId = None).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None      => repo.createCategory(cmd).flatMap(cat => Created(cat.asJson))
+        }
+      }
 
     case req @ PUT -> Root / "categories" / UUIDVar(id) =>
       req.as[UpdateCategory].flatMap { cmd =>
-        repo.updateCategory(id, cmd).flatMap {
-          case Some(cat) => Ok(cat.asJson)
-          case None      => NotFound(s"""{"error":"No category with id $id"}""")
+        repo.validateParent(cmd.parentId, selfId = Some(id)).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None =>
+            repo.updateCategory(id, cmd).flatMap {
+              case Some(cat) => Ok(cat.asJson)
+              case None      => NotFound(s"""{"error":"No category with id $id"}""")
+            }
         }
       }
 
@@ -45,13 +54,22 @@ class CategoryRoutes(repo: CategoryRepository):
     // that's a separate, explicit action via POST .../reapply below, so nothing
     // gets silently mass-recategorised as a side effect of a rule edit.
     case req @ POST -> Root / "category-rules" =>
-      req.as[CreateCategoryRule].flatMap(cmd => repo.createRule(cmd).flatMap(rule => Created(rule.asJson)))
+      req.as[CreateCategoryRule].flatMap { cmd =>
+        repo.assertAssignable(cmd.categoryId).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None      => repo.createRule(cmd).flatMap(rule => Created(rule.asJson))
+        }
+      }
 
     case req @ PUT -> Root / "category-rules" / UUIDVar(id) =>
       req.as[UpdateCategoryRule].flatMap { cmd =>
-        repo.updateRule(id, cmd).flatMap {
-          case Some(rule) => Ok(rule.asJson)
-          case None       => NotFound(s"""{"error":"No rule with id $id"}""")
+        repo.assertAssignable(cmd.categoryId).flatMap {
+          case Some(err) => BadRequest(Json.obj("error" -> Json.fromString(err)))
+          case None =>
+            repo.updateRule(id, cmd).flatMap {
+              case Some(rule) => Ok(rule.asJson)
+              case None       => NotFound(s"""{"error":"No rule with id $id"}""")
+            }
         }
       }
 
