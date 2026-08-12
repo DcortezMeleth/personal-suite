@@ -10,6 +10,7 @@ import {
   api,
   Account,
   BudgetStatus,
+  CategorySpending,
   ImportResult,
   MonthlySummary,
   MonthlyTrend,
@@ -18,6 +19,30 @@ import {
 
 function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
+}
+
+// A custom legend (rather than recharts' built-in formatter) so each entry
+// can carry a native `title` tooltip with the exact amount — hovering a
+// legend row shows it even for slices too thin to hover on the pie itself.
+function CategoryLegend(props: { payload?: { color?: string; payload?: unknown }[] }) {
+  if (!props.payload) return null;
+  return (
+    <ul className="space-y-1 pl-2 text-xs">
+      {props.payload.map(({ color, payload: raw }) => {
+        const entry = raw as CategorySpending;
+        return (
+          <li
+            key={entry.categoryId}
+            title={fmt(entry.amount)}
+            className="flex cursor-default items-center gap-1.5 text-neutral-700"
+          >
+            <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+            <span className="truncate">{entry.icon ? `${entry.icon} ` : ""}{entry.categoryName}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 function currentMonthStr() {
@@ -226,16 +251,7 @@ export function SpendingDashboard() {
                   ))}
                 </Pie>
                 <PieTooltip formatter={(v: number) => fmt(v)} />
-                <Legend
-                  layout="vertical"
-                  align="right"
-                  verticalAlign="middle"
-                  iconType="circle"
-                  formatter={(value, entry: any) =>
-                    entry?.payload?.icon ? `${entry.payload.icon} ${value}` : value
-                  }
-                  wrapperStyle={{ fontSize: 12, lineHeight: "22px" }}
-                />
+                <Legend layout="vertical" align="right" verticalAlign="middle" content={CategoryLegend} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
