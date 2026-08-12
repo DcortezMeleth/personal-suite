@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { DataCard, AlertBanner } from "@delfin/ui";
+import { DataCard, AlertBanner, DatePicker } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
 import { CategoryOptionGroups } from "../components/CategoryOptionGroups";
 import { CategoryFilterOptions } from "../components/CategoryFilterOptions";
@@ -275,10 +275,10 @@ export function TransactionsPage() {
       <DataCard title="Filters">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Field label="From">
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={inputCls} />
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
           </Field>
           <Field label="To">
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} />
+            <DatePicker value={dateTo} onChange={setDateTo} align="right" />
           </Field>
           <Field label="Category">
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>

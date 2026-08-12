@@ -3,7 +3,7 @@ import {
   PieChart, Pie, Cell, Legend, Tooltip as PieTooltip,
   BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, ResponsiveContainer,
 } from "recharts";
-import { AlertBanner, DataCard } from "@delfin/ui";
+import { AlertBanner, DataCard, MonthPicker } from "@delfin/ui";
 import { ImportModal } from "../components/ImportModal";
 import { AddAccountModal } from "../components/AddAccountModal";
 import {
@@ -154,12 +154,7 @@ export function SpendingDashboard() {
             </button>
           </div>
           {viewMode === "month" && (
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+            <MonthPicker value={selectedMonth} onChange={setSelectedMonth} />
           )}
           <button
             onClick={() => setShowAddAccount(true)}

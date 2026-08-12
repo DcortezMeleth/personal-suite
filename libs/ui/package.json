@@ -9,6 +9,9 @@
       "default": "./src/index.ts"
     }
   },
+  "dependencies": {
+    "react-calendar": "^6.0.1"
+  },
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"

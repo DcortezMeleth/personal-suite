@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DatePicker } from "@delfin/ui";
 import { api } from "../api/client";
 import type { Account, CreateDeposit, DepositStatus } from "../api/client";
 
@@ -31,6 +32,10 @@ export function AddDepositModal({ onClose, onSaved }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.startDate || !form.endDate) {
+      setError("Start date and end date are required.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -99,22 +104,10 @@ export function AddDepositModal({ onClose, onSaved }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Start date">
-              <input
-                required
-                type="date"
-                value={form.startDate}
-                onChange={e => set("startDate", e.target.value)}
-                className={inputCls}
-              />
+              <DatePicker value={form.startDate} onChange={v => set("startDate", v)} />
             </Field>
             <Field label="End date">
-              <input
-                required
-                type="date"
-                value={form.endDate}
-                onChange={e => set("endDate", e.target.value)}
-                className={inputCls}
-              />
+              <DatePicker value={form.endDate} onChange={v => set("endDate", v)} align="right" />
             </Field>
           </div>
 

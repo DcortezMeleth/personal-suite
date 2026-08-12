@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DatePicker } from "@delfin/ui";
 import { api } from "../api/client";
 import type { Account, CreateTreasuryBond } from "../api/client";
 
@@ -32,6 +33,10 @@ export function AddBondModal({ onClose, onSaved }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.purchaseDate || !form.maturityDate) {
+      setError("Purchase date and maturity date are required.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -111,22 +116,10 @@ export function AddBondModal({ onClose, onSaved }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Purchase date">
-              <input
-                required
-                type="date"
-                value={form.purchaseDate}
-                onChange={e => set("purchaseDate", e.target.value)}
-                className={inputCls}
-              />
+              <DatePicker value={form.purchaseDate} onChange={v => set("purchaseDate", v)} />
             </Field>
             <Field label="Maturity date">
-              <input
-                required
-                type="date"
-                value={form.maturityDate}
-                onChange={e => set("maturityDate", e.target.value)}
-                className={inputCls}
-              />
+              <DatePicker value={form.maturityDate} onChange={v => set("maturityDate", v)} align="right" />
             </Field>
           </div>
 
