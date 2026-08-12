@@ -22,9 +22,13 @@ function fmt(amount: number) {
 }
 
 // A custom legend (rather than recharts' built-in formatter) so each entry
-// can carry a native `title` tooltip with the exact amount — hovering a
-// legend row shows it even for slices too thin to hover on the pie itself.
+// can show a tooltip with the exact amount — hovering a legend row works
+// even for slices too thin to reliably hover on the pie itself. Uses a
+// React-controlled tooltip (onMouseEnter/onMouseLeave + local state) rather
+// than the native `title` attribute — that depends on the browser's own
+// hover-dwell timing, which turned out not to fire reliably here.
 function CategoryLegend(props: { payload?: { color?: string; payload?: unknown }[] }) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   if (!props.payload) return null;
   return (
     <ul className="space-y-1 pl-2 text-xs">
@@ -33,11 +37,17 @@ function CategoryLegend(props: { payload?: { color?: string; payload?: unknown }
         return (
           <li
             key={entry.categoryId}
-            title={fmt(entry.amount)}
-            className="flex cursor-default items-center gap-1.5 text-neutral-700"
+            onMouseEnter={() => setHoveredId(entry.categoryId)}
+            onMouseLeave={() => setHoveredId(null)}
+            className="relative flex cursor-default items-center gap-1.5 text-neutral-700"
           >
             <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
             <span className="truncate">{entry.icon ? `${entry.icon} ` : ""}{entry.categoryName}</span>
+            {hoveredId === entry.categoryId && (
+              <span className="absolute right-full top-1/2 z-10 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-neutral-800 px-2 py-1 text-xs font-medium text-white shadow-lg">
+                {fmt(entry.amount)}
+              </span>
+            )}
           </li>
         );
       })}
