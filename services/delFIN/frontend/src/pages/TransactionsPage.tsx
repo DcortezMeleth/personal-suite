@@ -1,7 +1,8 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DataCard, AlertBanner } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
 import { CategoryOptionGroups } from "../components/CategoryOptionGroups";
+import { CategoryFilterOptions } from "../components/CategoryFilterOptions";
 import { api, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
 
 function fmt(amount: number) {
@@ -10,10 +11,6 @@ function fmt(amount: number) {
 
 function tagLabel(t: Tag) {
   return t.icon ? `${t.icon} ${t.name}` : t.name;
-}
-
-function categoryLabel(c: Category) {
-  return c.icon ? `${c.icon} ${c.name}` : c.name;
 }
 
 type SortBy = "date" | "amount";
@@ -284,19 +281,9 @@ export function TransactionsPage() {
             <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={inputCls} />
           </Field>
           <Field label="Category">
-            {/* A filter, not an assignment — a parent stays selectable here
-                (and rolls its children in, per the backend), so this is a
-                flat, indented list rather than the assignment optgroups. */}
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
               <option value="">All</option>
-              {categories.filter((c) => !c.parentId).map((top) => (
-                <Fragment key={top.id}>
-                  <option value={top.id}>{categoryLabel(top)}</option>
-                  {categories.filter((c) => c.parentId === top.id).map((child) => (
-                    <option key={child.id} value={child.id}>{"  ↳ " + categoryLabel(child)}</option>
-                  ))}
-                </Fragment>
-              ))}
+              <CategoryFilterOptions categories={categories} />
             </select>
           </Field>
           <Field label="Search">

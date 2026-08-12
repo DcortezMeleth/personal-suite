@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DataCard, AlertBanner, ConfirmDialog } from "@delfin/ui";
 import { RuleFormModal } from "../components/RuleFormModal";
 import { ReapplyRuleModal } from "../components/ReapplyRuleModal";
+import { CategoryFilterOptions } from "../components/CategoryFilterOptions";
 import {
   api,
   Category,
@@ -9,6 +10,8 @@ import {
   CategoryRuleForm,
   ReapplyResult,
   RecategorizeScope,
+  RuleDirection,
+  RuleMatchType,
 } from "../api/client";
 
 const DIRECTION_LABEL: Record<string, string> = {
@@ -35,6 +38,11 @@ export function RulesPage() {
   const [reapplyingRule, setReapplyingRule] = useState<CategoryRule | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CategoryRule | null>(null);
 
+  const [filterCategoryId, setFilterCategoryId] = useState("");
+  const [filterMatchType, setFilterMatchType] = useState<RuleMatchType | "">("");
+  const [filterDirection, setFilterDirection] = useState<RuleDirection | "">("");
+  const [filterSearch, setFilterSearch] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -55,6 +63,20 @@ export function RulesPage() {
   useEffect(() => { load(); }, [load]);
 
   const categoryById = new Map(categories.map((c) => [c.id, c]));
+
+  // Picking a parent category (e.g. "Car") also matches rules on its
+  // children (VW/Audi) — consistent with how the transactions filter and
+  // dashboard rollup treat a parent as covering everything under it.
+  const filteredRules = rules.filter((rule) => {
+    if (filterCategoryId) {
+      const cat = categoryById.get(rule.categoryId);
+      if (rule.categoryId !== filterCategoryId && cat?.parentId !== filterCategoryId) return false;
+    }
+    if (filterMatchType && rule.matchType !== filterMatchType) return false;
+    if (filterDirection && rule.direction !== filterDirection) return false;
+    if (filterSearch.trim() && !rule.pattern.toLowerCase().includes(filterSearch.trim().toLowerCase())) return false;
+    return true;
+  });
 
   async function handleCreate(form: CategoryRuleForm) {
     try {
@@ -117,11 +139,49 @@ export function RulesPage() {
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
       {statusMsg && <AlertBanner level="success" message={statusMsg} onDismiss={() => setStatusMsg(null)} />}
 
-      <DataCard title={`${rules.length} rules`}>
+      <DataCard title="Filters">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Field label="Category">
+            <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)} className={inputCls}>
+              <option value="">All</option>
+              <CategoryFilterOptions categories={categories} />
+            </select>
+          </Field>
+          <Field label="Match type">
+            <select value={filterMatchType} onChange={(e) => setFilterMatchType(e.target.value as RuleMatchType | "")} className={inputCls}>
+              <option value="">All</option>
+              <option value="CONTAINS">Contains</option>
+              <option value="EXACT">Exact</option>
+              <option value="REGEX">Regex</option>
+            </select>
+          </Field>
+          <Field label="Direction">
+            <select value={filterDirection} onChange={(e) => setFilterDirection(e.target.value as RuleDirection | "")} className={inputCls}>
+              <option value="">All</option>
+              <option value="ANY">Any</option>
+              <option value="EXPENSE">Outgoing only</option>
+              <option value="INCOME">Incoming only</option>
+            </select>
+          </Field>
+          <Field label="Pattern search">
+            <input
+              type="text"
+              placeholder="e.g. LIDL"
+              value={filterSearch}
+              onChange={(e) => setFilterSearch(e.target.value)}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </DataCard>
+
+      <DataCard title={`${filteredRules.length} of ${rules.length} rules`}>
         {loading ? (
           <p className="py-6 text-center text-sm text-neutral-500">Loading…</p>
         ) : rules.length === 0 ? (
           <p className="py-6 text-center text-sm text-neutral-500">No rules yet.</p>
+        ) : filteredRules.length === 0 ? (
+          <p className="py-6 text-center text-sm text-neutral-500">No rules match these filters.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -136,7 +196,7 @@ export function RulesPage() {
                 </tr>
               </thead>
               <tbody>
-                {rules.map((rule) => {
+                {filteredRules.map((rule) => {
                   const category = categoryById.get(rule.categoryId);
                   return (
                     <tr key={rule.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
@@ -215,6 +275,17 @@ export function RulesPage() {
           onCancel={() => setPendingDelete(null)}
         />
       )}
+    </div>
+  );
+}
+
+const inputCls = "w-full rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-neutral-600">{label}</label>
+      {children}
     </div>
   );
 }
