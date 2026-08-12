@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  PieChart, Pie, Cell, Tooltip as PieTooltip,
+  PieChart, Pie, Cell, Legend, Tooltip as PieTooltip,
   BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, ResponsiveContainer,
 } from "recharts";
 import { AlertBanner, DataCard } from "@delfin/ui";
@@ -208,24 +208,34 @@ export function SpendingDashboard() {
           }
         >
           {summary && summary.spendingByCategory.length > 0 ? (
-            <ResponsiveContainer width="100%" height={260}>
+            // No inline slice labels — with more than a handful of categories
+            // they overlap and become unreadable. A side legend (color swatch
+            // + name) identifies slices instead; exact amounts are on hover.
+            <ResponsiveContainer width="100%" height={Math.max(260, summary.spendingByCategory.length * 26)}>
               <PieChart>
                 <Pie
                   data={summary.spendingByCategory}
                   dataKey="amount"
                   nameKey="categoryName"
-                  cx="50%"
+                  cx="35%"
                   cy="50%"
                   outerRadius={90}
-                  label={({ categoryName, icon, percent }) =>
-                    `${icon ? icon + " " : ""}${categoryName} ${(percent * 100).toFixed(0)}%`
-                  }
                 >
                   {summary.spendingByCategory.map((entry) => (
                     <Cell key={entry.categoryId} fill={entry.color} />
                   ))}
                 </Pie>
                 <PieTooltip formatter={(v: number) => fmt(v)} />
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  iconType="circle"
+                  formatter={(value, entry: any) =>
+                    entry?.payload?.icon ? `${entry.payload.icon} ${value}` : value
+                  }
+                  wrapperStyle={{ fontSize: 12, lineHeight: "22px" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           ) : (
