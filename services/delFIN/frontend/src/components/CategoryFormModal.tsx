@@ -15,6 +15,7 @@ export function CategoryFormModal({ categories, initial, onSave, onClose }: Prop
     color: initial?.color ?? "#64748b",
     icon: initial?.icon ?? "",
     parentId: initial?.parentId ?? "",
+    isInternal: initial?.isInternal ?? false,
   });
 
   function set<K extends keyof CategoryForm>(k: K, v: CategoryForm[K]) {
@@ -89,6 +90,21 @@ export function CategoryFormModal({ categories, initial, onSave, onClose }: Prop
               </select>
             )}
           </Field>
+
+          <label className="flex items-start gap-2 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={form.isInternal}
+              onChange={(e) => set("isInternal", e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Internal transfer category
+              <span className="block text-xs text-neutral-500">
+                Transactions in this category (e.g. moving money between your own accounts) are excluded from income/spending totals and charts.
+              </span>
+            </span>
+          </label>
 
           <div className="flex justify-end gap-3 pt-2">
             <button

@@ -41,7 +41,8 @@ case class Category(
   name: String,
   color: String,
   icon: Option[String],
-  parentId: Option[UUID]
+  parentId: Option[UUID],
+  isInternal: Boolean
 )
 
 object Category:
@@ -52,7 +53,8 @@ case class CreateCategory(
   name: String,
   color: String,
   icon: Option[String],
-  parentId: Option[UUID]
+  parentId: Option[UUID],
+  isInternal: Boolean
 )
 
 object CreateCategory:
@@ -62,7 +64,8 @@ case class UpdateCategory(
   name: String,
   color: String,
   icon: Option[String],
-  parentId: Option[UUID]
+  parentId: Option[UUID],
+  isInternal: Boolean
 )
 
 object UpdateCategory:

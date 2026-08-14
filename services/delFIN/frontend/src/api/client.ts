@@ -133,6 +133,7 @@ export interface Category {
   color: string;
   icon: string | null;
   parentId: string | null;
+  isInternal: boolean;
 }
 
 export interface CategoryForm {
@@ -140,6 +141,7 @@ export interface CategoryForm {
   color: string;
   icon: string | null;
   parentId: string | null;
+  isInternal: boolean;
 }
 
 export interface Tag {

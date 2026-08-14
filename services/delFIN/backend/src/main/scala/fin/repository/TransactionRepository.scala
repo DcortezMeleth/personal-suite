@@ -52,6 +52,7 @@ class TransactionRepository(xa: Transactor[IO]):
       WHERE EXTRACT(YEAR FROM t.date)  = $year
         AND EXTRACT(MONTH FROM t.date) = $month
         AND NOT t.is_internal_transfer
+        AND NOT COALESCE(c.is_internal, false)
         AND t.amount < 0
       ORDER BY t.amount ASC
       LIMIT $limit
@@ -65,6 +66,7 @@ class TransactionRepository(xa: Transactor[IO]):
       JOIN accounts a ON a.id = t.account_id
       LEFT JOIN categories c ON c.id = t.category_id
       WHERE NOT t.is_internal_transfer
+        AND NOT COALESCE(c.is_internal, false)
         AND t.amount < 0
       ORDER BY t.amount ASC
       LIMIT $limit

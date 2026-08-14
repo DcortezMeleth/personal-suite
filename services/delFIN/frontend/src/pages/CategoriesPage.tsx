@@ -152,6 +152,11 @@ function CategoryRow({
             {category.icon && <span>{category.icon}</span>}
             {category.name}
           </span>
+          {category.isInternal && (
+            <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-600">
+              excluded from totals
+            </span>
+          )}
         </div>
       </td>
       <td className="py-2 text-right">

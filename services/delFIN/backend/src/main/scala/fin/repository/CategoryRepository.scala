@@ -12,22 +12,23 @@ class CategoryRepository(xa: Transactor[IO]):
 
   def findAll: IO[List[Category]] =
     sql"""
-      SELECT id, name, color, icon, parent_id FROM categories ORDER BY name
+      SELECT id, name, color, icon, parent_id, is_internal FROM categories ORDER BY name
     """.query[Category].to[List].transact(xa)
 
   def createCategory(cmd: CreateCategory): IO[Category] =
     sql"""
-      INSERT INTO categories (name, color, icon, parent_id)
-      VALUES (${cmd.name}, ${cmd.color}, ${cmd.icon}, ${cmd.parentId})
-      RETURNING id, name, color, icon, parent_id
+      INSERT INTO categories (name, color, icon, parent_id, is_internal)
+      VALUES (${cmd.name}, ${cmd.color}, ${cmd.icon}, ${cmd.parentId}, ${cmd.isInternal})
+      RETURNING id, name, color, icon, parent_id, is_internal
     """.query[Category].unique.transact(xa)
 
   def updateCategory(id: UUID, cmd: UpdateCategory): IO[Option[Category]] =
     sql"""
       UPDATE categories
-      SET name = ${cmd.name}, color = ${cmd.color}, icon = ${cmd.icon}, parent_id = ${cmd.parentId}
+      SET name = ${cmd.name}, color = ${cmd.color}, icon = ${cmd.icon}, parent_id = ${cmd.parentId},
+          is_internal = ${cmd.isInternal}
       WHERE id = $id
-      RETURNING id, name, color, icon, parent_id
+      RETURNING id, name, color, icon, parent_id, is_internal
     """.query[Category].option.transact(xa)
 
   def hasChildren(id: UUID): IO[Boolean] =

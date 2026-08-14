@@ -19,6 +19,7 @@ class SpendingRepository(xa: Transactor[IO]):
       WHERE t.date BETWEEN $start AND $end
         AND t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT c.is_internal
       GROUP BY c.id, c.name, c.color, c.icon
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
@@ -30,6 +31,7 @@ class SpendingRepository(xa: Transactor[IO]):
       JOIN transactions t ON t.category_id = c.id
       WHERE t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT c.is_internal
       GROUP BY c.id, c.name, c.color, c.icon
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
@@ -50,6 +52,7 @@ class SpendingRepository(xa: Transactor[IO]):
       WHERE t.date BETWEEN $start AND $end
         AND t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT c.is_internal
       GROUP BY top.id, top.name, top.color, top.icon
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
@@ -62,6 +65,7 @@ class SpendingRepository(xa: Transactor[IO]):
       JOIN categories top ON top.id = COALESCE(c.parent_id, c.id)
       WHERE t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT c.is_internal
       GROUP BY top.id, top.name, top.color, top.icon
       ORDER BY total DESC
     """.query[CategorySpending].to[List].transact(xa)
@@ -74,9 +78,11 @@ class SpendingRepository(xa: Transactor[IO]):
       FROM tags tg
       JOIN transaction_tags tt ON tt.tag_id = tg.id
       JOIN transactions t ON t.id = tt.transaction_id
+      LEFT JOIN categories c ON c.id = t.category_id
       WHERE t.date BETWEEN $start AND $end
         AND t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT COALESCE(c.is_internal, false)
       GROUP BY tg.id, tg.name, tg.color, tg.icon
       ORDER BY total DESC
     """.query[TagSpending].to[List].transact(xa)
@@ -87,48 +93,56 @@ class SpendingRepository(xa: Transactor[IO]):
       FROM tags tg
       JOIN transaction_tags tt ON tt.tag_id = tg.id
       JOIN transactions t ON t.id = tt.transaction_id
+      LEFT JOIN categories c ON c.id = t.category_id
       WHERE t.amount < 0
         AND NOT t.is_internal_transfer
+        AND NOT COALESCE(c.is_internal, false)
       GROUP BY tg.id, tg.name, tg.color, tg.icon
       ORDER BY total DESC
     """.query[TagSpending].to[List].transact(xa)
 
+  // Excludes both the auto-detected transfer-pairing flag AND any transaction
+  // whose category is manually flagged is_internal (e.g. the "Internal"
+  // category) — the two mechanisms are independent, either one excludes.
+  private val notInternalCategory =
+    fr"NOT COALESCE((SELECT is_internal FROM categories WHERE id = category_id), false)"
+
   def totalSpentAll: IO[BigDecimal] =
-    sql"""
+    (fr"""
       SELECT COALESCE(SUM(-amount), 0) FROM transactions
-      WHERE amount < 0 AND NOT is_internal_transfer
-    """.query[BigDecimal].unique.transact(xa)
+      WHERE amount < 0 AND NOT is_internal_transfer AND""" ++ notInternalCategory)
+      .query[BigDecimal].unique.transact(xa)
 
   def totalIncomeAll: IO[BigDecimal] =
-    sql"""
+    (fr"""
       SELECT COALESCE(SUM(amount), 0) FROM transactions
-      WHERE amount > 0 AND NOT is_internal_transfer
-    """.query[BigDecimal].unique.transact(xa)
+      WHERE amount > 0 AND NOT is_internal_transfer AND""" ++ notInternalCategory)
+      .query[BigDecimal].unique.transact(xa)
 
   def totalSpent(ym: YearMonth): IO[BigDecimal] =
     val start = ym.atDay(1)
     val end   = ym.atEndOfMonth()
-    sql"""
+    (fr"""
       SELECT COALESCE(SUM(-amount), 0) FROM transactions
-      WHERE date BETWEEN $start AND $end AND amount < 0 AND NOT is_internal_transfer
-    """.query[BigDecimal].unique.transact(xa)
+      WHERE date BETWEEN $start AND $end AND amount < 0 AND NOT is_internal_transfer AND""" ++ notInternalCategory)
+      .query[BigDecimal].unique.transact(xa)
 
   def totalIncome(ym: YearMonth): IO[BigDecimal] =
     val start = ym.atDay(1)
     val end   = ym.atEndOfMonth()
-    sql"""
+    (fr"""
       SELECT COALESCE(SUM(amount), 0) FROM transactions
-      WHERE date BETWEEN $start AND $end AND amount > 0 AND NOT is_internal_transfer
-    """.query[BigDecimal].unique.transact(xa)
+      WHERE date BETWEEN $start AND $end AND amount > 0 AND NOT is_internal_transfer AND""" ++ notInternalCategory)
+      .query[BigDecimal].unique.transact(xa)
 
   def monthlyTrend(startDate: LocalDate): IO[List[MonthlyTrend]] =
-    sql"""
+    (fr"""
       SELECT
         TO_CHAR(date, 'YYYY-MM') AS month,
         COALESCE(SUM(CASE WHEN amount < 0 THEN -amount ELSE 0 END), 0) AS spent,
         COALESCE(SUM(CASE WHEN amount > 0 THEN  amount ELSE 0 END), 0) AS income
       FROM transactions
-      WHERE NOT is_internal_transfer AND date >= $startDate
+      WHERE NOT is_internal_transfer AND date >= $startDate AND""" ++ notInternalCategory ++ fr"""
       GROUP BY month
-      ORDER BY month ASC
-    """.query[MonthlyTrend].to[List].transact(xa)
+      ORDER BY month ASC""")
+      .query[MonthlyTrend].to[List].transact(xa)
