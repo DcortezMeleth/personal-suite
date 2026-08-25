@@ -25,6 +25,12 @@ interface PendingRule {
 
 const PAGE_SIZE = 50;
 
+// Sentinel values for the category filter, mirroring CategoryFilter on the
+// backend: pick out the rows still waiting to be categorized, or hide them
+// once you're only interested in what has already been sorted out.
+const UNCATEGORIZED = "none";
+const CATEGORIZED = "any";
+
 export function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -283,6 +289,8 @@ export function TransactionsPage() {
           <Field label="Category">
             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
               <option value="">All</option>
+              <option value={UNCATEGORIZED}>Uncategorized only</option>
+              <option value={CATEGORIZED}>Categorized only</option>
               <CategoryFilterOptions categories={categories} />
             </select>
           </Field>

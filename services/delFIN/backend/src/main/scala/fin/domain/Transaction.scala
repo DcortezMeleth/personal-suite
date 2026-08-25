@@ -46,6 +46,35 @@ case class TransactionRow(
 object TransactionRow:
   given Encoder[TransactionRow] = deriveEncoder
 
+/** The category dimension of a transaction search. "Has no category at all" is
+  * a real third choice next to "any category" and "this one category" — those
+  * rows are precisely the ones still needing attention — and its mirror image
+  * ("anything but uncategorized") is what you want once you no longer care
+  * about them. Modelling all four as one value keeps them from being combined
+  * into a contradictory filter.
+  */
+enum CategoryFilter:
+  case All
+  case Uncategorized
+  case Categorized
+  case One(id: UUID)
+
+object CategoryFilter:
+  val UncategorizedToken = "none"
+  val CategorizedToken   = "any"
+
+  /** Wire form of the `categoryId` query param: absent or empty means no
+    * filtering, the two tokens above select by presence of a category, and
+    * anything else is read as a category id. Throws on a malformed id, like
+    * the other id params in the search route, and is reported as a 400 there.
+    */
+  def fromParam(raw: Option[String]): CategoryFilter =
+    raw.filter(_.nonEmpty) match
+      case None                       => All
+      case Some(UncategorizedToken)   => Uncategorized
+      case Some(CategorizedToken)     => Categorized
+      case Some(id)                   => One(UUID.fromString(id))
+
 case class TransactionSearchResult(items: List[TransactionRow], total: Long)
 
 object TransactionSearchResult:
