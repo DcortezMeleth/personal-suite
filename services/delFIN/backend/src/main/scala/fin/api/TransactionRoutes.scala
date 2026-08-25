@@ -18,6 +18,7 @@ object LimitParam     extends OptionalQueryParamDecoderMatcher[Int]("limit")
 object DateFromParam  extends OptionalQueryParamDecoderMatcher[String]("dateFrom")
 object DateToParam    extends OptionalQueryParamDecoderMatcher[String]("dateTo")
 object CategoryParam  extends OptionalQueryParamDecoderMatcher[String]("categoryId")
+object AccountParam   extends OptionalQueryParamDecoderMatcher[String]("accountId")
 object SearchParam    extends OptionalQueryParamDecoderMatcher[String]("search")
 object MinAmountParam extends OptionalQueryParamDecoderMatcher[String]("minAmount")
 object MaxAmountParam extends OptionalQueryParamDecoderMatcher[String]("maxAmount")
@@ -33,6 +34,7 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
 
     case GET -> Root / "transactions" / "search"
         :? DateFromParam(dateFromOpt) +& DateToParam(dateToOpt) +& CategoryParam(categoryIdOpt)
+        +& AccountParam(accountIdOpt)
         +& SearchParam(searchOpt) +& MinAmountParam(minAmountOpt) +& MaxAmountParam(maxAmountOpt)
         +& TagIdsParam(tagIdsOpt)
         +& SortByParam(sortByOpt) +& SortDirParam(sortDirOpt) +& PageParam(pageOpt) +& PageSizeParam(pageSizeOpt) =>
@@ -40,19 +42,20 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
         val dateFrom  = dateFromOpt.map(LocalDate.parse)
         val dateTo    = dateToOpt.map(LocalDate.parse)
         val category  = CategoryFilter.fromParam(categoryIdOpt)
+        val accountId = accountIdOpt.filter(_.nonEmpty).map(UUID.fromString)
         val minAmount = minAmountOpt.map(BigDecimal(_))
         val maxAmount = maxAmountOpt.map(BigDecimal(_))
         val tagIds    = tagIdsOpt.filter(_.nonEmpty).map(_.split(",").toList.map(UUID.fromString)).getOrElse(Nil)
-        (dateFrom, dateTo, category, minAmount, maxAmount, tagIds)
+        (dateFrom, dateTo, category, accountId, minAmount, maxAmount, tagIds)
       } match
         case scala.util.Failure(e) =>
           BadRequest(s"""{"error":"Invalid query parameter: ${e.getMessage}"}""")
-        case scala.util.Success((dateFrom, dateTo, category, minAmount, maxAmount, tagIds)) =>
+        case scala.util.Success((dateFrom, dateTo, category, accountId, minAmount, maxAmount, tagIds)) =>
           val sortBy   = if sortByOpt.contains("amount") then "amount" else "date"
           val sortDir  = if sortDirOpt.contains("asc") then "asc" else "desc"
           val page     = math.max(0, pageOpt.getOrElse(0))
           val pageSize = math.min(500, math.max(1, pageSizeOpt.getOrElse(50)))
-          repo.search(dateFrom, dateTo, category, searchOpt, minAmount, maxAmount, tagIds, sortBy, sortDir, page, pageSize)
+          repo.search(dateFrom, dateTo, category, accountId, searchOpt, minAmount, maxAmount, tagIds, sortBy, sortDir, page, pageSize)
             .flatMap { result =>
               tagRepo.findTagsForTransactions(result.items.map(_.id)).flatMap { tagsByTx =>
                 val enriched = result.items.map(row => TransactionRowWithTags(row, tagsByTx.getOrElse(row.id, Nil)))

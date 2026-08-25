@@ -3,7 +3,7 @@ import { DataCard, AlertBanner, DatePicker } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
 import { CategoryOptionGroups } from "../components/CategoryOptionGroups";
 import { CategoryFilterOptions } from "../components/CategoryFilterOptions";
-import { api, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
+import { api, Account, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
 
 function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
@@ -33,6 +33,7 @@ const CATEGORIZED = "any";
 
 export function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [result, setResult] = useState<TransactionSearchResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,7 @@ export function TransactionsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [accountId, setAccountId] = useState("");
   const [search, setSearch] = useState("");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
@@ -57,10 +59,11 @@ export function TransactionsPage() {
 
   useEffect(() => {
     api.get<Category[]>("/categories").then(setCategories).catch(() => {});
+    api.get<Account[]>("/accounts").then(setAccounts).catch(() => {});
     api.get<Tag[]>("/tags").then(setTags).catch(() => {});
   }, []);
 
-  useEffect(() => { setPage(0); }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir]);
+  useEffect(() => { setPage(0); }, [dateFrom, dateTo, categoryId, accountId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir]);
 
   function toggleFilterTag(id: string) {
     setFilterTagIds((prev) => {
@@ -78,6 +81,7 @@ export function TransactionsPage() {
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       if (categoryId) params.set("categoryId", categoryId);
+      if (accountId) params.set("accountId", accountId);
       if (search.trim()) params.set("search", search.trim());
       if (minAmount) params.set("minAmount", minAmount);
       if (maxAmount) params.set("maxAmount", maxAmount);
@@ -93,7 +97,7 @@ export function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, categoryId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir, page]);
+  }, [dateFrom, dateTo, categoryId, accountId, search, minAmount, maxAmount, filterTagIds, sortBy, sortDir, page]);
 
   useEffect(() => {
     const t = setTimeout(load, 300);
@@ -279,7 +283,7 @@ export function TransactionsPage() {
       )}
 
       <DataCard title="Filters">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <Field label="From">
             <DatePicker value={dateFrom} onChange={setDateFrom} />
           </Field>
@@ -292,6 +296,14 @@ export function TransactionsPage() {
               <option value={UNCATEGORIZED}>Uncategorized only</option>
               <option value={CATEGORIZED}>Categorized only</option>
               <CategoryFilterOptions categories={categories} />
+            </select>
+          </Field>
+          <Field label="Account">
+            <select value={accountId} onChange={(e) => setAccountId(e.target.value)} className={inputCls}>
+              <option value="">All</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
             </select>
           </Field>
           <Field label="Search">

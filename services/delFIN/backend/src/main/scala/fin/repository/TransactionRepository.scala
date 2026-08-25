@@ -78,6 +78,7 @@ class TransactionRepository(xa: Transactor[IO]):
     dateFrom:   Option[LocalDate],
     dateTo:     Option[LocalDate],
     category:   CategoryFilter,
+    accountId:  Option[UUID],
     search:     Option[String],
     minAmount:  Option[BigDecimal],
     maxAmount:  Option[BigDecimal],
@@ -100,6 +101,7 @@ class TransactionRepository(xa: Transactor[IO]):
       dateFrom.map(d => fr"t.date >= $d"),
       dateTo.map(d => fr"t.date <= $d"),
       categoryFilter,
+      accountId.map(a => fr"t.account_id = $a"),
       search.map(s => fr"""(t.title ILIKE ${"%" + s + "%"}
                             OR t.counterparty ILIKE ${"%" + s + "%"}
                             OR t.raw_description ILIKE ${"%" + s + "%"}
