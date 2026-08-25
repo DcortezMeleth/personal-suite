@@ -426,7 +426,7 @@ export function TransactionsPage() {
                           style={tx.categoryColor ? { color: tx.categoryColor } : undefined}
                         >
                           <option value="">Uncategorized</option>
-                          <CategoryOptionGroups categories={categories} />
+                          <CategoryOptionGroups categories={categories} currentId={tx.categoryId} />
                         </select>
                       </td>
                       <td className="py-2 pr-4">

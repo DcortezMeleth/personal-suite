@@ -67,7 +67,7 @@ export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Category">
               <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputCls}>
-                <CategoryOptionGroups categories={categories} />
+                <CategoryOptionGroups categories={categories} currentId={form.categoryId} />
               </select>
             </Field>
             <Field label="Priority (lower = checked first)">
