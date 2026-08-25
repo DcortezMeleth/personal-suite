@@ -42,8 +42,9 @@ target/
 coverage/
 **/coverage/
 
-# Claude Code
-.claude/
+# Claude Code — local settings stay out, shared skills are checked in
+.claude/*
+!.claude/skills/
 
 # Logs
 *.log
