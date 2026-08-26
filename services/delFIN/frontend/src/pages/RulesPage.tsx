@@ -92,9 +92,15 @@ export function RulesPage() {
   async function handleUpdate(form: CategoryRuleForm) {
     if (!editingRule) return;
     try {
-      await api.put(`/category-rules/${editingRule.id}`, form);
+      const updated = await api.put<CategoryRule>(`/category-rules/${editingRule.id}`, form);
       setEditingRule(null);
-      setStatusMsg("Rule updated. This didn't touch any existing transactions — use “Reapply” if you want that.");
+      setStatusMsg("Rule updated — existing transactions unchanged so far.");
+      // Straight on into the reapply prompt with the rule as just saved: an edit
+      // is usually made *because* the rule should now catch something it didn't,
+      // and the alternative was hunting the row down again in a list this long
+      // only to press its Reapply button. Cancelling leaves the message above
+      // standing, so declining is still a clear "saved, nothing else touched".
+      setReapplyingRule(updated);
       load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to update rule");
