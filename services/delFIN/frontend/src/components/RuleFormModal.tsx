@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Category, CategoryRule, CategoryRuleForm, RuleDirection, RuleMatchType } from "../api/client";
-import { CategoryOptionGroups } from "./CategoryOptionGroups";
+import type { Category, CategoryRule, CategoryRuleForm } from "../api/client";
+import { RuleFields } from "./RuleFields";
 
 interface Props {
   categories: Category[];
@@ -33,53 +33,13 @@ export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">{initial ? "Edit Rule" : "New Rule"}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Field label="Pattern">
-            <input
-              required
-              type="text"
-              value={form.pattern}
-              onChange={(e) => set("pattern", e.target.value)}
-              className={inputCls}
-              placeholder="e.g. LIDL"
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Match type">
-              <select value={form.matchType} onChange={(e) => set("matchType", e.target.value as RuleMatchType)} className={inputCls}>
-                <option value="CONTAINS">Contains</option>
-                <option value="EXACT">Exact</option>
-                <option value="REGEX">Regex</option>
-              </select>
-            </Field>
-            <Field label="Direction">
-              <select value={form.direction} onChange={(e) => set("direction", e.target.value as RuleDirection)} className={inputCls}>
-                <option value="ANY">Any</option>
-                <option value="EXPENSE">Outgoing only</option>
-                <option value="INCOME">Incoming only</option>
-              </select>
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Category">
-              <select value={form.categoryId} onChange={(e) => set("categoryId", e.target.value)} className={inputCls}>
-                <CategoryOptionGroups categories={categories} currentId={form.categoryId} />
-              </select>
-            </Field>
-            <Field label="Priority (lower = checked first)">
-              <input
-                required
-                type="number"
-                value={form.priority}
-                onChange={(e) => set("priority", Number(e.target.value))}
-                className={inputCls}
-              />
-            </Field>
-          </div>
+          <RuleFields form={form} categories={categories} onChange={set} />
 
           <div className="flex justify-end gap-3 pt-2">
             <button
@@ -98,17 +58,6 @@ export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
           </div>
         </form>
       </div>
-    </div>
-  );
-}
-
-const inputCls = "w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="mb-1 block text-xs font-medium text-neutral-600">{label}</label>
-      {children}
     </div>
   );
 }

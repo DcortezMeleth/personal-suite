@@ -123,8 +123,16 @@ class TransactionRoutes(repo: TransactionRepository, categoryRepo: CategoryRepos
             for
               seedOpt  <- repo.findRulePatternSeed(id)
               ruleOpt  <- seedOpt.traverse { case (seed, amount) =>
-                            val direction = if amount > 0 then RuleDirection.INCOME else RuleDirection.EXPENSE
-                            categoryRepo.createRuleFromCorrection(seed, cmd.categoryId, direction)
+                            // Each field falls back to what the transaction implies; an
+                            // override is how a pattern gets widened past the single
+                            // payee this one transaction names.
+                            val pattern   = cmd.pattern.map(_.trim).filter(_.nonEmpty).getOrElse(seed)
+                            val direction = cmd.direction.getOrElse(
+                                              if amount > 0 then RuleDirection.INCOME else RuleDirection.EXPENSE
+                                            )
+                            val matchType = cmd.matchType.getOrElse(RuleMatchType.CONTAINS)
+                            val priority  = cmd.priority.getOrElse(5)
+                            categoryRepo.createRuleFromCorrection(pattern, cmd.categoryId, direction, matchType, priority)
                           }.map(_.flatten)
               affected <- ruleOpt.traverse(categoryRepo.recategoriseByRule(_, cmd.scope)).map(_.getOrElse(0))
               resp     <- Ok(

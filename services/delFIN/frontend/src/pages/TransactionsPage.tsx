@@ -3,7 +3,7 @@ import { DataCard, AlertBanner, DatePicker } from "@delfin/ui";
 import { CategoryRuleModal } from "../components/CategoryRuleModal";
 import { CategoryOptionGroups } from "../components/CategoryOptionGroups";
 import { CategoryFilterOptions } from "../components/CategoryFilterOptions";
-import { api, Account, Category, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
+import { api, Account, Category, CategoryRuleForm, CreateRuleResult, RecategorizeScope, Tag, TransactionSearchResult } from "../api/client";
 
 function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
@@ -18,9 +18,8 @@ type SortDir = "asc" | "desc";
 
 interface PendingRule {
   txId: string;
-  pattern: string;
-  categoryId: string;
   categoryName: string;
+  form: CategoryRuleForm;
 }
 
 const PAGE_SIZE = 50;
@@ -123,9 +122,23 @@ export function TransactionsPage() {
       });
       const tx = result.items.find((t) => t.id === txId);
       const pattern = tx?.counterparty ?? tx?.title;
-      if (category && pattern) {
+      if (category && tx && pattern) {
         setRuleMsg(null);
-        setPendingRule({ txId, pattern, categoryId: newCategoryId, categoryName: category.name });
+        setPendingRule({
+          txId,
+          categoryName: category.name,
+          // Same defaults the backend would derive on its own, just visible and
+          // editable before anything is written: the payee as the pattern, this
+          // transaction's own direction, and priority 5 so a rule asked for
+          // here outranks the generic built-in patterns.
+          form: {
+            categoryId: newCategoryId,
+            pattern,
+            matchType: "CONTAINS",
+            priority: 5,
+            direction: tx.amount > 0 ? "INCOME" : "EXPENSE",
+          },
+        });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to update category");
@@ -224,18 +237,19 @@ export function TransactionsPage() {
     }
   }
 
-  async function handleCreateRule(scope: RecategorizeScope) {
+  async function handleCreateRule(form: CategoryRuleForm, scope: RecategorizeScope) {
     if (!pendingRule) return;
     try {
       const res = await api.post<CreateRuleResult>(`/transactions/${pendingRule.txId}/category-rule`, {
-        categoryId: pendingRule.categoryId,
+        ...form,
         scope,
       });
+      const categoryName = categories.find((c) => c.id === form.categoryId)?.name ?? pendingRule.categoryName;
       setRuleMsg(
         res.ruleCreated
-          ? `Done — "${res.rulePattern}" will always be categorized as "${pendingRule.categoryName}" now` +
+          ? `Done — "${res.rulePattern}" will always be categorized as "${categoryName}" now` +
             (res.affected > 0 ? ` (${res.affected} other existing transaction${res.affected === 1 ? "" : "s"} updated too).` : ".")
-          : `A rule for "${pendingRule.pattern}" → "${pendingRule.categoryName}" already exists.`
+          : `A rule for "${form.pattern}" → "${categoryName}" already exists.`
       );
       setPendingRule(null);
       load();
@@ -275,7 +289,8 @@ export function TransactionsPage() {
       {ruleMsg && <AlertBanner level="success" message={ruleMsg} onDismiss={() => setRuleMsg(null)} />}
       {pendingRule && (
         <CategoryRuleModal
-          pattern={pendingRule.pattern}
+          categories={categories}
+          initial={pendingRule.form}
           categoryName={pendingRule.categoryName}
           onConfirm={handleCreateRule}
           onSkip={() => setPendingRule(null)}

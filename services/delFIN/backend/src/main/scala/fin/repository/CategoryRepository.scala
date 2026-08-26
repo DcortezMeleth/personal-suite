@@ -114,7 +114,16 @@ class CategoryRepository(xa: Transactor[IO]):
   // can be different things despite sharing a counterparty. Skips creation if an
   // identical (pattern, category, direction) rule already exists, to avoid
   // duplicate spam when the same correction is made more than once.
-  def createRuleFromCorrection(pattern: String, categoryId: UUID, direction: RuleDirection): IO[Option[CategoryRule]] =
+  // Priority defaults to 5 rather than the seeded rules' 10: a rule the user
+  // asked for while correcting a transaction should be checked before the
+  // generic built-in patterns, not after them.
+  def createRuleFromCorrection(
+    pattern:    String,
+    categoryId: UUID,
+    direction:  RuleDirection,
+    matchType:  RuleMatchType = RuleMatchType.CONTAINS,
+    priority:   Int = 5
+  ): IO[Option[CategoryRule]] =
     sql"""
       SELECT COUNT(*) > 0 FROM category_rules
       WHERE UPPER(pattern) = UPPER($pattern) AND category_id = $categoryId AND direction = $direction
@@ -123,7 +132,7 @@ class CategoryRepository(xa: Transactor[IO]):
       case false =>
         sql"""
           INSERT INTO category_rules (category_id, pattern, match_type, priority, direction)
-          VALUES ($categoryId, $pattern, ${RuleMatchType.CONTAINS}, 5, $direction)
+          VALUES ($categoryId, $pattern, $matchType, $priority, $direction)
           RETURNING id, category_id, pattern, match_type, priority, direction
         """.query[CategoryRule].unique.transact(xa).map(Some(_))
     }

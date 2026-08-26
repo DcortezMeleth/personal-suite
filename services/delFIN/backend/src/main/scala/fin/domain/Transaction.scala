@@ -121,6 +121,20 @@ case class SetNotes(notes: Option[String])
 object SetNotes:
   given Decoder[SetNotes] = deriveDecoder
 
-case class CreateRuleFromTransaction(categoryId: UUID, scope: RecategorizeScope)
+/** All four rule fields are optional: left out, each falls back to what the
+  * transaction itself implies (its counterparty/title as the pattern, its
+  * cash-flow direction, CONTAINS, and the correction priority). Sent in, they
+  * override that — the point being to widen a pattern the transaction can't
+  * imply on its own, e.g. one "Bonus" rule instead of separate "Bonus Selfoss"
+  * and "Bonus Fitjum" ones.
+  */
+case class CreateRuleFromTransaction(
+  categoryId: UUID,
+  scope:      RecategorizeScope,
+  pattern:    Option[String] = None,
+  matchType:  Option[RuleMatchType] = None,
+  direction:  Option[RuleDirection] = None,
+  priority:   Option[Int] = None
+)
 object CreateRuleFromTransaction:
   given Decoder[CreateRuleFromTransaction] = deriveDecoder
