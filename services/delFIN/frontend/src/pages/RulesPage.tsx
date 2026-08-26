@@ -176,7 +176,11 @@ export function RulesPage() {
       </DataCard>
 
       <DataCard title={`${filteredRules.length} of ${rules.length} rules`}>
-        {loading ? (
+        {/* Only stand in for the table on the very first load. Swapping a long
+            table for a one-line placeholder on every refresh collapsed the page
+            height, so the browser clamped the scroll position to the top and
+            saving an edit dumped you back at the header. */}
+        {loading && rules.length === 0 ? (
           <p className="py-6 text-center text-sm text-neutral-500">Loading…</p>
         ) : rules.length === 0 ? (
           <p className="py-6 text-center text-sm text-neutral-500">No rules yet.</p>
