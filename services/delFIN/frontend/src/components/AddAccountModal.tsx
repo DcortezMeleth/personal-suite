@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import { api } from "../api/client";
 import type { Account, AccountOwner, AccountType } from "../api/client";
 
@@ -45,14 +46,15 @@ export function AddAccountModal({ onClose, onSaved }: Props) {
     }
   }
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
+      {...backdrop}
     >
       <div
         className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+       
       >
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">Add Account</h2>
         {error && (

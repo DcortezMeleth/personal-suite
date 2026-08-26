@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import type { Category, CategoryRule, CategoryRuleForm } from "../api/client";
 import { RuleFields } from "./RuleFields";
 
@@ -31,11 +32,12 @@ export function RuleFormModal({ categories, initial, onSave, onClose }: Props) {
     onSave(form);
   }
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
       <div
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+       
       >
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">{initial ? "Edit Rule" : "New Rule"}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">

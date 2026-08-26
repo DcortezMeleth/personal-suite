@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import type { Tag, TagForm } from "../api/client";
 import { EmojiInput } from "./EmojiInput";
 
@@ -24,9 +25,10 @@ export function TagFormModal({ initial, onSave, onClose }: Props) {
     onSave({ ...form, icon: form.icon?.trim() || null });
   }
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">{initial ? "Edit Tag" : "New Tag"}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Field label="Name">

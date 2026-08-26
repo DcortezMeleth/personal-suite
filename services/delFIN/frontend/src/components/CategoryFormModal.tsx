@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import type { Category, CategoryForm } from "../api/client";
 import { EmojiInput } from "./EmojiInput";
 
@@ -33,9 +34,10 @@ export function CategoryFormModal({ categories, initial, onSave, onClose }: Prop
   const parentOptions = categories.filter((c) => c.id !== initial?.id && !c.parentId);
   const selfHasChildren = !!initial && categories.some((c) => c.parentId === initial.id);
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">{initial ? "Edit Category" : "New Category"}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Field label="Name">

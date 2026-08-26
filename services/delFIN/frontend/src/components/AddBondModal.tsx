@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DatePicker } from "@delfin/ui";
+import { DatePicker, useBackdropDismiss } from "@delfin/ui";
 import { api } from "../api/client";
 import type { Account, CreateTreasuryBond } from "../api/client";
 
@@ -50,14 +50,15 @@ export function AddBondModal({ onClose, onSaved }: Props) {
     }
   }
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
+      {...backdrop}
     >
       <div
         className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+       
       >
         <h2 className="mb-4 text-lg font-semibold text-neutral-900">Add Treasury Bond</h2>
         {error && (

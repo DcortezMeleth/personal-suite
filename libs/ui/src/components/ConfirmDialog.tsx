@@ -1,3 +1,4 @@
+import { useBackdropDismiss } from "../hooks/useBackdropDismiss";
 interface ConfirmDialogProps {
   title?: string;
   message: string;
@@ -21,9 +22,10 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const backdrop = useBackdropDismiss(onCancel);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onCancel}>
-      <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
+      <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
         <h2 className="mb-2 text-lg font-semibold text-neutral-900">{title}</h2>
         <p className="mb-5 text-sm text-neutral-600">{message}</p>
         <div className="flex justify-end gap-3">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import type { RecategorizeScope } from "../api/client";
 
 interface Props {
@@ -10,9 +11,10 @@ interface Props {
 export function ReapplyRuleModal({ ruleLabel, onConfirm, onClose }: Props) {
   const [scope, setScope] = useState<RecategorizeScope>("UNCATEGORIZED_ONLY");
 
+  const backdrop = useBackdropDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 className="mb-2 text-lg font-semibold text-neutral-900">Reapply rule</h2>
         <p className="mb-4 text-sm text-neutral-600">
           Apply <span className="font-medium text-neutral-900">{ruleLabel}</span> to already-imported transactions?

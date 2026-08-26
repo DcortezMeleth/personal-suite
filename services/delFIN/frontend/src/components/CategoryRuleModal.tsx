@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBackdropDismiss } from "@delfin/ui";
 import type { Category, CategoryRuleForm, RecategorizeScope } from "../api/client";
 import { RuleFields } from "./RuleFields";
 
@@ -27,11 +28,12 @@ export function CategoryRuleModal({ categories, initial, categoryName, onConfirm
     onConfirm(form, scope);
   }
 
+  const backdrop = useBackdropDismiss(onSkip);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onSkip}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" {...backdrop}>
       <div
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+       
       >
         {step === "ask" ? (
           <>
