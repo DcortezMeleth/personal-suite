@@ -1,0 +1,135 @@
+# belFER — roadmap
+
+Requirements live in `REQUIREMENTS.md`; the use-case and test-case IDs
+referenced here live in `USE_CASES.md`.
+
+Phases are ordered by dependency and by risk. Within a phase, subphases are
+sized to be individually committable.
+
+---
+
+## Phase 0 — Foundations and the risky spike
+
+**0.1 Backend skeleton**
+`services/belFER/backend` with Bazel targets modelled on
+`services/delFIN/backend/BUILD.bazel`. Copy the full explicit `deps` list, the
+`platform_transition_filegroup`, and the `oci_image` `env` block verbatim —
+those are non-obvious workarounds, not boilerplate. http4s Ember server,
+`/health`, HOCON config. New port (delFIN holds 8080).
+
+**0.2 Database**
+Own Postgres schema, own Flyway location, `db/belFER/migrations` plus a second
+`filegroup` in `db/BUILD.bazel`. delFIN's migrations are left untouched.
+
+**0.3 Frontend skeleton**
+`services/belFER/frontend`: Vite + React + Tailwind, the `@delfin/ui` alias,
+Tailwind `content` covering `libs/ui`, a new port, and a `.bazelignore` entry
+for its `node_modules`.
+
+**0.4 ⚠ Timefold-under-Bazel spike — do this before Phases 1 and 2**
+
+Solve a toy timetable end to end:
+
+- planning domain as a `java_library` beside the Scala code
+- Timefold's transitive dependencies enumerated in `MODULE.bazel`
+- reflection-based domain access rather than runtime bytecode generation
+- running inside the built container image, not just under `bazel run`
+
+**Why first:** Timefold is the one load-bearing technology choice that could
+fail outright under this repo's build constraints. If it cannot be made to
+work, the solver strategy changes, and that is worth discovering in week one
+rather than after two phases of data modelling. Everything else in the project
+is ordinary CRUD-and-UI work with known patterns in the repo.
+
+---
+
+## Phase 1 — Domain model and CRUD
+
+Each subphase is a migration + repository + routes + a page.
+
+- **1.1** School configuration and bell schedule — UC-01, UC-02, UC-03
+- **1.2** Subjects, room kinds, rooms — UC-05, UC-06, UC-07
+- **1.3** Teachers: subjects, home room, unavailability, limits — UC-08 … UC-11
+- **1.4** Classes and wychowawca — UC-12, UC-13
+- **1.5** Lesson lines, including extension hours, splits and support
+  teachers — UC-16 … UC-20
+- **1.6** PE units and groups — UC-21, UC-22
+- **1.7** Specialisation templates — UC-14, UC-15
+- **1.8** Validation engine and live counters — UC-23, VAL-01 … VAL-07
+
+> 1.5 and 1.6 carry the model decisions that everything downstream depends on
+> (lesson lines; PE units). Worth reviewing against the requirements before
+> moving on.
+
+---
+
+## Phase 2 — XML import
+
+> **Blocked on an anonymised sample of the principal's XML.**
+
+- **2.1** Parse and map the XML to the Phase 1 model
+- **2.2** Import preview and unmapped-entity resolution — UC-24, UC-25
+- **2.3** Re-import with a diff against current data — UC-26, UC-27
+
+---
+
+## Phase 3 — Solver
+
+- **3.1** Planning domain and Timefold wiring, built on the 0.4 spike
+- **3.2** Hard constraints — CT-01 … CT-17, and CT-21 as the regression guard
+- **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04
+- **3.4** Async job: start, progress, early stop, configurable timeout,
+  persistence — UC-28 … UC-31, UC-34
+- **3.5** Infeasibility explanation and run comparison — UC-32, UC-33
+
+> 3.5 is not polish. Given how tight the instance is (38 hours into 40 slots),
+> early runs are likely to be infeasible, and a bare "no solution" would leave
+> the user with nothing to act on.
+
+---
+
+## Phase 4 — Plan views
+
+- **4.1** Per class, including split rendering — UC-35, UC-39
+- **4.2** Per teacher — UC-36
+- **4.3** Per room — UC-37
+- **4.4** Whole-school grid — UC-38
+- **4.5** PE rendering, plan list and history — UC-40
+
+---
+
+## Phase 5 — Manual editing safety net
+
+- **5.1** Move and swap with live validation — UC-41, UC-42, UC-43
+
+---
+
+## — MVP ends here —
+
+At this point the tool can import the principal's arkusz, let the data be
+corrected, generate a plan, show it four ways, and let it be nudged by hand.
+
+---
+
+## Phase 6 and beyond
+
+- **6** PDF output — UC-44
+- **7** Mid-year patching: lock lessons, re-solve the rest, minimise
+  disruption — UC-45
+- **8** Librus export — UC-46, subject to whether Librus supports import
+- **9** Year rollover — UC-47; difficult subjects in the morning; permissions
+  and read-only access — UC-48; multi-school
+
+---
+
+## Sequencing notes
+
+- **0.4 gates everything.** Do not build Phases 1–2 on the assumption that
+  Timefold works under Bazel.
+- **Phase 2 can be deferred** without blocking Phases 3–5; manual entry from
+  Phase 1 is enough to exercise the solver. If the XML sample is slow to
+  arrive, reorder rather than stall.
+- **Phase 3 needs realistic data.** Toy fixtures verify the constraints, but
+  only a real year's worth of assignments will show whether the instance is
+  solvable at all. Getting one real dataset entered early is worth more than
+  any amount of synthetic testing.
