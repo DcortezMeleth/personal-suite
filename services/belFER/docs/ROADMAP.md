@@ -26,11 +26,19 @@ Own Postgres schema, own Flyway location, `db/belFER/migrations` plus a second
 Tailwind `content` covering `libs/ui`, a new port, and a `.bazelignore` entry
 for its `node_modules`.
 
-**0.4 ⚠ Timefold-under-Bazel spike — do this before Phases 1 and 2**
+**0.4 Test-data directory**
+`services/belFER/testdata/` with its `filegroup`, already in place. Anonymised
+arkusz samples land in `arkusz/`; `private/` is gitignored for real data.
+
+**0.5 ⚠ Timefold-under-Bazel spike — do this before Phases 1 and 2**
 
 Solve a toy timetable end to end:
 
-- planning domain as a `java_library` beside the Scala code
+- the **whole solver module** as a `java_library` beside the Scala code, with
+  a plain-Java interface and DTOs as the only boundary — no Timefold type
+  reaches Scala
+- `rules_java` added to `MODULE.bazel` if `java_library` is not already
+  resolvable, and a `scala_library` → `java_library` dependency proven
 - Timefold's transitive dependencies enumerated in `MODULE.bazel`
 - reflection-based domain access rather than runtime bytecode generation
 - running inside the built container image, not just under `bazel run`
@@ -75,16 +83,16 @@ Each subphase is a migration + repository + routes + a page.
 
 ## Phase 3 — Solver
 
-- **3.1** Planning domain and Timefold wiring, built on the 0.4 spike
+- **3.1** Planning domain and Timefold wiring, built on the 0.5 spike
 - **3.2** Hard constraints — CT-01 … CT-17, and CT-21 as the regression guard
 - **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04
 - **3.4** Async job: start, progress, early stop, configurable timeout,
   persistence — UC-28 … UC-31, UC-34
 - **3.5** Infeasibility explanation and run comparison — UC-32, UC-33
 
-> 3.5 is not polish. Given how tight the instance is (38 hours into 40 slots),
-> early runs are likely to be infeasible, and a bare "no solution" would leave
-> the user with nothing to act on.
+> 3.5 is not polish. The school's instance is assumed solvable, so an
+> infeasible run means a mistake somewhere in ~500 assignment rows — and a bare
+> "no solution" would leave the user with nothing to act on.
 
 ---
 
@@ -124,12 +132,18 @@ corrected, generate a plan, show it four ways, and let it be nudged by hand.
 
 ## Sequencing notes
 
-- **0.4 gates everything.** Do not build Phases 1–2 on the assumption that
+- **0.5 gates everything.** Do not build Phases 1–2 on the assumption that
   Timefold works under Bazel.
 - **Phase 2 can be deferred** without blocking Phases 3–5; manual entry from
   Phase 1 is enough to exercise the solver. If the XML sample is slow to
   arrive, reorder rather than stall.
-- **Phase 3 needs realistic data.** Toy fixtures verify the constraints, but
-  only a real year's worth of assignments will show whether the instance is
-  solvable at all. Getting one real dataset entered early is worth more than
-  any amount of synthetic testing.
+- **Phase 3 needs realistic data.** The instance is assumed solvable, so the
+  open question is not *whether* a plan exists but how long it takes to find
+  one and whether the default weights produce a plan the planner actually
+  likes. Toy fixtures verify the constraints; only a real year's worth of
+  assignments will settle runtime and weighting. Getting one real dataset into
+  `testdata/` early is worth more than any amount of synthetic testing.
+- **The solver module is Java.** Constraint tests (`CT-*`) are therefore Java
+  tests against the `ConstraintProvider`, not Scala tests — they are the
+  cheapest and most valuable tests in the project, so keep them close to the
+  engine.

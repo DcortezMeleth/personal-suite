@@ -1,0 +1,21 @@
+# Test data for belFER.
+#
+# Exposed as a filegroup so test targets can consume it the same way the
+# backend consumes //db:migrations — listed under `resources`, which places the
+# files on the classpath under their repo-relative path. See README.md for the
+# exact paths and for how to keep non-anonymised files out of git.
+filegroup(
+    name = "testdata",
+    srcs = glob(
+        ["**/*"],
+        exclude = [
+            "BUILD.bazel",
+            "README.md",
+            # Scratch area for real, non-anonymised files. Excluded so a test
+            # can never depend on a file that exists only on one machine.
+            "private/**",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,3 @@
+# Scratch area for real, non-anonymised school data (teacher names, the actual
+# arkusz). Keep it out of git; commit only anonymised samples under arkusz/.
+private/

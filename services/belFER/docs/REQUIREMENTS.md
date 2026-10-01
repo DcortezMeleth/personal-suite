@@ -48,16 +48,20 @@ manual edit — which is precisely Vulcan's failure mode.
 toggleable from the UI, not hard-coded.** This is the part of the system worth
 over-investing in.
 
-### 1.4 Secondary risk — feasibility, not optimality
+### 1.4 The instance is assumed solvable
 
 38 weekly hours into 40 available slots, with no class gaps and every day
-starting at slot 1, leaves almost no slack. A 38-hour class is essentially
-forced into a shape like 8/8/8/8/6. Combined with ~15 teachers of restricted
-availability and rooms being a contested resource, **the first real runs are
-likely to come back infeasible.**
+starting at slot 1, leaves very little slack — a 38-hour class is essentially
+forced into a shape like 8/8/8/8/6.
 
-This is why detailed infeasibility reporting and strong data-entry validation
-are MVP features rather than polish.
+Even so, **we assume a valid plan exists.** The school produces one every year,
+so the constraint set is satisfiable in practice.
+
+The consequence is a reframing, not a relaxation: **an infeasible run means the
+input data is wrong, not that the school is impossible to schedule.** That is
+exactly why detailed infeasibility reporting and strong data-entry validation
+are MVP features rather than polish — they are the diagnostics for a data-entry
+mistake somewhere in ~500 assignment rows.
 
 ---
 
@@ -318,10 +322,32 @@ optimisation key" that Vulcan lacks.
   than compiled in.
 - Its termination configuration covers the user-settable timeout, and
   multi-threaded solving covers "use a few cores".
-- **Scala 3 interop is the one wrinkle.** The planning domain is annotation-
-  and JavaBean-driven. Write **only the planning domain in Java** — a
-  `java_library` beside the `scala_library` — and keep everything else in
-  Scala, rather than fighting `@BeanProperty` and annotation targeting.
+- **The whole solver module is written in Java**, not just the planning
+  domain. Timefold's planning entities are annotation- and JavaBean-driven,
+  and its ConstraintStreams API is heavily generic — both are unpleasant from
+  Scala 3. Keeping the entire engine in Java avoids `@BeanProperty`,
+  annotation targeting, SAM conversion and generic-inference friction
+  altogether.
+- **No Timefold type ever crosses into Scala.** The boundary is one plain Java
+  interface over plain Java DTOs:
+
+  ```java
+  public interface TimetableSolver {
+      SolverOutput solve(SolverInput input, SolverSettings settings,
+                         ProgressListener listener);
+  }
+  ```
+
+  Scala maps its domain to `SolverInput`, calls `solve`, and maps
+  `SolverOutput` back. Planning entities, the `ConstraintProvider`,
+  `SolverConfig` and `SolverManager` all stay inside the Java module.
+
+  This also contains the risk from §10: if Timefold is ever replaced, only the
+  Java module changes, and the Scala side is unaffected.
+- Layout: `src/main/java/` as a `java_library`, `src/main/scala/` as a
+  `scala_library` depending on it. Java 17 is already the repo toolchain
+  (`.bazelrc`), so records and sealed interfaces are available for the DTOs.
+  `rules_java` is not yet a `bazel_dep` in `MODULE.bazel` and may need adding.
 - Prefer reflection-based domain access over runtime bytecode generation, as
   the latter is the riskier path under Bazel.
 - `rules_jvm_external` requires every transitive dependency to be listed
@@ -385,7 +411,12 @@ student-level data.
   that is known in practice.
 - Stack: Scala 3.3.7 / http4s Ember / doobie / Flyway on the backend,
   Vite + React 18 + Tailwind on the frontend, with the shared `libs/ui`
-  design system.
+  design system. The solver module is **Java 17** (see §10.1).
+- **Test data** lives in `services/belFER/testdata/`, exposed as the
+  `//services/belFER/testdata:testdata` filegroup and consumed through a test
+  target's `resources` — the same mechanism `//db:migrations` uses. Its
+  `private/` subdirectory is gitignored and excluded from the filegroup, for
+  real non-anonymised school data. See that directory's `README.md`.
 - **Ports 3000 and 8080 are taken by delFIN** — belFER picks new ones.
 - Repo-wide rules from `TECH_STACK.md` apply: every transitive dependency
   listed explicitly, no inline macros, cats-effect stays at 3.5.7 and
