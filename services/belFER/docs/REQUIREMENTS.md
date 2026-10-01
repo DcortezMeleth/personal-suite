@@ -101,13 +101,54 @@ mistake somewhere in ~500 assignment rows.
 - Break lengths vary, but **breaks do not affect planning**. Slot start/end
   times exist only so the plan can be printed.
 - **A double block may span the long break.**
-- **Every week is identical** — no odd/even week cycle.
+- No odd/even week cycle. **"Every week is identical" was recorded earlier
+  and is wrong** — assignments carry validity windows; see §4.1.
 - No explicit school-year entity.
 - The plan is built **twice a year**. **The hour allocation changes between
   semesters**, and new subjects — and therefore new teachers — may appear.
 - Mid-year changes (a teacher is replaced; final-year classes leave early after
   matura) are handled by **patching the existing plan**, not re-planning from
   scratch. This is post-MVP; see §11.
+
+### 4.1 Validity windows
+
+Every assignment in the arkusz carries `TydzienPocz`/`TydzienKon` — the school
+weeks over which it applies. Only 525 of 879 run the full year. **belFER
+stores these windows**; they are not flattened away at import.
+
+Partitioning the year at every window boundary gives **12 segments** in which
+the set of active assignments is constant:
+
+| Weeks | Length | Active assignments |
+|---|---|---|
+| 1–4 | 4 wk | 751 |
+| 5–11 | 7 wk | 753 |
+| 12 | 1 wk | 760 |
+| 13–18 | 6 wk | 753 |
+| 19 | 1 wk | 842 |
+| 20 | 1 wk | 756 |
+| 21–29 | 9 wk | 752 |
+| 30 | 1 wk | 766 |
+| 31–35 | 5 wk | 611 |
+| 36 / 37 / 38 | 1 wk each | 616 / 611 / 533 |
+
+Five segments cover **31 of the 38 weeks**, and differ from one another by only
+a handful of assignments (751 / 753 / 753 / 752 / 611). The other seven are
+single-week blips.
+
+**The windows describe exceptions around one broadly stable plan, not twelve
+distinct plans.** The design follows from that:
+
+- **The data layer keeps every window.** Nothing is lost on import, and the
+  post-MVP mid-year patching work depends on knowing them.
+- **The solver works on one chosen interval at a time.** Constraints are
+  evaluated across the assignments active in that interval; they are not
+  individually time-aware. Making every pairwise constraint conditional on
+  overlapping weeks would multiply the solver's cost and, more to the point,
+  would yield a timetable that changes every few weeks — which cannot be
+  printed and hung in a corridor.
+- **The segmentation is surfaced in the UI**, so the planner can see where a
+  plan would have to change and pick which interval to solve.
 
 ---
 
@@ -295,6 +336,10 @@ room.
 The weights are **editable by the user** — this is the "configurable
 optimisation key" that Vulcan lacks.
 
+Every constraint in §9.1 and §9.2 is evaluated **within the interval being
+solved** (§4.1). Two assignments whose validity windows do not overlap are
+never compared.
+
 ---
 
 ## 10. Solver
@@ -431,3 +476,182 @@ student-level data.
 - Confirm the **per-group** reading of "one block of a subject per day" (§6).
 - Room inventory by kind — entered as configuration, so not blocking.
 - Which optional subjects exist beyond religia and etyka.
+
+---
+
+## 16. What the real arkusz revealed
+
+The first real `planOrg` export (anonymised, in
+`services/belFER/testdata/arkusz/full-semester.xml`) contains 75 teachers, 46
+`<klasa>` records, 34 subjects, 879 assignments and 23 cross-class lessons. It
+**contradicts several things recorded above**. Nothing in §1–§15 has been
+edited yet; the conflicts are listed here so they can be resolved with the
+school first.
+
+### 16.1 Format outline
+
+| Element | Carries |
+|---|---|
+| `<placowka>` | school `kod`, `nazwa`, `regon` |
+| `<nauczyciel>` | `Nazwa`, `Imie`, `Pensum`, `Znizka`, `Kod` (the join key) |
+| `<klasa>` | `Kod`, `Poziom`, `Name`/`Nazwa` (specialisation), `LiczbaUczniow`, `LiczbaDziewczyn`, `WychowawcaRef` |
+| `<zajecie>` | a cross-class lesson: `Kod`, `Nazwa` |
+| `<przedmiot>` | `Kod`, `Nazwa`, `Pensum` |
+| `<przydzial>` | the assignment: `KlasaRef` **or** `ZajecieRef`, `PrzedmiotRef`, `NauczycielRef`, `LiczbaGodzin`, `Grupa`, `GrPodzial`, `GrNazwa`, `TydzienPocz`, `TydzienKon` |
+
+`WychowawcaRef` confirms §6: the wychowawca is already in the data.
+`LiczbaDziewczyn` (girls per class) is present, which is relevant to PE
+grouping even though §7 says student-level data is not needed.
+
+### 16.2 Conflicts to resolve
+
+**(a) Class list — conflicts with §3's "same number of classes per year, A…X".**
+Letters are not contiguous (there is no 1B) and the years are uneven. Of the 46
+`<klasa>` records only about 25 look like real classes; the rest have codes of
+the form `<year><letter><two more letters>`, which look like **extension or
+option groups modelled as pseudo-classes**. If so, §6's "an
+extended subject is just more hours within the class" is wrong, and extension
+groups are a first-class entity that may cross classes.
+
+**(b) Week ranges — conflicts with §4's "every week is identical".**
+Every assignment carries `TydzienPocz`/`TydzienKon`. Only 525 of 879 span the
+full 1–38. The common ranges — 1–19, 19–37, 1–30, 30–30, 37–38, 1–12, 12–19 —
+suggest the file is a **whole-year document with per-assignment validity
+windows**, with 1–19 and 19–37 as the two semesters. "Every week is identical"
+may still hold *within* a semester, which is what gets scheduled, but **import
+must filter to one semester** rather than taking the file whole. This also
+explains why naively summing hours gives a class 42 — above the 40-slot
+capacity — because it counts both semesters at once.
+
+**(c) Group splits — conflicts with §6's "max 2 groups, always the same split".**
+`GrNazwa` takes three distinct values, i.e. a class is split along **at least
+three independent dimensions**:
+
+| `GrNazwa` | `GrPodzial` values | Assignments |
+|---|---|---|
+| `grupy` | `1 grupa` … **`4 grupa`** | 373 |
+| `religia / etyka` | `religia`, `etyka` | 41 |
+| `WF` | `DZIEWCZĘTA`, `CHŁOPCY`, `Dziew-1`, `Dziew-2`, `Chłop-1`, `Chłop-2` | 65 |
+
+There are 12 assignments at `4 grupa` and one at `3 grupa`, so **up to four
+groups exist**, not two. The "always the same split" rule may apply only within
+the `grupy` dimension.
+
+**(d) Religia and etyka are cross-class — conflicts with §6.**
+`<zajeciaMiedzyOddzialowe>` holds 19 Wychowanie fizyczne, **3 Etyka and 1
+Religia**. §6 records that religia is not merged across classes; the data says
+otherwise.
+
+**(e) Cross-class assignments carry no `KlasaRef`.**
+23 `<przydzial>` rows reference a `ZajecieRef` instead, so the importer must
+handle both shapes, and a cross-class lesson's member classes are **not stated
+directly** — they appear to be encoded in the `<zajecie>` `Kod` (`4DE`, `2CD`,
+`3AF`, `DH3`). That encoding needs confirming rather than guessing.
+
+**(f) Extension subjects have their own codes — confirms §1.4.**
+Nine subjects are coded `r_*` (`r_matematyka`, `r_angielski`, …) alongside
+their base subject, exactly the split the school describes as artificial. The
+lesson-line model in §6.1 merges them; the importer must do that mapping.
+
+**(g) Minor.** Some assignments have an empty `NauczycielRef` (not yet
+allocated). `Pensum` appears on both `<nauczyciel>` and `<przedmiot>`, and
+teacher pensum varies from 18 to 30.
+
+### 16.3 Answers from the school
+
+**(a) Resolved — pseudo-classes are individual teaching.**
+A code of the form `<year><letter><two more letters>` is not a class. It is the
+plan for **one student** in that class, identified by their initials, receiving
+*nauczanie indywidualne* / *rewalidacja* / *zajęcia wyrównawcze*. There were 21
+such records, all with `LiczbaUczniow="0"` and no
+wychowawca. **The MVP ignores them**; support comes later. Missing class
+letters (no 1B) and uneven year sizes are simply normal — §3's "same number of
+classes per year, A…X" is wrong and should be dropped.
+
+> ⚠ **These records are the reason the fixture needed a second anonymisation
+> pass.** Their `Name` carried students' full names next to their provision —
+> named minors plus health data. See `testdata/README.md`.
+
+**(b) Acknowledged, not yet decided — week ranges.**
+Confirmed as a real complication. Still open: does import always target a
+single semester, or does belFER model validity windows? **This is the one
+remaining blocking question**, because it decides whether a plan is scoped to
+a semester or carries per-assignment date ranges.
+
+**(c) Resolved — two groups, and the data agrees.**
+The same two-group split applies to everything *except* `zajęcia
+międzyoddziałowe`. The `grupy` rows at 3 and 4 groups turned out to belong
+**only to the individual-teaching pseudo-classes**.
+Once those are ignored, `grupy` is exactly two groups across all real classes,
+exactly as §6 records. The `WF` and `religia / etyka` dimensions belong to
+cross-class lessons, not to the in-class split.
+
+**(d) Resolved — §6 was wrong.**
+Religia and etyka *are* merged across classes. The earlier statement that only
+PE is merged was a mistake. Cross-class lessons are 19 WF, 3 Etyka, 1 Religia.
+
+**(e) Resolved — `<zajecie>` codes and the three row shapes.**
+`4DE` means classes **4D + 4E**. Ordering is not significant: `D4E` and `DE4`
+occur too, so the code must be parsed by extracting the digit and the letters
+rather than by position.
+
+The `<przydzial>` rows come in exactly three shapes, which together give a
+clean import model:
+
+| `KlasaRef` | `ZajecieRef` | `NauczycielRef` | Count | Meaning |
+|---|---|---|---|---|
+| ✓ | — | ✓ | 800 | an ordinary in-class lesson |
+| ✓ | ✓ | — | 56 | **this class contributes students** to cross-class lesson Z |
+| — | ✓ | ✓ | 23 | **the cross-class group itself**, and who teaches it |
+
+Participation rows deliberately carry **no teacher**: assigning one there
+would count that teacher's hours twice. The planner assigns teachers to these
+groups by hand afterwards, in whatever tool she loads the data into — which is
+work belFER should absorb.
+
+There are 23 `<zajecie>` elements and 23 definition rows, so **one `<zajecie>`
+is one teaching group**, with `LiczbaUczniow` giving its size.
+
+### 16.4 Resolved — (b) validity windows
+
+**belFER models the windows**, storing them per assignment rather than
+flattening them at import. The solver still works on one interval at a time
+rather than making each constraint time-aware; §4.1 carries the reasoning and
+the segment data behind it.
+
+Nothing in §16.2 is still blocking.
+
+### 16.5 How the arkusz records a support teacher — conflicts with §8
+
+Before the fixture was reduced (see §16.6) the export contained three
+`NAUCZ.WSPOM.` assignments — *obowiązki nauczyciela wspomagającego*. They were
+recorded as **a subject assignment against an individual-teaching record**, one
+teacher at 10 h/week across weeks 1–38, covering three students in different
+classes.
+
+§8 assumes a support teacher attaches to a **(class, subject)** pair. The
+arkusz does something different: it books the teacher's hours against the
+student's individual plan, with no subject or class of its own.
+
+Both facts can be true — the principal allocates the hours one way, the
+timetable has to place them another — but the importer cannot derive §8's model
+from this data without being told which lessons the support teacher actually
+attends. **Open question for the school:** given 10 h/week of support, which
+(class, subject) pairs is the teacher present for?
+
+### 16.6 The committed fixture is reduced
+
+`testdata/arkusz/full-semester.xml` is not the whole export. Anonymising
+identities does not anonymise the data: a full copy shows how many students in
+each class receive special-needs provision, which on a public repository is a
+re-identification risk for a child if anyone works out which school it is.
+
+The committed fixture therefore keeps **three individual-teaching records
+instead of twenty-one**, chosen so that none carries any provision detail, and
+the three special-needs subject codes are dropped along with them. Class rolls
+are nudged by a few students so the published numbers are not the school's real
+roll. Everything else — teachers, classes, subjects, hour allocations, group
+splits, cross-class lessons, validity windows — is untouched real data.
+
+Counts after reduction: 28 classes (25 real + 3 individual), 75 teachers, 31
+subjects, 797 assignments, 23 cross-class lessons.

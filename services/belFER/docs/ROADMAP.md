@@ -63,7 +63,9 @@ Each subphase is a migration + repository + routes + a page.
   teachers — UC-16 … UC-20
 - **1.6** PE units and groups — UC-21, UC-22
 - **1.7** Specialisation templates — UC-14, UC-15
-- **1.8** Validation engine and live counters — UC-23, VAL-01 … VAL-07
+- **1.8** Validity windows on assignments, and the derived week segmentation
+  — see REQUIREMENTS §4.1
+- **1.9** Validation engine and live counters — UC-23, VAL-01 … VAL-07
 
 > 1.5 and 1.6 carry the model decisions that everything downstream depends on
 > (lesson lines; PE units). Worth reviewing against the requirements before
@@ -83,7 +85,9 @@ Each subphase is a migration + repository + routes + a page.
 
 ## Phase 3 — Solver
 
-- **3.1** Planning domain and Timefold wiring, built on the 0.5 spike
+- **3.1** Planning domain and Timefold wiring, built on the 0.5 spike. The
+  solver takes **one interval** and the assignments active in it (§4.1); the
+  constraints themselves are not time-aware
 - **3.2** Hard constraints — CT-01 … CT-17, and CT-21 as the regression guard
 - **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04
 - **3.4** Async job: start, progress, early stop, configurable timeout,
@@ -103,6 +107,8 @@ Each subphase is a migration + repository + routes + a page.
 - **4.3** Per room — UC-37
 - **4.4** Whole-school grid — UC-38
 - **4.5** PE rendering, plan list and history — UC-40
+- **4.6** Week-segment view: where the active assignment set changes, so the
+  planner can choose an interval and see where a plan would have to change
 
 ---
 

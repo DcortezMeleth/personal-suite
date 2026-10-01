@@ -139,6 +139,17 @@ apply.
 **UC-27 — Edit imported data**
 *Then* imported records behave exactly like hand-entered ones.
 
+**UC-27a — Validity windows survive import**
+Each assignment keeps its week range.
+*Then* the derived segmentation is shown — the intervals in which the active
+assignment set is constant — and the planner picks one to solve.
+
+**UC-27b — Individual-teaching records are recognised and skipped**
+The arkusz contains pseudo-classes whose `Kod` is `<year><letter><initials>`
+and whose `LiczbaUczniow` is 0.
+*Then* they are identified as individual teaching, reported, and left out of
+the MVP plan rather than imported as classes.
+
 ---
 
 ## Validation
@@ -249,6 +260,7 @@ violation); soft cases must be **penalised but accepted**.
 | **CT-18** | A lesson outside the teacher's home room | penalise |
 | **CT-19** | A specialist subject held in an ordinary room | penalise |
 | **CT-20** | A class whose longest and shortest days differ by more than 3 | penalise |
+| **CT-22** | Two assignments whose week ranges do not overlap, placed in the same slot for one teacher | **accept** — they never co-occur |
 | **CT-21** | **The language-swap scenario** — 1A Gr.1 angielski / Gr.2 niemiecki at slot 1, mirrored at slot 2, same day | **accept** |
 
 > **CT-21 is the key regression test for CT-08.** The class sees *angielski*
