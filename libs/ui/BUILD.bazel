@@ -35,6 +35,11 @@ js_library(
     # :ui_ts is a pure type-check gate (no_emit) and produces no files itself —
     # consumers (the frontend's Vite build) read these raw .ts/.tsx sources
     # directly via vite.config.ts's alias, so they must be included here too.
-    srcs = [":ui_ts"] + glob(["src/**/*.ts", "src/**/*.tsx"]),
+    #
+    # The .css glob matters as much as the sources: MonthPicker imports
+    # ./calendar.css, and without it here the file never reaches the sandbox,
+    # so Vite fails to resolve the import. It is not in :ui_ts because
+    # TypeScript has no business type-checking a stylesheet.
+    srcs = [":ui_ts"] + glob(["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"]),
     visibility = ["//visibility:public"],
 )
