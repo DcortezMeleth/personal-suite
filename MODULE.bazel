@@ -11,6 +11,10 @@ bazel_dep(name = "platforms", version = "1.0.0")
 
 # ── Scala 3 backend ───────────────────────────────────────────────────────────
 
+# Bazel 9 no longer provides java_library natively, and belFER's solver is
+# written in Java. 9.3.0 is the version rules_scala and rules_jvm_external
+# already resolve to, so this pins what is in the graph rather than adding to it.
+bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_scala", version = "7.2.5")
 bazel_dep(name = "rules_jvm_external", version = "7.0")
 
@@ -81,6 +85,11 @@ maven.install(
         "org.typelevel:literally_3:1.1.0",
         "org.typelevel:cats-parse_3:1.0.0",
         "org.typelevel:keypool_3:0.4.9",
+        # Constraint solver for belFER's timetable generation. Pure Java, so no
+        # Scala version suffix — and belFER's solver module is Java too, which
+        # keeps Timefold's annotation- and JavaBean-driven API away from
+        # Scala 3 entirely.
+        "ai.timefold.solver:timefold-solver-core:1.16.0",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
