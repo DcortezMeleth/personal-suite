@@ -1,4 +1,5 @@
 node_modules
 .pnpm-store
 services/delFIN/frontend/node_modules
+services/belFER/frontend/node_modules
 libs/ui/node_modules
