@@ -25,3 +25,19 @@ class ClasspathWiringSpec extends AnyFunSuite:
       "//services/belFER/testdata:testdata is not reaching the test classpath"
     )
   }
+
+class SchemaUrlSpec extends AnyFunSuite:
+
+  test("adds the schema to a url that has no query string") {
+    assert(
+      Database.withSchema("jdbc:postgresql://localhost:5432/delfin", "belfer") ==
+        "jdbc:postgresql://localhost:5432/delfin?currentSchema=belfer"
+    )
+  }
+
+  test("appends to a url that already carries parameters, rather than replacing them") {
+    assert(
+      Database.withSchema("jdbc:postgresql://db:5432/belfer?ssl=true", "public") ==
+        "jdbc:postgresql://db:5432/belfer?ssl=true&currentSchema=public"
+    )
+  }
