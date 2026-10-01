@@ -1,9 +1,11 @@
 # Enable bzlmod (default in Bazel 7+, explicit here for clarity)
 common --enable_bzlmod
 
-# Java 17 toolchain
-build --java_runtime_version=17
-build --tool_java_runtime_version=17
+# Java 25 toolchain (current LTS). Scala 3.3.7, Timefold and the whole test
+# suite were verified on it before the move.
+build --java_runtime_version=25
+build --tool_java_runtime_version=25
+build --java_language_version=25
 
 # Disable Java header compilation so Bazel passes full JARs to scalac.
 # rules_jvm_external otherwise produces stripped header jars that lose Scala 3

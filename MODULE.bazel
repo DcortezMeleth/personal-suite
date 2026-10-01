@@ -131,7 +131,7 @@ oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "temurin_jre",
     image = "eclipse-temurin",
-    tag = "17-jre-jammy",
+    tag = "25-jre-noble",
     platforms = ["linux/amd64"],
 )
 oci.pull(

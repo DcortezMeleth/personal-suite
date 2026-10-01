@@ -13,7 +13,7 @@
 | bazel_skylib | 1.9.0 | Common Bazel utilities |
 | rules_pkg | 1.2.0 | Packaging |
 
-`.bazelversion` pins to `9.1.1`. `.bazelrc` enables bzlmod, sets JVM 17, disables Java header compilation.
+`.bazelversion` pins to `9.2.0`. `.bazelrc` enables bzlmod, sets JVM 25, disables Java header compilation.
 
 ---
 
@@ -136,7 +136,7 @@ The Vite alias `@delfin/ui → ../../../libs/ui/src/index.ts` is set in each ser
 | Component | Image / Tool |
 |---|---|
 | PostgreSQL | `postgres:16-alpine` |
-| Backend JVM | `eclipse-temurin:21-jre-alpine` |
+| Backend JVM | `eclipse-temurin:25-jre-noble` |
 | Frontend (prod) | `nginx:alpine` serving the Vite build output |
 | Orchestration | Docker Compose (`infra/docker-compose.yml`) |
 
