@@ -1,0 +1,9 @@
+# belFER's migrations are kept separate from delFIN's so each service owns its
+# own Flyway history. The backend lists this filegroup under `resources`, which
+# places the files on the classpath under their repo-relative path — which is
+# why Flyway can load them as `classpath:db/belFER/migrations`.
+filegroup(
+    name = "migrations",
+    srcs = glob(["migrations/**/*.sql"]),
+    visibility = ["//visibility:public"],
+)

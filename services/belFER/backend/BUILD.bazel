@@ -1,0 +1,119 @@
+load("@rules_scala//scala:scala.bzl", "scala_binary", "scala_library", "scala_test")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+
+# The dependency list mirrors //services/delFIN/backend:fin_lib. rules_jvm_external
+# does not place transitive dependencies on the scalac classpath, so every type
+# visible during compilation has to be named here — see TECH_STACK.md. That list
+# was arrived at the hard way, so it is reused wholesale rather than rediscovered.
+scala_library(
+    name = "belfer_lib",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    resources = glob(["src/main/resources/**/*"]) + ["//db/belFER:migrations"],
+    deps = [
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:com_comcast_ip4s_core_3",
+        "@maven//:com_typesafe_config",
+        "@maven//:io_circe_circe_core_3",
+        "@maven//:io_circe_circe_generic_3",
+        "@maven//:io_circe_circe_parser_3",
+        "@maven//:org_flywaydb_flyway_core",
+        "@maven//:org_flywaydb_flyway_database_postgresql",
+        "@maven//:org_http4s_http4s_circe_3",
+        "@maven//:org_http4s_http4s_core_3",
+        "@maven//:org_http4s_http4s_dsl_3",
+        "@maven//:org_http4s_http4s_client_3",
+        "@maven//:org_http4s_http4s_ember_client_3",
+        "@maven//:org_http4s_http4s_ember_server_3",
+        "@maven//:org_http4s_http4s_server_3",
+        "@maven//:org_postgresql_postgresql",
+        "@maven//:org_tpolecat_doobie_core_3",
+        "@maven//:org_tpolecat_doobie_free_3",
+        "@maven//:org_tpolecat_doobie_hikari_3",
+        "@maven//:org_tpolecat_doobie_postgres_3",
+        "@maven//:org_tpolecat_typename_3",
+        "@maven//:org_typelevel_cats_core_3",
+        "@maven//:org_typelevel_cats_free_3",
+        "@maven//:org_typelevel_cats_effect_3",
+        "@maven//:org_typelevel_cats_effect_kernel_3",
+        "@maven//:org_typelevel_cats_effect_std_3",
+        "@maven//:org_typelevel_cats_kernel_3",
+        "@maven//:org_typelevel_log4cats_core_3",
+        "@maven//:org_typelevel_log4cats_slf4j_3",
+        "@maven//:co_fs2_fs2_core_3",
+        "@maven//:co_fs2_fs2_io_3",
+        "@maven//:org_typelevel_case_insensitive_3",
+        "@maven//:org_typelevel_cats_mtl_3",
+        "@maven//:org_typelevel_cats_parse_3",
+        "@maven//:org_typelevel_keypool_3",
+        "@maven//:org_typelevel_literally_3",
+        "@maven//:org_typelevel_vault_3",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+scala_binary(
+    name = "server",
+    main_class = "bel.Main",
+    deps = [":belfer_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# ── Container image ─────────────────────────────────────────────────────────
+# Mirrors the delFIN backend's packaging, including two workarounds that are
+# not obvious and should not be "simplified" away:
+#
+#  * platform_transition_filegroup cross-builds :server for linux/amd64. The
+#    binary embeds a JDK, so a host build on darwin/arm64 would ship a macOS
+#    JVM inside a Linux image. Using a global --platforms flag instead would
+#    drag the host-side tar/docker-load tooling onto the wrong platform too.
+#
+#  * The env block names the runfiles directory explicitly. pkg_tar's
+#    include_runfiles names it after the jar (server.jar.runfiles), not the
+#    launcher, so the launcher's self-detection looks in the wrong place.
+#    Both vars are needed: JAVA_RUNFILES builds the classpath and TEST_SRCDIR
+#    locates the JVM, and TEST_SRCDIR is only derived from JAVA_RUNFILES inside
+#    the auto-detect block that presetting JAVA_RUNFILES skips.
+
+platform_transition_filegroup(
+    name = "server_linux_amd64",
+    srcs = [":server"],
+    target_platform = "//platforms:linux_amd64",
+)
+
+pkg_tar(
+    name = "server_layer",
+    srcs = [":server_linux_amd64"],
+    include_runfiles = True,
+    package_dir = "/app",
+)
+
+oci_image(
+    name = "server_image",
+    base = "@temurin_jre",
+    tars = [":server_layer"],
+    entrypoint = ["/app/server"],
+    env = {
+        "JAVA_RUNFILES": "/app/server.jar.runfiles",
+        "TEST_SRCDIR": "/app/server.jar.runfiles",
+    },
+    exposed_ports = ["8081"],
+)
+
+oci_load(
+    name = "server_image_load",
+    image = ":server_image",
+    repo_tags = ["belfer-backend:local"],
+)
+
+scala_test(
+    name = "unit_test",
+    srcs = glob(["src/test/scala/**/*.scala"]),
+    resources = ["//services/belFER/testdata:testdata"],
+    deps = [
+        ":belfer_lib",
+        "@maven//:org_tpolecat_doobie_core_3",
+        "@maven//:org_typelevel_cats_effect_3",
+    ],
+)
