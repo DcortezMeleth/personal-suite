@@ -1,0 +1,968 @@
+<?xml version="1.0"?>
+<planOrg>
+  <placowka kod="LOX" nazwa="Liceum Ogólnokształcące nr 1 w Przykładowie" regon="00000000000000" />
+  <nauczyciele>
+    <nauczyciel Nazwa="Marciniak" Imie="Janina" Pensum="18" Znizka="0" Kod="MJ" />
+    <nauczyciel Nazwa="Dziedzic - Lis" Imie="Miron" Pensum="18" Znizka="0" Kod="DZ" />
+    <nauczyciel Nazwa="Milewski" Imie="Czesław" Pensum="18" Znizka="0" Kod="MC" />
+    <nauczyciel Nazwa="Sokołowska" Imie="Weronika" Pensum="18" Znizka="0" Kod="SW" />
+    <nauczyciel Nazwa="Bielecka" Imie="Irena" Pensum="20" Znizka="0" Kod="BL" />
+    <nauczyciel Nazwa="Dziedzic" Imie="Oskar" Pensum="18" Znizka="0" Kod="DO" />
+    <nauczyciel Nazwa="Rutkowska-Głowacka" Imie="Aniela " Pensum="21" Znizka="0" Kod="RU" />
+    <nauczyciel Nazwa="Marciniak" Imie="Ilona" Pensum="18" Znizka="0" Kod="MI" />
+    <nauczyciel Nazwa="Lewandowski" Imie="Seweryn" Pensum="18" Znizka="0" Kod="LS" />
+    <nauczyciel Nazwa="Rutkowska" Imie="Alicja" Pensum="18" Znizka="0" Kod="RA" />
+    <nauczyciel Nazwa="Bielecka-Kaczmarek" Imie="Irena" Pensum="18" Znizka="0" Kod="BE" />
+    <nauczyciel Nazwa="Konieczny" Imie="Zofia" Pensum="18" Znizka="0" Kod="KZ" />
+    <nauczyciel Nazwa="Świercz" Imie="Sandra" Pensum="30" Znizka="0" Kod="ŚS" />
+    <nauczyciel Nazwa="Walczak" Imie="Radosław" Pensum="18" Znizka="0" Kod="WA" />
+    <nauczyciel Nazwa="Leszczyński" Imie="Arkadiusz" Pensum="18" Znizka="0" Kod="LA" />
+    <nauczyciel Nazwa="Kubiak" Imie="Lucjan" Pensum="20" Znizka="0" Kod="KL" />
+    <nauczyciel Nazwa="Zaremba" Imie="Jadwiga" Pensum="18" Znizka="0" Kod="ZJ" />
+    <nauczyciel Nazwa="Łuczak" Imie="Izabela" Pensum="18" Znizka="0" Kod="ŁI" />
+    <nauczyciel Nazwa="Gajewski" Imie="Stanisław" Pensum="18" Znizka="0" Kod="GS" />
+    <nauczyciel Nazwa="Walczak" Imie="Mikołaj" Pensum="18" Znizka="0" Kod="WM" />
+    <nauczyciel Nazwa="Madej" Imie="Aniela" Pensum="18" Znizka="0" Kod="MA" />
+    <nauczyciel Nazwa="Kołodziej" Imie="Zuzanna" Pensum="18" Znizka="0" Kod="KO" />
+    <nauczyciel Nazwa="Lis" Imie="Zygmunt" Pensum="18" Znizka="0" Kod="LZ" />
+    <nauczyciel Nazwa="Brzozowska" Imie="Róża" Pensum="18" Znizka="0" Kod="BR" />
+    <nauczyciel Nazwa="Świercz" Imie="Halina" Pensum="18" Znizka="0" Kod="ŚH" />
+    <nauczyciel Nazwa="Przybylski" Imie="Zdzisław" Pensum="18" Znizka="0" Kod="PZ" />
+    <nauczyciel Nazwa="Kania" Imie="Teresa" Pensum="18" Znizka="0" Kod="KT" />
+    <nauczyciel Nazwa="Kołodziej" Imie="Wanda" Pensum="18" Znizka="0" Kod="KW" />
+    <nauczyciel Nazwa="Malinowska" Imie="Emilia" Pensum="18" Znizka="0" Kod="ME" />
+    <nauczyciel Nazwa="Urbański" Imie="Karol" Pensum="18" Znizka="0" Kod="UK" />
+    <nauczyciel Nazwa="Jaskólska" Imie="Hanna" Pensum="22" Znizka="0" Kod="JH" />
+    <nauczyciel Nazwa="Kubiak" Imie="Maksymilian" Pensum="18" Znizka="0" Kod="KM" />
+    <nauczyciel Nazwa="Stasiak" Imie="Alfred" Pensum="18" Znizka="0" Kod="ST" />
+    <nauczyciel Nazwa="Piotrowski" Imie="Roman" Pensum="18" Znizka="0" Kod="PR" />
+    <nauczyciel Nazwa="Olszewski" Imie="Franciszek" Pensum="18" Znizka="0" Kod="OF" />
+    <nauczyciel Nazwa="Żurek" Imie="Stefania" Pensum="18" Znizka="0" Kod="ŻS" />
+    <nauczyciel Nazwa="Kania" Imie="Wanda" Pensum="18" Znizka="0" Kod="KN" />
+    <nauczyciel Nazwa="Witkowska" Imie="Bogumiła" Pensum="18" Znizka="0" Kod="WB" />
+    <nauczyciel Nazwa="Leszczyński" Imie="Bartosz" Pensum="18" Znizka="0" Kod="LB" />
+    <nauczyciel Nazwa="Orłowski" Imie="Ignacy" Pensum="18" Znizka="0" Kod="OI" />
+    <nauczyciel Nazwa="Bielecka" Imie="Janina" Pensum="18" Znizka="0" Kod="BJ" />
+    <nauczyciel Nazwa="Pietrzak" Imie="Norbert" Pensum="18" Znizka="0" Kod="PN" />
+    <nauczyciel Nazwa="Michalska" Imie="Patrycja " Pensum="18" Znizka="0" Kod="MP" />
+    <nauczyciel Nazwa="Leszczyńska" Imie="Teresa" Pensum="18" Znizka="0" Kod="LT" />
+    <nauczyciel Nazwa="Jabłońska - Czajkowska" Imie="Celina" Pensum="18" Znizka="0" Kod="JC" />
+    <nauczyciel Nazwa="Zawadzki" Imie="Klara" Pensum="18" Znizka="0" Kod="ZK" />
+    <nauczyciel Nazwa="Zaremba" Imie="Irena" Pensum="18" Znizka="0" Kod="ZI" />
+    <nauczyciel Nazwa="Pietrzak" Imie="Mikołaj" Pensum="18" Znizka="0" Kod="PM" />
+    <nauczyciel Nazwa="Stępień" Imie="Daniel" Pensum="22" Znizka="0" Kod="SD" />
+    <nauczyciel Nazwa="Bielecka-Baranowska" Imie="Irena" Pensum="18" Znizka="0" Kod="BI" />
+    <nauczyciel Nazwa="Wróbel" Imie="Celina" Pensum="18" Znizka="0" Kod="WC" />
+    <nauczyciel Nazwa="Milewski" Imie="Cezary" Pensum="18" Znizka="0" Kod="ML" />
+    <nauczyciel Nazwa="Kalinowska" Imie="Marzena" Pensum="18" Znizka="0" Kod="KI" />
+    <nauczyciel Nazwa="Stasiak-Czajkowski" Imie="Artur" Pensum="18" Znizka="0" Kod="SA" />
+    <nauczyciel Nazwa="Żelazny" Imie="Tytus" Pensum="18" Znizka="0" Kod="ŻT" />
+    <nauczyciel Nazwa="Serafin" Imie="Jadwiga" Pensum="18" Znizka="0" Kod="SE" />
+    <nauczyciel Nazwa="Baranowska" Imie="Elwira" Pensum="18" Znizka="0" Kod="BA" />
+    <nauczyciel Nazwa="Kalinowska" Imie="Mirosława" Pensum="18" Znizka="0" Kod="KA" />
+    <nauczyciel Nazwa="Jabłońska" Imie="Cecylia" Pensum="18" Znizka="0" Kod="JA" />
+    <nauczyciel Nazwa="Sadowska" Imie="Grażyna" Pensum="18" Znizka="0" Kod="SG" />
+    <nauczyciel Nazwa="Korzeniowski" Imie="Bolesław" Pensum="18" Znizka="0" Kod="KB" />
+    <nauczyciel Nazwa="Wasilewski" Imie="Ryszard" Pensum="18" Znizka="0" Kod="WR" />
+    <nauczyciel Nazwa="Ćwikła" Imie="Irena" Pensum="18" Znizka="0" Kod="ĆI" />
+    <nauczyciel Nazwa="Śmigiel" Imie="Zdzisław" Pensum="18" Znizka="0" Kod="ŚZ" />
+    <nauczyciel Nazwa="Niemiec" Imie="Bartosz" Pensum="22" Znizka="0" Kod="NB" />
+    <nauczyciel Nazwa="Wilk" Imie="Tytus" Pensum="18" Znizka="0" Kod="WT" />
+    <nauczyciel Nazwa="Kalinowska-Kamińska" Imie="Ludmiła" Pensum="18" Znizka="0" Kod="KS" />
+    <nauczyciel Nazwa="Dziedzic-Konieczny" Imie="Miron" Pensum="30" Znizka="0" Kod="DM" />
+    <nauczyciel Nazwa="Sikora" Imie="Liliana" Pensum="18" Znizka="0" Kod="SL" />
+    <nauczyciel Nazwa="Wasilewski-Sawicki" Imie="Sebastian" Pensum="29" Znizka="0" Kod="WS" />
+    <nauczyciel Nazwa="Serafin" Imie="Janina" Pensum="18" Znizka="0" Kod="SJ" />
+    <nauczyciel Nazwa="Jarosz" Imie="Róża" Pensum="18" Znizka="0" Kod="JR" />
+    <nauczyciel Nazwa="Czajkowski" Imie="Bogdan" Pensum="18" Znizka="0" Kod="CB" />
+    <nauczyciel Nazwa="Śliwa-Krupa" Imie="Wacław" Pensum="18" Znizka="0" Kod="ŚW" />
+    <nauczyciel Nazwa="Szulc" Imie="Edward" Pensum="18" Znizka="0" Kod="SZ" />
+  </nauczyciele>
+  <klasy>
+    <klasa Kod="1A" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="POL-HIST-ANG" Nazwa="1POL-HIST-ANG" Short="A" LiczbaUczniow="33" LiczbaDziewczyn="21" WychowawcaRef="ME" />
+    <klasa Kod="1C" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="1BIOL-CHEM" Short="C" LiczbaUczniow="38" LiczbaDziewczyn="28" WychowawcaRef="SA" />
+    <klasa Kod="1D" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="1BIOL-CHEM" Short="D" LiczbaUczniow="36" LiczbaDziewczyn="27" WychowawcaRef="KZ" />
+    <klasa Kod="1E" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="1BIOL-CHEM" Short="E" LiczbaUczniow="34" LiczbaDziewczyn="25" WychowawcaRef="" />
+    <klasa Kod="1F" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="MAT-GEO-ANG" Nazwa="1MAT-GEO-ANG" Short="F" LiczbaUczniow="32" LiczbaDziewczyn="20" WychowawcaRef="" />
+    <klasa Kod="1G" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="MAT-FIZ-INF" Nazwa="1MAT-FIZ-INF" Short="G" LiczbaUczniow="32" LiczbaDziewczyn="7" WychowawcaRef="OI" />
+    <klasa Kod="1H" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="4" PoziomMin="4" PoziomMax="7" Name="MAT-INF-ANG" Nazwa="1MAT-INF-ANG" Short="H" LiczbaUczniow="34" LiczbaDziewczyn="10" WychowawcaRef="SJ" />
+    <klasa Kod="2A" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="POL-HIST-ANG" Nazwa="2POL-HIST-ANG" Short="A" LiczbaUczniow="34" LiczbaDziewczyn="28" WychowawcaRef="SE" />
+    <klasa Kod="2C" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="2BIOL-CHEM" Short="C" LiczbaUczniow="35" LiczbaDziewczyn="24" WychowawcaRef="WR" />
+    <klasa Kod="2D" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="2BIOL-CHEM" Short="D" LiczbaUczniow="35" LiczbaDziewczyn="22" WychowawcaRef="PZ" />
+    <klasa Kod="2E" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="2BIOL-CHEM" Short="E" LiczbaUczniow="36" LiczbaDziewczyn="26" WychowawcaRef="ĆI" />
+    <klasa Kod="2F" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="MAT-GEO-ANG" Nazwa="2MAT-GEO-ANG" Short="F" LiczbaUczniow="36" LiczbaDziewczyn="17" WychowawcaRef="ŚH" />
+    <klasa Kod="2G" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="MAT-FIZ-INF" Nazwa="2MAT-FIZ-INF" Short="G" LiczbaUczniow="35" LiczbaDziewczyn="9" WychowawcaRef="SG" />
+    <klasa Kod="2H" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="5" PoziomMin="4" PoziomMax="7" Name="MAT-INF-ANG" Nazwa="2MAT-INF-ANG" Short="H" LiczbaUczniow="37" LiczbaDziewczyn="8" WychowawcaRef="GS" />
+    <klasa Kod="3A" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="4" PoziomMax="7" Name="POL-HIST-ANG" Nazwa="3POL-HIST-ANG" Short="A" LiczbaUczniow="30" LiczbaDziewczyn="20" WychowawcaRef="ZJ" />
+    <klasa Kod="3D" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="3BIOL-CHEM" Short="D" LiczbaUczniow="28" LiczbaDziewczyn="23" WychowawcaRef="KS" />
+    <klasa Kod="3F" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="4" PoziomMax="7" Name="MAT-GEO-ANG" Nazwa="3MAT-GEO-ANG" Short="F" LiczbaUczniow="31" LiczbaDziewczyn="16" WychowawcaRef="SL" />
+    <klasa Kod="3H" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="4" PoziomMax="7" Name="MAT-INF-ANG" Nazwa="3MAT-INF-ANG" Short="H" LiczbaUczniow="28" LiczbaDziewczyn="9" WychowawcaRef="ST" />
+    <klasa Kod="4A" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="POL-HIST-ANG" Nazwa="4POL-HIST-ANG" Short="A" LiczbaUczniow="37" LiczbaDziewczyn="31" WychowawcaRef="KN" />
+    <klasa Kod="4C" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="4BIOL-CHEM" Short="C" LiczbaUczniow="39" LiczbaDziewczyn="30" WychowawcaRef="BE" />
+    <klasa Kod="4D" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="4BIOL-CHEM" Short="D" LiczbaUczniow="36" LiczbaDziewczyn="24" WychowawcaRef="DZ" />
+    <klasa Kod="4E" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="BIOL-CHEM" Nazwa="4BIOL-CHEM" Short="E" LiczbaUczniow="36" LiczbaDziewczyn="25" WychowawcaRef="WC" />
+    <klasa Kod="4F" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="MAT-GEO-ANG" Nazwa="4MAT-GEO-ANG" Short="F" LiczbaUczniow="30" LiczbaDziewczyn="17" WychowawcaRef="LA" />
+    <klasa Kod="4G" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="MAT-FIZ-INF" Nazwa="4MAT-FIZ-INF" Short="G" LiczbaUczniow="28" LiczbaDziewczyn="6" WychowawcaRef="MA" />
+    <klasa Kod="4H" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="MAT-INF-ANG" Nazwa="4MAT-INF-ANG" Short="H" LiczbaUczniow="36" LiczbaDziewczyn="12" WychowawcaRef="BI" />
+    <klasa Kod="4Gac" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="7" PoziomMin="4" PoziomMax="7" Name="4G UCZEŃ - PLAN INDYWIDUALNY" Nazwa="44G UCZEŃ - PLAN INDYWIDUALNY" Short="Gac" LiczbaUczniow="0" LiczbaDziewczyn="0" WychowawcaRef="" />
+    <klasa Kod="3Fak" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="4" PoziomMax="7" Name="3F UCZEŃ - PLAN INDYWIDUALNY" Nazwa="33F UCZEŃ - PLAN INDYWIDUALNY" Short="Fak" LiczbaUczniow="0" LiczbaDziewczyn="0" WychowawcaRef="" />
+    <klasa Kod="3FAK" KodSzkoly="LOX01/4" NazwaSzkoly="Liceum Ogólnokształcące nr 1 w Przykładowie/4" Poziom="6" PoziomMin="6" PoziomMax="7" Name="3F UCZEŃ - PLAN INDYWIDUALNY" Nazwa="33F UCZEŃ - PLAN INDYWIDUALNY" Short="FAK" LiczbaUczniow="0" LiczbaDziewczyn="0" WychowawcaRef="" />
+  </klasy>
+  <zajeciaMiedzyOddzialowe>
+    <zajecie Kod="A4D" Nazwa="Religia" />
+    <zajecie Kod="4DE" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="4CH" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="2CD" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="2AH" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="2EG" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="et1" Nazwa="Etyka" />
+    <zajecie Kod="E23" Nazwa="Etyka" />
+    <zajecie Kod="et4" Nazwa="Etyka" />
+    <zajecie Kod="3AF" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="DH3" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="3DH" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="4AG" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="AG4" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="CH4" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="AH2" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="AH1" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="CD1" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="1EG" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="EG1" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="EG2" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="1AH" Nazwa="Wychowanie fizyczne" />
+    <zajecie Kod="1CD" Nazwa="Wychowanie fizyczne" />
+  </zajeciaMiedzyOddzialowe>
+  <przedmioty>
+    <przedmiot Kod="doradz. zaw." Nazwa="Doradztwo zawodowe" Pensum="22" />
+    <przedmiot Kod="historia" Nazwa="Historia" Pensum="18" />
+    <przedmiot Kod="j.angielski" Nazwa="Język angielski" Pensum="18" />
+    <przedmiot Kod="j.hiszpański" Nazwa="Język hiszpański" Pensum="18" />
+    <przedmiot Kod="j.polski" Nazwa="Język polski" Pensum="18" />
+    <przedmiot Kod="matematyka" Nazwa="Matematyka" Pensum="18" />
+    <przedmiot Kod="r_angielski" Nazwa="Język angielski rozszerzony" Pensum="18" />
+    <przedmiot Kod="r_historia" Nazwa="Historia rozszerzona" Pensum="18" />
+    <przedmiot Kod="r_j.polski" Nazwa="Język polski rozszerzony" Pensum="18" />
+    <przedmiot Kod="religia" Nazwa="Religia" Pensum="18" />
+    <przedmiot Kod="wf" Nazwa="Wychowanie fizyczne" Pensum="18" />
+    <przedmiot Kod="zaj. z wych." Nazwa="Zajęcia z wychowawcą" Pensum="18" />
+    <przedmiot Kod="ZRZU_k_nauko" Nazwa="Zajęcia rozwijające zainteresowania i uzdolnienia uczniów" Pensum="18" />
+    <przedmiot Kod="r_chemia" Nazwa="Chemia rozszerzona" Pensum="18" />
+    <przedmiot Kod="j.niemiecki" Nazwa="Język niemiecki" Pensum="18" />
+    <przedmiot Kod="r_geografia" Nazwa="Geografia rozszerzona" Pensum="18" />
+    <przedmiot Kod="r_matematyka" Nazwa="Matematyka rozszerzona" Pensum="18" />
+    <przedmiot Kod="r_fizyka" Nazwa="Fizyka rozszerzona" Pensum="18" />
+    <przedmiot Kod="r_informat." Nazwa="Informatyka rozszerzona" Pensum="18" />
+    <przedmiot Kod="r_biologia" Nazwa="Biologia rozszerzona" Pensum="18" />
+    <przedmiot Kod="chemia" Nazwa="Chemia" Pensum="18" />
+    <przedmiot Kod="e_obywatel." Nazwa="Edukacja obywatelska" Pensum="18" />
+    <przedmiot Kod="fizyka" Nazwa="Fizyka " Pensum="18" />
+    <przedmiot Kod="geografia" Nazwa="Geografia" Pensum="18" />
+    <przedmiot Kod="informatyka" Nazwa="Informatyka" Pensum="18" />
+    <przedmiot Kod="biologia" Nazwa="Biologia" Pensum="18" />
+    <przedmiot Kod="biznes" Nazwa="Biznes i zarządzanie" Pensum="18" />
+    <przedmiot Kod="etyka" Nazwa="Etyka" Pensum="18" />
+    <przedmiot Kod="eduk_dla_bez" Nazwa="Edukacja dla bezpieczeństwa" Pensum="18" />
+    <przedmiot Kod="muzyka" Nazwa="Muzyka" Pensum="18" />
+    <przedmiot Kod="e_zdrowotna" Nazwa="Edukacja zdrowotna" Pensum="18" />
+  </przedmioty>
+  <przydzialy>
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="SD" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="11" ZajecieRef="A4D" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="11" ZajecieRef="A4D" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="11" ZajecieRef="A4D" PrzedmiotRef="religia" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="4A" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SD" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="DZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="4DE" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="4E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="4DE" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="4D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="4DE" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="12" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4E" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="24" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="4E" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="r_geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="9" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="4F" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="5" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4G" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="4G" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4H" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="4H" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="doradz. zaw." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="SD" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="12" LiczbaGodzin="2" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="4" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="4C" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="4CH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="4C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="4CH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="4H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="4CH" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="r_historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="r_j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="3A" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="3A" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="3D" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="3D" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="36" TydzienKon="37" LiczbaGodzin="3" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="KA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="r_geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="36" TydzienKon="37" LiczbaGodzin="3" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="KA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="8" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="3F" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="3F" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="KN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="3H" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="36" TydzienKon="37" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="KA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2A" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="2A" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2C" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="24" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="2C" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2D" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="2CD" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="2C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="2CD" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="2D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="2CD" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="36" TydzienKon="37" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="KA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="36" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="KA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2F" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="2F" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="22" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2G" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="2G" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="22" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2H" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="2AH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="2A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="2AH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="2H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="2AH" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_obywatel." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="CB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="23" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="2E" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="2EG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="2E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="2EG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="2G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="2EG" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4A" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="DZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4F" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="4F" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="5" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="DZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3A" NauczycielRef="DZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3D" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="14" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="2F" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="BI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="SE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="KS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1F" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="1H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="et1" PrzedmiotRef="etyka" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KO" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="6" ZajecieRef="E23" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="6" ZajecieRef="E23" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2F" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="6" ZajecieRef="E23" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="6" ZajecieRef="E23" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="3A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="30" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="6" ZajecieRef="E23" PrzedmiotRef="etyka" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KO" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2F" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="2H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="3A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="2" GrPodzial="etyka" GrNazwa="religia / etyka" KlasaRef="4F" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="7" ZajecieRef="et4" PrzedmiotRef="etyka" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KO" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="MC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="MC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="MC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="JR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_informat." Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="MP" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="21" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1C" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1A" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1H" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1G" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="21" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1E" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2D" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2C" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2A" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="KI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2H" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="PN" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.niemiecki" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="JC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BE" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="WM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="UK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="BR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1H" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ST" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="ĆI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="LB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="OI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1A" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1E" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1C" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1G" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1H" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="3AF" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="3A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="3AF" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="3F" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="3AF" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="DH3" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="3D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="DH3" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="3H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="DH3" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="24" ZajecieRef="3DH" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="3D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="24" ZajecieRef="3DH" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="3H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="24" ZajecieRef="3DH" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="SW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="15" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="RA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="3F" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="13" ZajecieRef="4AG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="4A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="13" ZajecieRef="4AG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="4G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="13" ZajecieRef="4AG" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="AG4" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="4A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="AG4" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="4G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="AG4" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="16" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4C" NauczycielRef="WA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="4C" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="CH4" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="4C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="CH4" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="4H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="CH4" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="SA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="3" LiczbaUczniow="23" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="4D" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="2" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="4D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="WR" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="MI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="ŚH" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="30" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="ŻT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="ZRZU_k_nauko" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="SG" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="2H" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH2" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="2A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH2" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="2H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH2" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="AH1" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="1A" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="CD1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="CD1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="CD1" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1EG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="1E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1EG" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="1G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1EG" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="22" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="1F" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="20" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="1E" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="EG1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="EG1" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="1G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="15" ZajecieRef="EG1" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="1H" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="19" ZajecieRef="" PrzedmiotRef="wf" Grupa="3" GrPodzial="Chłop-1" GrNazwa="WF" KlasaRef="1G" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1A" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1C" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="37" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1G" NauczycielRef="BJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="2E" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="EG2" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="2E" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="EG2" PrzedmiotRef="wf" Grupa="2" GrPodzial="Dziew-2" GrNazwa="WF" KlasaRef="2G" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="EG2" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="22" ZajecieRef="" PrzedmiotRef="wf" Grupa="5" GrPodzial="DZIEWCZĘTA" GrNazwa="WF" KlasaRef="2D" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1F" NauczycielRef="JA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2C" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3H" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="2G" NauczycielRef="ZK" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="geografia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="LA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="MC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="20" ZajecieRef="" PrzedmiotRef="religia" Grupa="1" GrPodzial="religia" GrNazwa="religia / etyka" KlasaRef="1D" NauczycielRef="ŚZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="muzyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="LT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_biologia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZI" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="eduk_dla_bez" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="r_chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="biznes" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="WB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.angielski" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="PZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="informatyka" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="GS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="2" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="j.hiszpański" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="MJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="zaj. z wych." Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="17" ZajecieRef="" PrzedmiotRef="chemia" Grupa="2" GrPodzial="2 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="chemia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="chemia" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="KM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="j.polski" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="ŁI" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="1D" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="19" TydzienKon="37" LiczbaGodzin="1" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="1" GrPodzial="1 grupa" GrNazwa="grupy" KlasaRef="1D" NauczycielRef="ZJ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="13" ZajecieRef="" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="1F" NauczycielRef="KB" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="1D" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="1AH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="1A" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="1AH" PrzedmiotRef="wf" Grupa="4" GrPodzial="Chłop-2" GrNazwa="WF" KlasaRef="1H" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="1AH" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="18" ZajecieRef="" PrzedmiotRef="wf" Grupa="1" GrPodzial="Dziew-1" GrNazwa="WF" KlasaRef="1C" NauczycielRef="SL" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1CD" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="1C" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1CD" PrzedmiotRef="wf" Grupa="6" GrPodzial="CHŁOPCY" GrNazwa="WF" KlasaRef="1D" NauczycielRef="" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="3" LiczbaUczniow="16" ZajecieRef="1CD" PrzedmiotRef="wf" Grupa="" GrPodzial="" GrNazwa="" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="3" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3F" NauczycielRef="OF" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="4" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="WT" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="4" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="36" LiczbaGodzin="2" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="r_matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="ŻS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="0" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4Gac" NauczycielRef="LS" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="0" ZajecieRef="" PrzedmiotRef="fizyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4Gac" NauczycielRef="MA" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4A" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4D" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4E" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="32" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4F" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="31" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4G" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="33" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4H" NauczycielRef="KW" />
+    <przydzial TypPlatnosci="" TydzienPocz="12" TydzienKon="19" LiczbaGodzin="1" LiczbaUczniow="36" ZajecieRef="" PrzedmiotRef="historia" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="4C" NauczycielRef="BA" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2E" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2D" NauczycielRef="KZ" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="27" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3A" NauczycielRef="ME" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2F" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="34" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2A" NauczycielRef="PM" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="29" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3D" NauczycielRef="WC" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="1" LiczbaUczniow="35" ZajecieRef="" PrzedmiotRef="e_zdrowotna" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="2H" NauczycielRef="ŚW" />
+    <przydzial TypPlatnosci="" TydzienPocz="1" TydzienKon="38" LiczbaGodzin="5" LiczbaUczniow="0" ZajecieRef="" PrzedmiotRef="matematyka" Grupa="" GrPodzial="" GrNazwa="" KlasaRef="3FAK" NauczycielRef="SG" />
+  </przydzialy>
+</planOrg>

@@ -1,0 +1,4 @@
+# Vulcan planOrg exports use CRLF. Keep the fixtures byte-faithful to what the
+# school's software actually produces, so the parser is tested against the real
+# thing rather than a normalised copy.
+*.xml -text
