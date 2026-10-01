@@ -639,6 +639,19 @@ from this data without being told which lessons the support teacher actually
 attends. **Open question for the school:** given 10 h/week of support, which
 (class, subject) pairs is the teacher present for?
 
+**This is open but not blocking.** Until it is answered:
+
+- **§8 stands as the scheduling model.** A support teacher is a second teacher
+  on a (class, subject) pair, booked like any other teacher. Phase 1.5 builds
+  that, and the solver constraints in §9.1 already cover it.
+- **Only the import mapping is deferred.** `NAUCZ.WSPOM.` rows are recognised
+  and reported rather than silently dropped, and the planner assigns the pairs
+  by hand — which is what happens today anyway. Phase 2 revisits it once the
+  answer arrives.
+
+So the question gates a convenience in the importer, not the data model and
+not the solver.
+
 ### 16.6 The committed fixture is reduced
 
 `testdata/arkusz/full-semester.xml` is not the whole export. Anonymising
