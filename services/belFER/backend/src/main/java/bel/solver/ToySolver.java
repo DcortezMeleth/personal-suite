@@ -4,6 +4,7 @@ import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.api.domain.common.DomainAccessType;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * The spike's point: prove Timefold compiles, configures and solves under Bazel
@@ -32,5 +33,31 @@ public final class ToySolver {
                     .withBestScoreLimit("0hard/0soft"));
 
         return SolverFactory.<ToyTimetable>create(config).buildSolver().solve(problem);
+    }
+
+    /**
+     * Runnable so the solver can be exercised inside the built container image,
+     * not only under `bazel test`. Reflection-based access and a sealed image
+     * are exactly the combination worth checking somewhere other than the
+     * machine that compiled it.
+     */
+    public static void main(String[] args) {
+        List<ToySlot> slots = List.of(
+            new ToySlot(1, 1), new ToySlot(1, 2),
+            new ToySlot(2, 1), new ToySlot(2, 2));
+        List<ToyLesson> lessons = List.of(
+            new ToyLesson("L1", "Kowalska", "1A"),
+            new ToyLesson("L2", "Kowalska", "1B"),
+            new ToyLesson("L3", "Nowak", "1A"),
+            new ToyLesson("L4", "Nowak", "1B"));
+
+        ToyTimetable solved = solve(new ToyTimetable(slots, lessons), Duration.ofSeconds(30));
+
+        System.out.println("score=" + solved.getScore());
+        solved.getLessons().forEach(lesson -> System.out.println("  " + lesson));
+        if (solved.getScore().hardScore() != 0) {
+            throw new IllegalStateException("no feasible solution: " + solved.getScore());
+        }
+        System.out.println("solver OK");
     }
 }

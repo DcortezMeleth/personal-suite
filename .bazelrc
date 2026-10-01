@@ -15,3 +15,8 @@ test --test_output=errors
 
 # Avoid sandbox issues with pnpm on macOS
 build --sandbox_writable_path=/private/tmp
+
+# Fetch base images anonymously rather than through the host's credential
+# helper. See tools/docker/README.md — a leftover "credsStore": "desktop" makes
+# rules_oci fail on public images that need no credentials.
+build --repo_env=DOCKER_CONFIG=%workspace%/tools/docker
