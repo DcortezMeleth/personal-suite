@@ -2,7 +2,7 @@ package bel
 
 import bel.api.*
 import bel.db.Database
-import bel.repository.{RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
+import bel.repository.{LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
 import cats.effect.*
 import cats.syntax.semigroupk.*
 import com.comcast.ip4s.Host
@@ -28,13 +28,15 @@ object Main extends IOApp.Simple:
         val subjectRepo = SubjectRepository(xa)
         val teacherRepo = TeacherRepository(xa)
         val classRepo   = SchoolClassRepository(xa)
+        val lineRepo    = LessonLineRepository(xa)
 
         val apiRoutes =
           SchoolRoutes(schoolRepo).routes <+>
           RoomRoutes(roomRepo).routes     <+>
           SubjectRoutes(subjectRepo).routes <+>
           TeacherRoutes(teacherRepo).routes <+>
-          SchoolClassRoutes(classRepo, schoolRepo).routes
+          SchoolClassRoutes(classRepo, schoolRepo).routes <+>
+          LessonLineRoutes(lineRepo, schoolRepo, teacherRepo, subjectRepo).routes
 
         EmberServerBuilder
           .default[IO]

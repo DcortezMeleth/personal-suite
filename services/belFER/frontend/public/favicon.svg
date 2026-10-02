@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="belFER">
+  <!-- A timetable grid: five columns for the teaching week, with one lesson
+       placed. Three rows rather than eight, so the cells stay distinguishable
+       at 16px where a real-sized grid turns to mush. -->
+  <rect width="64" height="64" rx="12" fill="#243b61"/>
+  <g fill="#ffffff" fill-opacity="0.32">
+    <rect x="12" y="16" width="7" height="7" rx="1.5"/>
+    <rect x="22" y="16" width="7" height="7" rx="1.5"/>
+    <rect x="42" y="16" width="7" height="7" rx="1.5"/>
+    <rect x="12" y="27" width="7" height="7" rx="1.5"/>
+    <rect x="32" y="27" width="7" height="7" rx="1.5"/>
+    <rect x="42" y="27" width="7" height="7" rx="1.5"/>
+    <rect x="22" y="38" width="7" height="7" rx="1.5"/>
+    <rect x="32" y="38" width="7" height="7" rx="1.5"/>
+    <rect x="42" y="38" width="7" height="7" rx="1.5"/>
+  </g>
+  <!-- The one slot the solver just filled. -->
+  <rect x="32" y="16" width="7" height="7" rx="1.5" fill="#60a5fa"/>
+  <rect x="22" y="27" width="7" height="7" rx="1.5" fill="#60a5fa"/>
+  <rect x="12" y="38" width="7" height="7" rx="1.5" fill="#60a5fa"/>
+</svg>

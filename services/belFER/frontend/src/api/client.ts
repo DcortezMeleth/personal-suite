@@ -145,6 +145,28 @@ export interface SchoolClass {
 
 export type SchoolClassInput = Omit<SchoolClass, "id" | "name">;
 
+export type LessonAudience = "WHOLE_CLASS" | "GROUP_1" | "GROUP_2";
+export type LessonKind = "BASE" | "EXTENSION";
+
+export interface LessonLine {
+  id: string;
+  classId: string;
+  subjectId: string;
+  audience: LessonAudience;
+  kind: LessonKind;
+  teacherId: string | null;
+  supportTeacherId: string | null;
+  blocks: number[];
+  hours: number;
+}
+
+export type LessonLineInput = Omit<LessonLine, "id" | "hours">;
+
+export interface AllocationSummary {
+  occupiedHours: number;
+  problems: string[];
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -192,4 +214,13 @@ export const api = {
   deleteClass: (id: string) => sendNoContent("DELETE", `/classes/${id}`),
   generateClasses: (schoolId: string, year: number, letters: string[]) =>
     send<SchoolClass[]>("POST", `/schools/${schoolId}/classes/generate`, { year, letters }),
+
+  listLessonLines: (classId: string) => send<LessonLine[]>("GET", `/classes/${classId}/lesson-lines`),
+  createLessonLine: (schoolId: string, input: LessonLineInput) =>
+    send<LessonLine>("POST", `/schools/${schoolId}/lesson-lines`, input),
+  updateLessonLine: (schoolId: string, id: string, input: LessonLineInput) =>
+    send<LessonLine>("PUT", `/schools/${schoolId}/lesson-lines/${id}`, input),
+  deleteLessonLine: (id: string) => sendNoContent("DELETE", `/lesson-lines/${id}`),
+  allocationSummary: (schoolId: string, classId: string) =>
+    send<AllocationSummary>("GET", `/schools/${schoolId}/classes/${classId}/allocation-summary`),
 };
