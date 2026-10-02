@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
   type Room,
@@ -22,6 +23,7 @@ export function ResourcesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newKind, setNewKind] = useState("");
+  const [confirmDialog, confirm] = useConfirm();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -92,6 +94,7 @@ export function ResourcesPage() {
 
   return (
     <div className="space-y-4">
+      {confirmDialog}
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
       <DataCard title="Typy sal">
@@ -123,7 +126,13 @@ export function ResourcesPage() {
                 <span className="text-neutral-700">{kind.name}</span>
                 <button
                   className="text-sm text-danger-500 hover:text-danger-600"
-                  onClick={() => run(() => api.deleteRoomKind(kind.id))}
+                  onClick={() =>
+                    confirm(
+                      `Usunąć typ sali „${kind.name}”? Zostanie odłączony od sal i przedmiotów, ` +
+                        "które go wymagały.",
+                      () => run(() => api.deleteRoomKind(kind.id)),
+                    )
+                  }
                 >
                   Usuń
                 </button>
@@ -173,7 +182,9 @@ export function ResourcesPage() {
                   room={room}
                   kinds={kinds}
                   onSave={(input) => run(() => api.updateRoom(room.id, input))}
-                  onDelete={() => run(() => api.deleteRoom(room.id))}
+                  onDelete={() =>
+                    confirm(`Usunąć salę ${room.number}?`, () => run(() => api.deleteRoom(room.id)))
+                  }
                   initial={toInput(room)}
                 />
               ))}
@@ -224,7 +235,11 @@ export function ResourcesPage() {
                   kinds={kinds}
                   initial={subjectToInput(subject)}
                   onSave={(input) => run(() => api.updateSubject(subject.id, input))}
-                  onDelete={() => run(() => api.deleteSubject(subject.id))}
+                  onDelete={() =>
+                    confirm(`Usunąć przedmiot „${subject.name}”?`, () =>
+                      run(() => api.deleteSubject(subject.id)),
+                    )
+                  }
                 />
               ))}
             </tbody>

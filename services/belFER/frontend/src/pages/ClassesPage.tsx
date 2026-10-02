@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
   type School,
@@ -19,6 +20,7 @@ export function ClassesPage() {
   const [error, setError] = useState<string | null>(null);
   const [genYear, setGenYear] = useState(1);
   const [genLetters, setGenLetters] = useState("A, B, C, D");
+  const [confirmDialog, confirm] = useConfirm();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +69,7 @@ export function ClassesPage() {
 
   return (
     <div className="space-y-4">
+      {confirmDialog}
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
       <DataCard title="Utwórz oddziały">
@@ -140,7 +143,9 @@ export function ClassesPage() {
                   classes={byYear.get(year) ?? []}
                   teachers={teachers}
                   onSave={(id, input) => run(() => api.updateClass(school.id, id, input))}
-                  onDelete={(id) => run(() => api.deleteClass(id))}
+                  onDelete={(id, name) =>
+                    confirm(`Usunąć oddział ${name}?`, () => run(() => api.deleteClass(id)))
+                  }
                 />
               ))}
             </tbody>
@@ -156,7 +161,7 @@ function ClassYear(props: {
   classes: SchoolClass[];
   teachers: Teacher[];
   onSave: (id: string, input: SchoolClassInput) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
 }) {
   return (
     <>
@@ -171,7 +176,7 @@ function ClassYear(props: {
           cls={cls}
           teachers={props.teachers}
           onSave={(input) => props.onSave(cls.id, input)}
-          onDelete={() => props.onDelete(cls.id)}
+          onDelete={() => props.onDelete(cls.id, cls.name)}
         />
       ))}
     </>

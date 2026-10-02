@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
   type Room,
@@ -57,6 +58,7 @@ export function TeachersPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [confirmDialog, confirm] = useConfirm();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -115,6 +117,7 @@ export function TeachersPage() {
 
   return (
     <div className="space-y-4">
+      {confirmDialog}
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
       <DataCard
@@ -182,7 +185,13 @@ export function TeachersPage() {
                   expanded={expanded === teacher.id}
                   onToggleExpand={() => setExpanded(expanded === teacher.id ? null : teacher.id)}
                   onSave={(input) => run(() => api.updateTeacher(school.id, teacher.id, input))}
-                  onDelete={() => run(() => api.deleteTeacher(teacher.id))}
+                  onDelete={() =>
+                    confirm(
+                      `Usunąć nauczyciela ${teacher.firstName} ${teacher.lastName}? ` +
+                        "Zablokowane godziny i przypisane przedmioty zostaną usunięte razem z nim.",
+                      () => run(() => api.deleteTeacher(teacher.id)),
+                    )
+                  }
                 />
               ))}
             </tbody>
