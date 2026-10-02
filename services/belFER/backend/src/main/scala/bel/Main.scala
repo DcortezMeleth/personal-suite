@@ -2,8 +2,9 @@ package bel
 
 import bel.api.*
 import bel.db.Database
-import bel.repository.SchoolRepository
+import bel.repository.{RoomRepository, SchoolRepository, SubjectRepository}
 import cats.effect.*
+import cats.syntax.semigroupk.*
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.typesafe.config.ConfigFactory
@@ -22,9 +23,14 @@ object Main extends IOApp.Simple:
 
     Database.migrate(config) >>
       Database.transactor(config).use { xa =>
-        val schoolRepo = SchoolRepository(xa)
+        val schoolRepo  = SchoolRepository(xa)
+        val roomRepo    = RoomRepository(xa)
+        val subjectRepo = SubjectRepository(xa)
 
-        val apiRoutes = SchoolRoutes(schoolRepo).routes
+        val apiRoutes =
+          SchoolRoutes(schoolRepo).routes <+>
+          RoomRoutes(roomRepo).routes     <+>
+          SubjectRoutes(subjectRepo).routes
 
         EmberServerBuilder
           .default[IO]

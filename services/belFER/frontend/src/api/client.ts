@@ -25,6 +25,21 @@ function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   }).then(unwrap<T>);
 }
 
+// 204 responses have no body, so they cannot go through unwrap's json().
+async function sendNoContent(method: string, path: string): Promise<void> {
+  const response = await fetch(`${BASE}${path}`, { method });
+  if (!response.ok) {
+    let message = `${response.status} ${response.statusText}`;
+    try {
+      const body = await response.json();
+      if (body?.error) message = body.error;
+    } catch {
+      // No JSON body; the status line is the best we have.
+    }
+    throw new Error(message);
+  }
+}
+
 export interface Health {
   status: string;
   service: string;
@@ -58,6 +73,43 @@ export interface TimeSlotInput {
   endsAt: string;
 }
 
+export interface RoomKind {
+  id: string;
+  name: string;
+}
+
+export interface Room {
+  id: string;
+  number: string;
+  name: string | null;
+  fitsWholeClass: boolean;
+  kinds: RoomKind[];
+}
+
+export interface RoomInput {
+  number: string;
+  name: string | null;
+  fitsWholeClass: boolean;
+  kindIds: string[];
+}
+
+export interface Subject {
+  id: string;
+  code: string;
+  name: string;
+  optional: boolean;
+  requiredRoomKind: RoomKind | null;
+  roomRequirementHard: boolean;
+}
+
+export interface SubjectInput {
+  code: string;
+  name: string;
+  optional: boolean;
+  requiredRoomKindId: string | null;
+  roomRequirementHard: boolean;
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -72,4 +124,21 @@ export const api = {
   listTimeSlots: (schoolId: string) => send<TimeSlot[]>("GET", `/schools/${schoolId}/time-slots`),
   replaceTimeSlots: (schoolId: string, slots: TimeSlotInput[]) =>
     send<TimeSlot[]>("PUT", `/schools/${schoolId}/time-slots`, slots),
+
+  listRoomKinds: (schoolId: string) => send<RoomKind[]>("GET", `/schools/${schoolId}/room-kinds`),
+  createRoomKind: (schoolId: string, name: string) =>
+    send<RoomKind>("POST", `/schools/${schoolId}/room-kinds`, { name }),
+  deleteRoomKind: (id: string) => sendNoContent("DELETE", `/room-kinds/${id}`),
+
+  listRooms: (schoolId: string) => send<Room[]>("GET", `/schools/${schoolId}/rooms`),
+  createRoom: (schoolId: string, input: RoomInput) =>
+    send<Room>("POST", `/schools/${schoolId}/rooms`, input),
+  updateRoom: (id: string, input: RoomInput) => send<Room>("PUT", `/rooms/${id}`, input),
+  deleteRoom: (id: string) => sendNoContent("DELETE", `/rooms/${id}`),
+
+  listSubjects: (schoolId: string) => send<Subject[]>("GET", `/schools/${schoolId}/subjects`),
+  createSubject: (schoolId: string, input: SubjectInput) =>
+    send<Subject>("POST", `/schools/${schoolId}/subjects`, input),
+  updateSubject: (id: string, input: SubjectInput) => send<Subject>("PUT", `/subjects/${id}`, input),
+  deleteSubject: (id: string) => sendNoContent("DELETE", `/subjects/${id}`),
 };
