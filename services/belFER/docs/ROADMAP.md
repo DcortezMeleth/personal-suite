@@ -102,7 +102,12 @@ Each subphase is a migration + repository + routes + a page.
 
 ## Phase 2 — XML import
 
-> **Blocked on an anonymised sample of the principal's XML.**
+> **Runs after 1.6, before the rest of Phase 1.** The anonymised arkusz is
+> already committed, so importing it validates the whole domain model against
+> 797 real assignments at once — far faster, and far more honest, than
+> hand-entering test data. If the lesson-line or PE model is wrong, this is
+> where it shows, while it is still cheap to change and before the solver is
+> built on top of it.
 
 - **2.1** Parse and map the XML to the Phase 1 model
 - **2.2** Import preview and unmapped-entity resolution — UC-24, UC-25
@@ -167,9 +172,13 @@ corrected, generate a plan, show it four ways, and let it be nudged by hand.
 
 - **0.5 gates everything.** Do not build Phases 1–2 on the assumption that
   Timefold works under Bazel.
-- **Phase 2 can be deferred** without blocking Phases 3–5; manual entry from
-  Phase 1 is enough to exercise the solver. If the XML sample is slow to
-  arrive, reorder rather than stall.
+- **Phase 2 runs early**, straight after 1.6, for the reason given above: it is
+  the cheapest way to find out whether the domain model survives contact with
+  real data. 1.7 and 1.8 follow it.
+- **1.8 is the first checkpoint worth showing the school.** Before it the UI is
+  data entry and only its shape can be judged; from 1.8 the app starts telling
+  the planner something they did not already know. Phase 4 is the first point
+  at which an actual timetable can be looked at.
 - **Phase 3 needs realistic data.** The instance is assumed solvable, so the
   open question is not *whether* a plan exists but how long it takes to find
   one and whether the default weights produce a plan the planner actually
