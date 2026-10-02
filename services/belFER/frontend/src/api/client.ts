@@ -167,6 +167,33 @@ export interface AllocationSummary {
   problems: string[];
 }
 
+export interface PeGroup {
+  id: string;
+  label: string;
+  teacherId: string | null;
+  classIds: string[];
+}
+
+export type PeGroupInput = Omit<PeGroup, "id">;
+
+export interface PeUnit {
+  id: string;
+  subjectId: string;
+  name: string;
+  requiredRoomKindId: string | null;
+  blocks: number[];
+  groups: PeGroup[];
+  hours: number;
+}
+
+export interface PeUnitInput {
+  subjectId: string;
+  name: string;
+  requiredRoomKindId: string | null;
+  blocks: number[];
+  groups: PeGroupInput[];
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -223,4 +250,11 @@ export const api = {
   deleteLessonLine: (id: string) => sendNoContent("DELETE", `/lesson-lines/${id}`),
   allocationSummary: (schoolId: string, classId: string) =>
     send<AllocationSummary>("GET", `/schools/${schoolId}/classes/${classId}/allocation-summary`),
+
+  listPeUnits: (schoolId: string) => send<PeUnit[]>("GET", `/schools/${schoolId}/pe-units`),
+  createPeUnit: (schoolId: string, input: PeUnitInput) =>
+    send<PeUnit>("POST", `/schools/${schoolId}/pe-units`, input),
+  updatePeUnit: (schoolId: string, id: string, input: PeUnitInput) =>
+    send<PeUnit>("PUT", `/schools/${schoolId}/pe-units/${id}`, input),
+  deletePeUnit: (id: string) => sendNoContent("DELETE", `/pe-units/${id}`),
 };
