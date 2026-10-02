@@ -15,9 +15,29 @@ const toApi = (time: string) => (time.length === 5 ? `${time}:00` : time);
 
 const NEW_SLOT: TimeSlotInput = { position: 0, startsAt: "08:00:00", endsAt: "08:45:00" };
 
+// Positions come from row order, so a reordered or deleted row shows up as a
+// change even though no individual field was touched.
+const renumber = (slots: TimeSlotInput[]): TimeSlotInput[] =>
+  slots.map((slot, index) => ({
+    position: index + 1,
+    startsAt: toApi(slot.startsAt),
+    endsAt: toApi(slot.endsAt),
+  }));
+
+const fromServer = (slots: TimeSlot[]): TimeSlotInput[] =>
+  slots.map((s) => ({ position: s.position, startsAt: s.startsAt, endsAt: s.endsAt }));
+
+const field = "w-full rounded border border-neutral-300 px-3 py-2";
+const label = "block text-sm font-medium text-neutral-700";
+
 export function SchoolPage() {
   const [school, setSchool] = useState<School | null>(null);
   const [slots, setSlots] = useState<TimeSlotInput[]>([]);
+  // What the server last told us. Everything dirty is measured against this,
+  // so one button can know whether there is anything to send — and send only
+  // the half that actually changed.
+  const [savedSchool, setSavedSchool] = useState<School | null>(null);
+  const [savedSlots, setSavedSlots] = useState<TimeSlotInput[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -25,13 +45,15 @@ export function SchoolPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const schools = await api.listSchools();
-      const current = schools[0] ?? null;
+      const current = (await api.listSchools())[0] ?? null;
+      const currentSlots = current ? fromServer(await api.listTimeSlots(current.id)) : [];
       setSchool(current);
-      setSlots(current ? await api.listTimeSlots(current.id) : []);
+      setSavedSchool(current);
+      setSlots(currentSlots);
+      setSavedSlots(currentSlots);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      report(err);
     } finally {
       setLoading(false);
     }
@@ -41,52 +63,46 @@ export function SchoolPage() {
     load();
   }, [load]);
 
-  const report = (err: unknown) =>
+  function report(err: unknown) {
     setError(err instanceof Error ? err.message : String(err));
+    setSaved(null);
+  }
 
-  const announce = (message: string) => {
-    setSaved(message);
-    setError(null);
-  };
+  const schoolDirty = JSON.stringify(school) !== JSON.stringify(savedSchool);
+  const slotsDirty = JSON.stringify(renumber(slots)) !== JSON.stringify(renumber(savedSlots));
+  const dirty = schoolDirty || slotsDirty;
+
+  async function save() {
+    if (!school) return;
+    try {
+      // The bell schedule goes first because it is the half that can be
+      // rejected. If it fails, nothing has been written — rather than leaving
+      // the settings saved against a schedule that was not.
+      if (slotsDirty) {
+        const fresh = fromServer(await api.replaceTimeSlots(school.id, renumber(slots)));
+        setSlots(fresh);
+        setSavedSlots(fresh);
+      }
+      if (schoolDirty) {
+        const updated = await api.updateSchool(school.id, {
+          name: school.name,
+          years: school.years,
+          settings: school.settings,
+        });
+        setSchool(updated);
+        setSavedSchool(updated);
+      }
+      setError(null);
+      setSaved("Zapisano zmiany");
+    } catch (err) {
+      report(err);
+    }
+  }
 
   async function createSchool() {
     try {
-      announce("");
-      setSchool(await api.createSchool("Nowa szkoła", 4));
+      await api.createSchool("Nowa szkoła", 4);
       await load();
-    } catch (err) {
-      report(err);
-    }
-  }
-
-  async function saveSchool() {
-    if (!school) return;
-    try {
-      const updated = await api.updateSchool(school.id, {
-        name: school.name,
-        years: school.years,
-        settings: school.settings,
-      });
-      setSchool(updated);
-      announce("Zapisano ustawienia szkoły");
-    } catch (err) {
-      report(err);
-    }
-  }
-
-  async function saveSlots() {
-    if (!school) return;
-    try {
-      // Positions are renumbered from the row order, so the user never has to
-      // keep them consistent by hand — the backend rejects holes outright.
-      const renumbered = slots.map((slot, index) => ({
-        position: index + 1,
-        startsAt: toApi(slot.startsAt),
-        endsAt: toApi(slot.endsAt),
-      }));
-      const fresh: TimeSlot[] = await api.replaceTimeSlots(school.id, renumbered);
-      setSlots(fresh);
-      announce("Zapisano plan dzwonków");
     } catch (err) {
       report(err);
     }
@@ -117,25 +133,28 @@ export function SchoolPage() {
     );
   }
 
-  const field = "w-full rounded border border-neutral-300 px-3 py-2";
-  const label = "block text-sm font-medium text-neutral-700";
-
   return (
     <div className="space-y-4">
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
-      {saved && <AlertBanner level="success" message={saved} onDismiss={() => setSaved(null)} />}
+      {saved && !dirty && (
+        <AlertBanner level="success" message={saved} onDismiss={() => setSaved(null)} />
+      )}
 
-      <DataCard
-        title="Szkoła"
-        actions={
-          <button
-            onClick={saveSchool}
-            className="rounded bg-primary-500 px-3 py-1.5 text-sm text-white hover:bg-primary-600"
-          >
-            Zapisz
-          </button>
-        }
-      >
+      {/* One save for the page. The settings below belong to the same record as
+          the name above, so a button per card would have meant two buttons
+          writing the same thing. */}
+      <div className="flex items-center justify-end gap-3">
+        {dirty && <span className="text-sm text-neutral-500">Niezapisane zmiany</span>}
+        <button
+          onClick={save}
+          disabled={!dirty}
+          className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-neutral-300"
+        >
+          Zapisz zmiany
+        </button>
+      </div>
+
+      <DataCard title="Szkoła">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={label}>Nazwa</label>
@@ -217,20 +236,12 @@ export function SchoolPage() {
       <DataCard
         title="Plan dzwonków"
         actions={
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSlots([...slots, { ...NEW_SLOT }])}
-              className="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
-            >
-              Dodaj lekcję
-            </button>
-            <button
-              onClick={saveSlots}
-              className="rounded bg-primary-500 px-3 py-1.5 text-sm text-white hover:bg-primary-600"
-            >
-              Zapisz
-            </button>
-          </div>
+          <button
+            onClick={() => setSlots([...slots, { ...NEW_SLOT }])}
+            className="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50"
+          >
+            Dodaj lekcję
+          </button>
         }
       >
         {slots.length === 0 ? (
