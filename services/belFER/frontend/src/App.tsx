@@ -1,10 +1,10 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import { PageLayout } from "@delfin/ui";
-import { PlanPage } from "./pages/PlanPage";
+import { SchoolPage } from "./pages/SchoolPage";
 
 // The interface is Polish, because the people using it are.
 const NAV_ITEMS = [
-  { label: "Plan", href: "/" },
+  { label: "Szkoła", href: "/" },
 ];
 
 export default function App() {
@@ -18,7 +18,7 @@ export default function App() {
   return (
     <PageLayout title="belFER" navItems={navItems}>
       <Routes>
-        <Route path="/" element={<PlanPage />} />
+        <Route path="/" element={<SchoolPage />} />
       </Routes>
     </PageLayout>
   );

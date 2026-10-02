@@ -2,6 +2,7 @@ package bel
 
 import bel.api.*
 import bel.db.Database
+import bel.repository.SchoolRepository
 import cats.effect.*
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
@@ -20,11 +21,10 @@ object Main extends IOApp.Simple:
     val serverPort = Port.fromInt(portInt).getOrElse(Port.fromInt(8081).get)
 
     Database.migrate(config) >>
-      Database.transactor(config).use { _ =>
-        // Routes are wired in here as they arrive; Phase 1 fills this in. The
-        // transactor is already opened so a bad database config fails at
-        // startup rather than on the first request.
-        val apiRoutes = HttpRoutes.empty[IO]
+      Database.transactor(config).use { xa =>
+        val schoolRepo = SchoolRepository(xa)
+
+        val apiRoutes = SchoolRoutes(schoolRepo).routes
 
         EmberServerBuilder
           .default[IO]

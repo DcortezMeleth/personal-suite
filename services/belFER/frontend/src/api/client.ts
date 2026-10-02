@@ -17,15 +17,59 @@ async function unwrap<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function send<T>(method: string, path: string, body?: unknown): Promise<T> {
+  return fetch(`${BASE}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }).then(unwrap<T>);
+}
+
 export interface Health {
   status: string;
   service: string;
 }
 
-export const api = {
-  get: <T>(path: string) => fetch(`${BASE}${path}`).then(unwrap<T>),
+export interface SchedulingSettings {
+  allowClassGaps: boolean;
+  maxConsecutiveTeacherGaps: number;
+  defaultTeacherMaxWorkingDays: number;
+  defaultTeacherMaxLessonsPerDay: number;
+}
 
+export interface School {
+  id: string;
+  name: string;
+  years: number;
+  settings: SchedulingSettings;
+  createdAt: string;
+}
+
+export interface TimeSlot {
+  id: string;
+  position: number;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface TimeSlotInput {
+  position: number;
+  startsAt: string;
+  endsAt: string;
+}
+
+export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
   health: () => fetch("/health").then(unwrap<Health>),
+
+  listSchools: () => send<School[]>("GET", "/schools"),
+  createSchool: (name: string, years: number) =>
+    send<School>("POST", "/schools", { name, years }),
+  updateSchool: (id: string, body: { name: string; years: number; settings: SchedulingSettings }) =>
+    send<School>("PUT", `/schools/${id}`, body),
+
+  listTimeSlots: (schoolId: string) => send<TimeSlot[]>("GET", `/schools/${schoolId}/time-slots`),
+  replaceTimeSlots: (schoolId: string, slots: TimeSlotInput[]) =>
+    send<TimeSlot[]>("PUT", `/schools/${schoolId}/time-slots`, slots),
 };
