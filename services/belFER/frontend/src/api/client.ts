@@ -110,6 +110,28 @@ export interface SubjectInput {
   roomRequirementHard: boolean;
 }
 
+export interface UnavailabilityBlock {
+  dayOfWeek: number;
+  fromPosition: number;
+  toPosition: number;
+}
+
+export interface Teacher {
+  id: string;
+  code: string;
+  firstName: string;
+  lastName: string;
+  homeRoomId: string | null;
+  subjectIds: string[];
+  // null means "inherit the school default", not "no limit".
+  maxWorkingDays: number | null;
+  maxLessonsPerDay: number | null;
+  pensum: number | null;
+  unavailability: UnavailabilityBlock[];
+}
+
+export type TeacherInput = Omit<Teacher, "id">;
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -141,4 +163,11 @@ export const api = {
     send<Subject>("POST", `/schools/${schoolId}/subjects`, input),
   updateSubject: (id: string, input: SubjectInput) => send<Subject>("PUT", `/subjects/${id}`, input),
   deleteSubject: (id: string) => sendNoContent("DELETE", `/subjects/${id}`),
+
+  listTeachers: (schoolId: string) => send<Teacher[]>("GET", `/schools/${schoolId}/teachers`),
+  createTeacher: (schoolId: string, input: TeacherInput) =>
+    send<Teacher>("POST", `/schools/${schoolId}/teachers`, input),
+  updateTeacher: (schoolId: string, id: string, input: TeacherInput) =>
+    send<Teacher>("PUT", `/schools/${schoolId}/teachers/${id}`, input),
+  deleteTeacher: (id: string) => sendNoContent("DELETE", `/teachers/${id}`),
 };
