@@ -1,5 +1,6 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import { PageLayout } from "@delfin/ui";
+import { ClassesPage } from "./pages/ClassesPage";
 import { ResourcesPage } from "./pages/ResourcesPage";
 import { SchoolPage } from "./pages/SchoolPage";
 import { TeachersPage } from "./pages/TeachersPage";
@@ -9,6 +10,7 @@ const NAV_ITEMS = [
   { label: "Szkoła", href: "/" },
   { label: "Przedmioty i sale", href: "/zasoby" },
   { label: "Nauczyciele", href: "/nauczyciele" },
+  { label: "Oddziały", href: "/oddzialy" },
 ];
 
 export default function App() {
@@ -25,6 +27,7 @@ export default function App() {
         <Route path="/" element={<SchoolPage />} />
         <Route path="/zasoby" element={<ResourcesPage />} />
         <Route path="/nauczyciele" element={<TeachersPage />} />
+        <Route path="/oddzialy" element={<ClassesPage />} />
       </Routes>
     </PageLayout>
   );

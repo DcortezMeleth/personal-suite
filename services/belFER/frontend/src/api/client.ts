@@ -132,6 +132,19 @@ export interface Teacher {
 
 export type TeacherInput = Omit<Teacher, "id">;
 
+export interface SchoolClass {
+  id: string;
+  year: number;
+  letter: string;
+  specialisation: string | null;
+  homeroomTeacherId: string | null;
+  studentCount: number | null;
+  girlCount: number | null;
+  name: string;
+}
+
+export type SchoolClassInput = Omit<SchoolClass, "id" | "name">;
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -170,4 +183,13 @@ export const api = {
   updateTeacher: (schoolId: string, id: string, input: TeacherInput) =>
     send<Teacher>("PUT", `/schools/${schoolId}/teachers/${id}`, input),
   deleteTeacher: (id: string) => sendNoContent("DELETE", `/teachers/${id}`),
+
+  listClasses: (schoolId: string) => send<SchoolClass[]>("GET", `/schools/${schoolId}/classes`),
+  createClass: (schoolId: string, input: SchoolClassInput) =>
+    send<SchoolClass>("POST", `/schools/${schoolId}/classes`, input),
+  updateClass: (schoolId: string, id: string, input: SchoolClassInput) =>
+    send<SchoolClass>("PUT", `/schools/${schoolId}/classes/${id}`, input),
+  deleteClass: (id: string) => sendNoContent("DELETE", `/classes/${id}`),
+  generateClasses: (schoolId: string, year: number, letters: string[]) =>
+    send<SchoolClass[]>("POST", `/schools/${schoolId}/classes/generate`, { year, letters }),
 };
