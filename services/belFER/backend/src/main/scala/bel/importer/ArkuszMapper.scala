@@ -119,6 +119,24 @@ object ArkuszMapper:
           ))
     }
 
+    // The arkusz can state the same class, subject, audience and kind more than
+    // once — most often because one stretch of weeks is listed separately from
+    // another within the imported range. They are one allocation here, so the
+    // hours join. Collapsing here rather than on the way to the database keeps
+    // the preview honest about how many rows will exist.
+    val collapsedLines = lessonLines
+      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind))
+      .toList
+      .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString))
+      .map { case ((classCode, subjectCode, audience, kind), group) =>
+        PlannedLessonLine(classCode, subjectCode, audience, kind,
+          group.flatMap(_.teacherCode).headOption, group.flatMap(_.blocks))
+      }
+    val joined = lessonLines.size - collapsedLines.size
+    if joined > 0 then
+      info(s"Połączono $joined przydziałów, które arkusz podaje osobno dla różnych " +
+        "zakresów tygodni")
+
     if lessonLines.exists(_.blocks.sizeIs > 1) then
       info("Godziny zapisano jako pojedyncze lekcje — arkusz nie podaje układu bloków, " +
         "więc bloki dwugodzinne trzeba ustawić ręcznie")
@@ -139,7 +157,7 @@ object ArkuszMapper:
       teachers = doc.teachers.map(t => PlannedTeacher(t.code, t.firstName, t.lastName, t.pensum)),
       subjects = subjects,
       classes = classes,
-      lessonLines = lessonLines,
+      lessonLines = collapsedLines,
       crossClassUnits = crossClassUnits,
       notes = notes.result()
     )
@@ -222,7 +240,10 @@ object ArkuszMapper:
       GroupCandidate(
         key = code,
         subject = baseOf(row.subjectCode),
-        label = names.getOrElse(code, code),
+        // The zajecie's Nazwa is just the subject name, so every WF group would
+        // read "Wychowanie fizyczne". Its Kod — 4DE, 2CD — is what the school
+        // uses to tell them apart, and it says which classes are involved.
+        label = code,
         teacherCode = row.teacherCode,
         classCodes = membership.getOrElse(code, Nil),
         hours = row.hours
@@ -230,10 +251,13 @@ object ArkuszMapper:
     }
 
     val fromIndependent = independent.zipWithIndex.map { (row, i) =>
+      // Qualified by class: one unit can hold 3A's girls and 3F's girls, and
+      // both rows call themselves DZIEWCZĘTA.
+      val within = row.groupLabel.getOrElse(s"grupa ${row.groupNumber.getOrElse(0)}")
       GroupCandidate(
         key = s"wewn-$i",
         subject = baseOf(row.subjectCode),
-        label = row.groupLabel.getOrElse(s"grupa ${row.groupNumber.getOrElse(0)}"),
+        label = s"${row.classCode.getOrElse("?")} $within",
         teacherCode = row.teacherCode,
         classCodes = row.classCode.toList,
         hours = row.hours

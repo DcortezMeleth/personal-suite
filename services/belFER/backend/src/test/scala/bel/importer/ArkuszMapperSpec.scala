@@ -97,6 +97,16 @@ class ArkuszMapperSpec extends AnyFunSuite:
     }
   }
 
+  // Every WF group would otherwise read "Wychowanie fizyczne", since that is
+  // the zajecie's Nazwa — useless for telling three groups of one unit apart.
+  test("groups within a unit have labels that distinguish them") {
+    plan.crossClassUnits.foreach { unit =>
+      val labels = unit.groups.map(_.label)
+      assert(labels.distinct.size == labels.size,
+        s"${unit.name}: repeated group labels ${labels.mkString(", ")}")
+    }
+  }
+
   test("every cross-class group names at least one class") {
     assert(plan.crossClassUnits.forall(_.groups.exists(_.classCodes.nonEmpty)))
   }
