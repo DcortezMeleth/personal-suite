@@ -674,3 +674,42 @@ splits, cross-class lessons, validity windows — is untouched real data.
 
 Counts after reduction: 28 classes (25 real + 3 individual), 75 teachers, 31
 subjects, 797 assignments, 23 cross-class lessons.
+
+---
+
+## 17. What the import revealed
+
+Mapping the real arkusz (weeks 1–19) produces **25 classes, 75 teachers, 22
+subjects, 668 lesson lines and 17 cross-class units covering 49 groups**, with
+nothing left unmappable. The model holds. Five things were learned doing it.
+
+**`Grupa` under the WF scheme is a school-wide index, not a count.** A row
+reading `Grupa="5"` is group number five in the school's WF numbering
+(1 = Dziew-1, 3 = Chłop-1, 5 = DZIEWCZĘTA, 6 = CHŁOPCY), not a class split into
+five. Read as a count it looks like classes needing six halves; read correctly
+most classes have one or two WF rows.
+
+**WF must not map onto the class's two halves.** It is grouped independently of
+the `grupy` split — §6 said so and the data agrees — so putting it in
+GROUP_1/GROUP_2 would tell the solver that two unrelated halves are the same
+students. Any grouping scheme other than the class's own becomes a unit.
+
+**A class's own WF half and the half it merges away are one arrangement.** Of
+25 classes, 21 teach one half themselves and send the other to a neighbouring
+class; 3 teach both halves; 1 merges everything. Scheduling the in-class half
+apart from the merged one would leave half the class idle while the other half
+had a lesson, so units are the connected components of "shares a class with",
+computed per subject. That is what takes 38 naive units down to 17 real ones.
+
+**Extension subject codes do not always strip.** Seven of nine `r_*` codes have
+their base by removing the prefix, but `r_angielski`'s base is `j.angielski`
+and `r_informat.`'s is `informatyka`. Matching falls back to the subject name
+with the *rozszerzony* adjective removed.
+
+**The arkusz states hours, never block shapes.** It says four hours of maths,
+not `1,1,2`. Imported hours therefore become single lessons, and the double
+blocks have to be set by hand afterwards — a real limitation of the source, not
+of the importer.
+
+Also skipped, by design: 3 individual-teaching plans, and 25 allocations whose
+week range falls outside the imported semester.
