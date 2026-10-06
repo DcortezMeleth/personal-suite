@@ -22,8 +22,8 @@ class SubjectRepository(xa: Transactor[IO]):
     (select ++ fr"WHERE s.school_id = $schoolId ORDER BY s.name")
       .query[Subject].to[List].transact(xa)
 
-  def find(id: UUID): IO[Option[Subject]] =
-    (select ++ fr"WHERE s.id = $id").query[Subject].option.transact(xa)
+  private def load(id: UUID): ConnectionIO[Option[Subject]] =
+    (select ++ fr"WHERE s.id = $id").query[Subject].option
 
   def create(schoolId: UUID, input: SubjectInput): IO[Subject] =
     val insert = sql"""
@@ -32,7 +32,7 @@ class SubjectRepository(xa: Transactor[IO]):
               ${input.requiredRoomKindId}, ${input.roomRequirementHard})
       RETURNING id
     """.query[UUID].unique
-    insert.transact(xa).flatMap(id => find(id).map(_.get))
+    insert.flatMap(id => load(id).map(_.get)).transact(xa)
 
   def update(id: UUID, input: SubjectInput): IO[Option[Subject]] =
     val run = sql"""
@@ -44,7 +44,7 @@ class SubjectRepository(xa: Transactor[IO]):
         room_requirement_hard = ${input.roomRequirementHard}
       WHERE id = $id
     """.update.run
-    run.transact(xa).flatMap(n => if n == 0 then IO.pure(None) else find(id))
+    run.flatMap(n => if n == 0 then doobie.free.connection.pure(Option.empty) else load(id)).transact(xa)
 
   def delete(id: UUID): IO[Int] =
     sql"DELETE FROM subject WHERE id = $id".update.run.transact(xa)

@@ -70,8 +70,8 @@ class CrossClassUnitRepository(xa: Transactor[IO]):
                             RETURNING id
                           """.query[UUID].unique
                _       <- group.classIds.distinct.traverse(classId =>
-                            sql"""INSERT INTO cross_class_group_class (group_id, class_id)
-                                  VALUES ($groupId, $classId)""".update.run)
+                            sql"""INSERT INTO cross_class_group_class (group_id, class_id, school_id)
+                                  VALUES ($groupId, $classId, $schoolId)""".update.run)
              yield ()
            }
     yield ()

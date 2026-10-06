@@ -1,7 +1,7 @@
 package bel.api
 
 import bel.domain.*
-import bel.repository.TeacherRepository
+import bel.repository.{SchoolRepository, TeacherRepository}
 import cats.effect.IO
 import io.circe.syntax.*
 import org.http4s.*
@@ -9,14 +9,14 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import java.util.UUID
 
-class TeacherRoutes(repo: TeacherRepository):
+class TeacherRoutes(repo: TeacherRepository, schools: SchoolRepository):
 
   private val duplicate = "Nauczyciel o tym kodzie już istnieje"
 
   private def validated(schoolId: UUID, input: TeacherInput)(
     onValid: => IO[Response[IO]]
   ): IO[Response[IO]] =
-    repo.slotCount(schoolId).flatMap { slots =>
+    schools.slotCount(schoolId).flatMap { slots =>
       TeacherValidation.validate(input, slots) match
         case Left(message) => UnprocessableEntity(ApiError.body(message))
         case Right(_)      => onValid
@@ -37,7 +37,7 @@ class TeacherRoutes(repo: TeacherRepository):
     case req @ PUT -> Root / "schools" / UUIDVar(schoolId) / "teachers" / UUIDVar(id) =>
       req.as[TeacherInput].flatMap { input =>
         validated(schoolId, input) {
-          ApiError.onDuplicate(duplicate)(repo.update(id, input)) {
+          ApiError.onDuplicate(duplicate)(repo.update(schoolId, id, input)) {
             case Some(teacher) => Ok(teacher.asJson)
             case None          => NotFound(ApiError.body("Nie ma takiego nauczyciela"))
           }

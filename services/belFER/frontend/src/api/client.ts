@@ -217,7 +217,8 @@ export const api = {
   listRooms: (schoolId: string) => send<Room[]>("GET", `/schools/${schoolId}/rooms`),
   createRoom: (schoolId: string, input: RoomInput) =>
     send<Room>("POST", `/schools/${schoolId}/rooms`, input),
-  updateRoom: (id: string, input: RoomInput) => send<Room>("PUT", `/rooms/${id}`, input),
+  updateRoom: (schoolId: string, id: string, input: RoomInput) =>
+    send<Room>("PUT", `/schools/${schoolId}/rooms/${id}`, input),
   deleteRoom: (id: string) => sendNoContent("DELETE", `/rooms/${id}`),
 
   listSubjects: (schoolId: string) => send<Subject[]>("GET", `/schools/${schoolId}/subjects`),

@@ -181,7 +181,7 @@ export function ResourcesPage() {
                   key={room.id}
                   room={room}
                   kinds={kinds}
-                  onSave={(input) => run(() => api.updateRoom(room.id, input))}
+                  onSave={(input) => run(() => api.updateRoom(school.id, room.id, input))}
                   onDelete={() =>
                     confirm(`Usunąć salę ${room.number}?`, () => run(() => api.deleteRoom(room.id)))
                   }

@@ -40,6 +40,13 @@ class SchoolRepository(xa: Transactor[IO]):
       RETURNING""" ++ columns)
       .query[School].option.transact(xa)
 
+  /** How many lessons the bell schedule has. Several validations bound
+    * themselves by it: a blocked hour, or a block, past the end of the day
+    * cannot be placed. */
+  def slotCount(schoolId: UUID): IO[Int] =
+    sql"SELECT count(*) FROM time_slot WHERE school_id = $schoolId"
+      .query[Int].unique.transact(xa)
+
   def findTimeSlots(schoolId: UUID): IO[List[TimeSlot]] =
     sql"""
       SELECT id, position, starts_at, ends_at FROM time_slot

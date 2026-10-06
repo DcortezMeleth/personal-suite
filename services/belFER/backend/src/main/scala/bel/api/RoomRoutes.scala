@@ -51,12 +51,12 @@ class RoomRoutes(repo: RoomRepository):
             }
       }
 
-    case req @ PUT -> Root / "rooms" / UUIDVar(id) =>
+    case req @ PUT -> Root / "schools" / UUIDVar(schoolId) / "rooms" / UUIDVar(id) =>
       req.as[RoomInput].flatMap { input =>
         RoomValidation.validate(input) match
           case Left(message) => UnprocessableEntity(ApiError.body(message))
           case Right(_) =>
-            ApiError.onDuplicate("Sala o tym numerze już istnieje")(repo.updateRoom(id, input)) {
+            ApiError.onDuplicate("Sala o tym numerze już istnieje")(repo.updateRoom(schoolId, id, input)) {
               case Some(room) => Ok(room.asJson)
               case None       => NotFound(ApiError.body("Nie ma takiej sali"))
             }

@@ -106,6 +106,14 @@ class ClassAllocationSpec extends AnyFunSuite:
     assert(ClassAllocation.problems(lines, names).exists(_.message.contains("Nieprzypisany")))
   }
 
+  test("a class's total includes the cross-class lessons it takes part in") {
+    // WF and religia occupy the class as much as its own lines do; they just
+    // belong to a unit shared with other classes, so they are not in its lines.
+    val lines = List(line(maths, LessonAudience.WHOLE_CLASS, List(1, 1, 2)))
+    assert(ClassAllocation.summary(lines, 3, names).occupiedHours == 7)
+    assert(ClassAllocation.summary(lines, 0, names).occupiedHours == 4)
+  }
+
   // A split slot occupies the class once, not once per group — otherwise a
   // class looks like it needs twice the timetable it does.
   test("counts a split slot once toward the class's occupied hours") {

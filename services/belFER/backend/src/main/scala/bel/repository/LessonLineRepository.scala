@@ -21,8 +21,8 @@ class LessonLineRepository(xa: Transactor[IO]):
     (select ++ fr"WHERE class_id = $classId ORDER BY subject_id, audience, kind")
       .query[LessonLine].to[List].transact(xa)
 
-  def find(id: UUID): IO[Option[LessonLine]] =
-    (select ++ fr"WHERE id = $id").query[LessonLine].option.transact(xa)
+  private def load(id: UUID): ConnectionIO[Option[LessonLine]] =
+    (select ++ fr"WHERE id = $id").query[LessonLine].option
 
   def create(schoolId: UUID, input: LessonLineInput): IO[LessonLine] =
     sql"""
@@ -31,7 +31,7 @@ class LessonLineRepository(xa: Transactor[IO]):
       VALUES ($schoolId, ${input.classId}, ${input.subjectId}, ${input.audience}, ${input.kind},
               ${input.teacherId}, ${input.supportTeacherId}, ${input.blocks})
       RETURNING id
-    """.query[UUID].unique.transact(xa).flatMap(id => find(id).map(_.get))
+    """.query[UUID].unique.flatMap(id => load(id).map(_.get)).transact(xa)
 
   def update(id: UUID, input: LessonLineInput): IO[Option[LessonLine]] =
     sql"""
@@ -43,7 +43,7 @@ class LessonLineRepository(xa: Transactor[IO]):
         support_teacher_id = ${input.supportTeacherId},
         blocks = ${input.blocks}
       WHERE id = $id
-    """.update.run.transact(xa).flatMap(n => if n == 0 then IO.pure(None) else find(id))
+    """.update.run.flatMap(n => if n == 0 then doobie.free.connection.pure(Option.empty) else load(id)).transact(xa)
 
   def delete(id: UUID): IO[Int] =
     sql"DELETE FROM lesson_line WHERE id = $id".update.run.transact(xa)

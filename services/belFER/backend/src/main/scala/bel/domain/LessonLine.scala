@@ -64,19 +64,30 @@ object LessonLineInput:
   given Encoder[LessonLineInput] = deriveEncoder
   given Decoder[LessonLineInput] = deriveDecoder
 
-object LessonLineValidation:
+/**
+ * Block shapes are validated the same way wherever they appear — on a lesson
+ * line and on a cross-class unit — so the rule lives once.
+ */
+object BlockValidation:
 
-  def validate(input: LessonLineInput, slotsPerDay: Int): Either[String, Unit] =
-    if input.blocks.isEmpty then Left("Podaj układ bloków, np. 1, 1, 2")
-    else if input.blocks.exists(_ < 1) then Left("Każdy blok musi mieć co najmniej jedną godzinę")
+  def validate(blocks: List[Int], slotsPerDay: Int): Either[String, Unit] =
+    if blocks.isEmpty then Left("Podaj układ bloków, np. 1, 1, 2")
+    else if blocks.exists(_ < 1) then Left("Każdy blok musi mieć co najmniej jedną godzinę")
     // A block is placed on consecutive slots of one day, so one longer than the
     // day can never be placed — and discovering that during generation would
     // cost hours.
-    else if slotsPerDay > 0 && input.blocks.exists(_ > slotsPerDay) then
+    else if slotsPerDay > 0 && blocks.exists(_ > slotsPerDay) then
       Left(s"Blok nie może być dłuższy niż liczba lekcji w dniu ($slotsPerDay)")
-    else if input.supportTeacherId.exists(s => input.teacherId.contains(s)) then
-      Left("Nauczyciel wspomagający musi być inną osobą niż prowadzący")
     else Right(())
+
+object LessonLineValidation:
+
+  def validate(input: LessonLineInput, slotsPerDay: Int): Either[String, Unit] =
+    BlockValidation.validate(input.blocks, slotsPerDay).flatMap { _ =>
+      if input.supportTeacherId.exists(s => input.teacherId.contains(s)) then
+        Left("Nauczyciel wspomagający musi być inną osobą niż prowadzący")
+      else Right(())
+    }
 
 /**
  * Checks that span a whole class rather than a single line. These are reported
@@ -94,8 +105,15 @@ object ClassAllocation:
 
   case class Problem(message: String)
 
-  def summary(lines: List[LessonLine], subjectName: Map[UUID, String]): AllocationSummary =
-    AllocationSummary(occupiedHours(lines), problems(lines, subjectName).map(_.message))
+  def summary(
+    lines: List[LessonLine],
+    crossClassHours: Int,
+    subjectName: Map[UUID, String]
+  ): AllocationSummary =
+    AllocationSummary(
+      occupiedHours(lines) + crossClassHours,
+      problems(lines, subjectName).map(_.message)
+    )
 
   def problems(lines: List[LessonLine], subjectName: Map[UUID, String]): List[Problem] =
     val bySubject = lines.groupBy(_.subjectId)
@@ -120,8 +138,12 @@ object ClassAllocation:
 
     groupMismatches ++ missingTeacher
 
-  /** Hours the class actually occupies: a slot where the class is split counts
-    * once, not once per group. */
+  /** Hours the class occupies through its own lesson lines. A slot where the
+    * class is split counts once, not once per group.
+    *
+    * Cross-class lessons are added on top by `summary`: they occupy the class
+    * just as much, but they are not its lines — they belong to a unit shared
+    * with other classes. */
   def occupiedHours(lines: List[LessonLine]): Int =
     val whole = lines.filter(_.audience == LessonAudience.WHOLE_CLASS).map(_.hours).sum
     val split = lines.filter(_.audience == LessonAudience.GROUP_1).map(_.hours).sum

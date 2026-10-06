@@ -18,8 +18,8 @@ class SchoolClassRepository(xa: Transactor[IO]):
     (select ++ fr"WHERE school_id = $schoolId ORDER BY year, letter")
       .query[SchoolClass].to[List].transact(xa)
 
-  def find(id: UUID): IO[Option[SchoolClass]] =
-    (select ++ fr"WHERE id = $id").query[SchoolClass].option.transact(xa)
+  private def load(id: UUID): ConnectionIO[Option[SchoolClass]] =
+    (select ++ fr"WHERE id = $id").query[SchoolClass].option
 
   private def insert(schoolId: UUID, input: SchoolClassInput): ConnectionIO[UUID] =
     sql"""
@@ -32,7 +32,7 @@ class SchoolClassRepository(xa: Transactor[IO]):
     """.query[UUID].unique
 
   def create(schoolId: UUID, input: SchoolClassInput): IO[SchoolClass] =
-    insert(schoolId, input).transact(xa).flatMap(id => find(id).map(_.get))
+    insert(schoolId, input).flatMap(id => load(id).map(_.get)).transact(xa)
 
   def update(id: UUID, input: SchoolClassInput): IO[Option[SchoolClass]] =
     sql"""
@@ -44,7 +44,7 @@ class SchoolClassRepository(xa: Transactor[IO]):
         student_count = ${input.studentCount},
         girl_count = ${input.girlCount}
       WHERE id = $id
-    """.update.run.transact(xa).flatMap(n => if n == 0 then IO.pure(None) else find(id))
+    """.update.run.flatMap(n => if n == 0 then doobie.free.connection.pure(Option.empty) else load(id)).transact(xa)
 
   def delete(id: UUID): IO[Int] =
     sql"DELETE FROM school_class WHERE id = $id".update.run.transact(xa)

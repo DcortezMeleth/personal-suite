@@ -1,7 +1,7 @@
 package bel.api
 
 import bel.domain.*
-import bel.repository.{LessonLineRepository, SchoolRepository, SubjectRepository, TeacherRepository}
+import bel.repository.{CrossClassUnitRepository, LessonLineRepository, SchoolRepository, SubjectRepository}
 import cats.effect.IO
 import io.circe.syntax.*
 import org.http4s.*
@@ -12,8 +12,8 @@ import java.util.UUID
 class LessonLineRoutes(
   repo: LessonLineRepository,
   schools: SchoolRepository,
-  teachers: TeacherRepository,
-  subjects: SubjectRepository
+  subjects: SubjectRepository,
+  crossClass: CrossClassUnitRepository
 ):
 
   private val duplicate =
@@ -22,7 +22,7 @@ class LessonLineRoutes(
   private def validated(schoolId: UUID, input: LessonLineInput)(
     onValid: => IO[Response[IO]]
   ): IO[Response[IO]] =
-    teachers.slotCount(schoolId).flatMap { slots =>
+    schools.slotCount(schoolId).flatMap { slots =>
       LessonLineValidation.validate(input, slots) match
         case Left(message) => UnprocessableEntity(ApiError.body(message))
         case Right(_)      => onValid
@@ -42,8 +42,13 @@ class LessonLineRoutes(
       for
         lines <- repo.findForClass(classId)
         subs  <- subjects.findAll(schoolId)
+        units <- crossClass.findAll(schoolId)
         names  = subs.map(s => s.id -> s.name).toMap
-        result <- Ok(ClassAllocation.summary(lines, names).asJson)
+        // Cross-class lessons occupy the class as much as its own do — they
+        // just belong to a unit shared with other classes, so they are not in
+        // its lines and would otherwise be missing from the total.
+        crossHours = units.filter(_.classIds.contains(classId)).map(_.hours).sum
+        result <- Ok(ClassAllocation.summary(lines, crossHours, names).asJson)
       yield result
 
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "lesson-lines" =>

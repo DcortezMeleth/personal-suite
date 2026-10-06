@@ -74,10 +74,8 @@ object CrossClassUnitValidation:
    */
   def validate(input: CrossClassUnitInput, slotsPerDay: Int, roomsOfKind: Option[Int]): Either[String, Unit] =
     if input.name.trim.isEmpty then Left("Nazwa zespołu nie może być pusta")
-    else if input.blocks.isEmpty then Left("Podaj układ bloków, np. 1, 2")
-    else if input.blocks.exists(_ < 1) then Left("Każdy blok musi mieć co najmniej jedną godzinę")
-    else if slotsPerDay > 0 && input.blocks.exists(_ > slotsPerDay) then
-      Left(s"Blok nie może być dłuższy niż liczba lekcji w dniu ($slotsPerDay)")
+    else if BlockValidation.validate(input.blocks, slotsPerDay).isLeft then
+      BlockValidation.validate(input.blocks, slotsPerDay)
     else if input.groups.isEmpty then Left("Zespół musi mieć co najmniej jedną grupę")
     else if input.groups.exists(_.label.trim.isEmpty) then Left("Nazwa grupy nie może być pusta")
     else if input.groups.exists(_.classIds.isEmpty) then

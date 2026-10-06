@@ -64,12 +64,12 @@ class RoomRepository(xa: Transactor[IO]):
       }
     program.transact(xa)
 
-  private def replaceKinds(roomId: UUID, kindIds: List[UUID]): ConnectionIO[Unit] =
+  private def replaceKinds(roomId: UUID, schoolId: UUID, kindIds: List[UUID]): ConnectionIO[Unit] =
     for
       _ <- sql"DELETE FROM room_kind_assignment WHERE room_id = $roomId".update.run
       _ <- kindIds.traverse(kindId =>
-             sql"""INSERT INTO room_kind_assignment (room_id, room_kind_id)
-                   VALUES ($roomId, $kindId)""".update.run)
+             sql"""INSERT INTO room_kind_assignment (room_id, room_kind_id, school_id)
+                   VALUES ($roomId, $kindId, $schoolId)""".update.run)
     yield ()
 
   private def loadRoom(id: UUID): ConnectionIO[Option[Room]] =
@@ -90,12 +90,12 @@ class RoomRepository(xa: Transactor[IO]):
                         ${input.fitsWholeClass})
                 RETURNING id
               """.query[UUID].unique
-        _     <- replaceKinds(id, input.kindIds)
+        _     <- replaceKinds(id, schoolId, input.kindIds)
         saved <- loadRoom(id)
       yield saved.get
     program.transact(xa)
 
-  def updateRoom(id: UUID, input: RoomInput): IO[Option[Room]] =
+  def updateRoom(schoolId: UUID, id: UUID, input: RoomInput): IO[Option[Room]] =
     val program =
       for
         updated <- sql"""
@@ -105,7 +105,7 @@ class RoomRepository(xa: Transactor[IO]):
                        fits_whole_class = ${input.fitsWholeClass}
                      WHERE id = $id
                    """.update.run
-        _     <- if updated == 0 then doobie.free.connection.unit else replaceKinds(id, input.kindIds)
+        _     <- if updated == 0 then doobie.free.connection.unit else replaceKinds(id, schoolId, input.kindIds)
         saved <- if updated == 0 then doobie.free.connection.pure(Option.empty[Room]) else loadRoom(id)
       yield saved
     program.transact(xa)

@@ -66,11 +66,12 @@ class TeacherRepository(xa: Transactor[IO]):
       teachers <- assemble(bare)
     yield teachers.headOption
 
-  private def replaceChildren(id: UUID, input: TeacherInput): ConnectionIO[Unit] =
+  private def replaceChildren(id: UUID, schoolId: UUID, input: TeacherInput): ConnectionIO[Unit] =
     for
       _ <- sql"DELETE FROM teacher_subject WHERE teacher_id = $id".update.run
       _ <- input.subjectIds.traverse(subjectId =>
-             sql"INSERT INTO teacher_subject (teacher_id, subject_id) VALUES ($id, $subjectId)".update.run)
+             sql"""INSERT INTO teacher_subject (teacher_id, subject_id, school_id)
+                   VALUES ($id, $subjectId, $schoolId)""".update.run)
       _ <- sql"DELETE FROM teacher_unavailability WHERE teacher_id = $id".update.run
       _ <- input.unavailability.traverse(block =>
              sql"""INSERT INTO teacher_unavailability (teacher_id, day_of_week, from_position, to_position)
@@ -88,12 +89,12 @@ class TeacherRepository(xa: Transactor[IO]):
                         ${input.pensum})
                 RETURNING id
               """.query[UUID].unique
-        _     <- replaceChildren(id, input)
+        _     <- replaceChildren(id, schoolId, input)
         saved <- load(id)
       yield saved.get
     program.transact(xa)
 
-  def update(id: UUID, input: TeacherInput): IO[Option[Teacher]] =
+  def update(schoolId: UUID, id: UUID, input: TeacherInput): IO[Option[Teacher]] =
     val program =
       for
         updated <- sql"""
@@ -107,15 +108,10 @@ class TeacherRepository(xa: Transactor[IO]):
                        pensum = ${input.pensum}
                      WHERE id = $id
                    """.update.run
-        _     <- if updated == 0 then doobie.free.connection.unit else replaceChildren(id, input)
+        _     <- if updated == 0 then doobie.free.connection.unit else replaceChildren(id, schoolId, input)
         saved <- if updated == 0 then doobie.free.connection.pure(Option.empty[Teacher]) else load(id)
       yield saved
     program.transact(xa)
 
   def delete(id: UUID): IO[Int] =
     sql"DELETE FROM teacher WHERE id = $id".update.run.transact(xa)
-
-  /** How many lessons the bell schedule has, for validating blocked slots. */
-  def slotCount(schoolId: UUID): IO[Int] =
-    sql"SELECT count(*) FROM time_slot WHERE school_id = $schoolId"
-      .query[Int].unique.transact(xa)
