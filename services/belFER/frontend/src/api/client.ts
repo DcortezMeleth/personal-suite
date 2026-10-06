@@ -167,31 +167,31 @@ export interface AllocationSummary {
   problems: string[];
 }
 
-export interface PeGroup {
+export interface CrossClassGroup {
   id: string;
   label: string;
   teacherId: string | null;
   classIds: string[];
 }
 
-export type PeGroupInput = Omit<PeGroup, "id">;
+export type CrossClassGroupInput = Omit<CrossClassGroup, "id">;
 
-export interface PeUnit {
+export interface CrossClassUnit {
   id: string;
   subjectId: string;
   name: string;
   requiredRoomKindId: string | null;
   blocks: number[];
-  groups: PeGroup[];
+  groups: CrossClassGroup[];
   hours: number;
 }
 
-export interface PeUnitInput {
+export interface CrossClassUnitInput {
   subjectId: string;
   name: string;
   requiredRoomKindId: string | null;
   blocks: number[];
-  groups: PeGroupInput[];
+  groups: CrossClassGroupInput[];
 }
 
 export const api = {
@@ -251,10 +251,10 @@ export const api = {
   allocationSummary: (schoolId: string, classId: string) =>
     send<AllocationSummary>("GET", `/schools/${schoolId}/classes/${classId}/allocation-summary`),
 
-  listPeUnits: (schoolId: string) => send<PeUnit[]>("GET", `/schools/${schoolId}/pe-units`),
-  createPeUnit: (schoolId: string, input: PeUnitInput) =>
-    send<PeUnit>("POST", `/schools/${schoolId}/pe-units`, input),
-  updatePeUnit: (schoolId: string, id: string, input: PeUnitInput) =>
-    send<PeUnit>("PUT", `/schools/${schoolId}/pe-units/${id}`, input),
-  deletePeUnit: (id: string) => sendNoContent("DELETE", `/pe-units/${id}`),
+  listCrossClassUnits: (schoolId: string) => send<CrossClassUnit[]>("GET", `/schools/${schoolId}/cross-class-units`),
+  createCrossClassUnit: (schoolId: string, input: CrossClassUnitInput) =>
+    send<CrossClassUnit>("POST", `/schools/${schoolId}/cross-class-units`, input),
+  updateCrossClassUnit: (schoolId: string, id: string, input: CrossClassUnitInput) =>
+    send<CrossClassUnit>("PUT", `/schools/${schoolId}/cross-class-units/${id}`, input),
+  deleteCrossClassUnit: (id: string) => sendNoContent("DELETE", `/cross-class-units/${id}`),
 };

@@ -3,9 +3,9 @@ import { AlertBanner, DataCard } from "@delfin/ui";
 import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
-  type PeGroupInput,
-  type PeUnit,
-  type PeUnitInput,
+  type CrossClassGroupInput,
+  type CrossClassUnit,
+  type CrossClassUnitInput,
   type Room,
   type RoomKind,
   type School,
@@ -20,9 +20,9 @@ const plainButton = "rounded border border-neutral-300 px-3 py-1.5 text-sm hover
 const parseBlocks = (text: string): number[] =>
   text.split(/[,\s]+/).map(Number).filter((n) => Number.isFinite(n) && n > 0);
 
-export function PePage() {
+export function CrossClassPage() {
   const [school, setSchool] = useState<School | null>(null);
-  const [units, setUnits] = useState<PeUnit[]>([]);
+  const [units, setUnits] = useState<CrossClassUnit[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -39,7 +39,7 @@ export function PePage() {
       setSchool(current);
       if (current) {
         const [u, c, s, t, k, r] = await Promise.all([
-          api.listPeUnits(current.id),
+          api.listCrossClassUnits(current.id),
           api.listClasses(current.id),
           api.listSubjects(current.id),
           api.listTeachers(current.id),
@@ -78,13 +78,13 @@ export function PePage() {
   if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
   if (!school)
     return (
-      <DataCard title="WF">
+      <DataCard title="Zajęcia międzyoddziałowe">
         <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
       </DataCard>
     );
   if (classes.length === 0 || subjects.length === 0)
     return (
-      <DataCard title="WF">
+      <DataCard title="Zajęcia międzyoddziałowe">
         <p className="text-neutral-700">
           Potrzebne są oddziały i przedmioty — dodaj je na zakładkach „Oddziały” i „Przedmioty i sale”.
         </p>
@@ -101,13 +101,13 @@ export function PePage() {
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
       <DataCard
-        title={`Zespoły WF (${units.length})`}
+        title={`Zajęcia międzyoddziałowe (${units.length})`}
         actions={
           <button
             className={plainButton}
             onClick={() =>
               run(() =>
-                api.createPeUnit(school.id, {
+                api.createCrossClassUnit(school.id, {
                   subjectId: subjects[0].id,
                   name: `Zespół ${units.length + 1}`,
                   requiredRoomKindId: null,
@@ -129,7 +129,7 @@ export function PePage() {
       </DataCard>
 
       {units.map((unit) => (
-        <PeUnitCard
+        <CrossClassUnitCard
           key={unit.id}
           unit={unit}
           classes={classes}
@@ -137,9 +137,9 @@ export function PePage() {
           teachers={teachers}
           kinds={kinds}
           roomsPerKind={roomsPerKind}
-          onSave={(input) => run(() => api.updatePeUnit(school.id, unit.id, input))}
+          onSave={(input) => run(() => api.updateCrossClassUnit(school.id, unit.id, input))}
           onDelete={() =>
-            confirm(`Usunąć zespół „${unit.name}”?`, () => run(() => api.deletePeUnit(unit.id)))
+            confirm(`Usunąć zespół „${unit.name}”?`, () => run(() => api.deleteCrossClassUnit(unit.id)))
           }
         />
       ))}
@@ -147,17 +147,17 @@ export function PePage() {
   );
 }
 
-function PeUnitCard(props: {
-  unit: PeUnit;
+function CrossClassUnitCard(props: {
+  unit: CrossClassUnit;
   classes: SchoolClass[];
   subjects: Subject[];
   teachers: Teacher[];
   kinds: RoomKind[];
   roomsPerKind: Map<string, number>;
-  onSave: (input: PeUnitInput) => void;
+  onSave: (input: CrossClassUnitInput) => void;
   onDelete: () => void;
 }) {
-  const initial: PeUnitInput = {
+  const initial: CrossClassUnitInput = {
     subjectId: props.unit.subjectId,
     name: props.unit.name,
     requiredRoomKindId: props.unit.requiredRoomKindId,
@@ -168,7 +168,7 @@ function PeUnitCard(props: {
       classIds: g.classIds,
     })),
   };
-  const [draft, setDraft] = useState<PeUnitInput>(initial);
+  const [draft, setDraft] = useState<CrossClassUnitInput>(initial);
   const [blockText, setBlockText] = useState(props.unit.blocks.join(", "));
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
 
@@ -177,7 +177,7 @@ function PeUnitCard(props: {
     : undefined;
   const tooManyGroups = available !== undefined && draft.groups.length > available;
 
-  const patchGroup = (index: number, patch: Partial<PeGroupInput>) =>
+  const patchGroup = (index: number, patch: Partial<CrossClassGroupInput>) =>
     setDraft({
       ...draft,
       groups: draft.groups.map((g, i) => (i === index ? { ...g, ...patch } : g)),

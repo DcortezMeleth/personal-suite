@@ -244,10 +244,16 @@ off the line. Group1 and Group2 lines are paired into shared slots.
 
 ---
 
-## 7. PE
+## 7. Cross-class lessons (zajęcia międzyoddziałowe)
 
-PE is the hardest part of the model and the clearest place where belFER can
-beat the alternatives.
+The hardest part of the model and the clearest place where belFER can beat the
+alternatives.
+
+**The mechanism is not specific to PE**, which is what it was originally called
+here. Teaching a group drawn from several classes at once also carries religia
+and etyka — the real arkusz routes 19 WF, 3 Etyka and 1 Religia through exactly
+this shape (§16.2d). PE is the most demanding case and the examples below use
+it, but the model names no subject of its own; each unit carries one.
 
 - Groups are **boys/girls**, formed **independently of classes**, and decided
   externally by the school.
@@ -269,8 +275,8 @@ beat the alternatives.
 ### Model
 
 ```
-PeGroup { label, teacher, classes: Set[Class] }   // e.g. {1A} or {1A, 1B}
-PeUnit  { groups: [PeGroup], blocks: [1, 2] }     // unit classes = union of group classes
+CrossClassGroup { label, teacher, classes: Set[Class] }   // e.g. {1A} or {1A, 1B}
+CrossClassUnit  { subject, groups, blocks: [1, 2] }       // classes = union of group classes
 ```
 
 All groups of a unit run in the same slots; every participating class is

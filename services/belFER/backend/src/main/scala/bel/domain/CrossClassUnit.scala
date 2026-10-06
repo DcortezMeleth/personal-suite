@@ -9,22 +9,22 @@ import java.util.UUID
  * students themselves — the school forms the groups, and which classes take
  * part is all the solver needs.
  */
-case class PeGroup(
+case class CrossClassGroup(
   id: UUID,
   label: String,
   teacherId: Option[UUID],
   classIds: List[UUID]
 )
 
-object PeGroup:
-  given Encoder[PeGroup] = deriveEncoder
-  given Decoder[PeGroup] = deriveDecoder
+object CrossClassGroup:
+  given Encoder[CrossClassGroup] = deriveEncoder
+  given Decoder[CrossClassGroup] = deriveDecoder
 
-case class PeGroupInput(label: String, teacherId: Option[UUID], classIds: List[UUID])
+case class CrossClassGroupInput(label: String, teacherId: Option[UUID], classIds: List[UUID])
 
-object PeGroupInput:
-  given Encoder[PeGroupInput] = deriveEncoder
-  given Decoder[PeGroupInput] = deriveDecoder
+object CrossClassGroupInput:
+  given Encoder[CrossClassGroupInput] = deriveEncoder
+  given Decoder[CrossClassGroupInput] = deriveDecoder
 
 /**
  * A set of groups that must run at the same time.
@@ -33,38 +33,38 @@ object PeGroupInput:
  * so while the unit runs none of those classes can be doing anything else —
  * which is why the groups cannot simply be scheduled independently.
  */
-case class PeUnit(
+case class CrossClassUnit(
   id: UUID,
   subjectId: UUID,
   name: String,
   requiredRoomKindId: Option[UUID],
   blocks: List[Int],
-  groups: List[PeGroup]
+  groups: List[CrossClassGroup]
 ):
   def hours: Int = blocks.sum
 
   /** The classes the unit occupies: the union of what its groups draw from. */
   def classIds: List[UUID] = groups.flatMap(_.classIds).distinct
 
-object PeUnit:
-  given Encoder[PeUnit] = Encoder.forProduct7(
+object CrossClassUnit:
+  given Encoder[CrossClassUnit] = Encoder.forProduct7(
     "id", "subjectId", "name", "requiredRoomKindId", "blocks", "groups", "hours"
   )(u => (u.id, u.subjectId, u.name, u.requiredRoomKindId, u.blocks, u.groups, u.hours))
-  given Decoder[PeUnit] = deriveDecoder
+  given Decoder[CrossClassUnit] = deriveDecoder
 
-case class PeUnitInput(
+case class CrossClassUnitInput(
   subjectId: UUID,
   name: String,
   requiredRoomKindId: Option[UUID],
   blocks: List[Int],
-  groups: List[PeGroupInput]
+  groups: List[CrossClassGroupInput]
 )
 
-object PeUnitInput:
-  given Encoder[PeUnitInput] = deriveEncoder
-  given Decoder[PeUnitInput] = deriveDecoder
+object CrossClassUnitInput:
+  given Encoder[CrossClassUnitInput] = deriveEncoder
+  given Decoder[CrossClassUnitInput] = deriveDecoder
 
-object PeUnitValidation:
+object CrossClassUnitValidation:
 
   /**
    * `roomsOfKind` is how many rooms carry the required kind. Every group needs
@@ -72,7 +72,7 @@ object PeUnitValidation:
    * that is worth saying while the user is looking at the arrangement rather
    * than after a generation run fails.
    */
-  def validate(input: PeUnitInput, slotsPerDay: Int, roomsOfKind: Option[Int]): Either[String, Unit] =
+  def validate(input: CrossClassUnitInput, slotsPerDay: Int, roomsOfKind: Option[Int]): Either[String, Unit] =
     if input.name.trim.isEmpty then Left("Nazwa zespołu nie może być pusta")
     else if input.blocks.isEmpty then Left("Podaj układ bloków, np. 1, 2")
     else if input.blocks.exists(_ < 1) then Left("Każdy blok musi mieć co najmniej jedną godzinę")
