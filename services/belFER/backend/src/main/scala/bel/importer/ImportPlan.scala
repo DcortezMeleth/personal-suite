@@ -27,7 +27,11 @@ case class PlannedLessonLine(
   audience: LessonAudience,
   kind: LessonKind,
   teacherCode: Option[String],
-  blocks: List[Int]
+  blocks: List[Int],
+  // Kept so the importer can tell apart allocations that replace each other
+  // part-way through a stretch of weeks from ones that run alongside.
+  weekFrom: Int = 1,
+  weekTo: Int = 38
 )
 
 case class PlannedCrossClassGroup(label: String, teacherCode: Option[String], classCodes: List[String])

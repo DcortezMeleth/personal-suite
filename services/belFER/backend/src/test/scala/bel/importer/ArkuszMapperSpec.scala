@@ -78,8 +78,11 @@ class ArkuszMapperSpec extends AnyFunSuite:
     assert(mixed.nonEmpty, "expected units joining an in-class half to a merged one")
   }
 
-  test("nothing is reported as unmappable any more") {
-    assert(plan.warnings.isEmpty, plan.warnings.map(_.message).mkString("; "))
+  // One warning stands, and should: the arkusz changes some allocations
+  // part-way through the semester, which a single plan cannot express.
+  test("the only warning left is the mid-period change in hours") {
+    assert(plan.warnings.sizeIs == 1, plan.warnings.map(_.message).mkString("; "))
+    assert(plan.warnings.head.message.contains("zmienia liczbę godzin"))
   }
 
   // Groups sharing a class must run together, so they must end up in one unit.
@@ -138,8 +141,25 @@ class ArkuszMapperSpec extends AnyFunSuite:
     assert(key.forall((_, lines) => lines.sizeIs == 1))
   }
 
-  // Nothing is dropped: every hour the arkusz allocates in range still appears.
-  test("no teaching hour is lost in collapsing") {
-    val planned = plan.lessonLines.map(_.blocks.sum).sum
-    assert(planned > 1000)
+  // "historia 2h in weeks 1-12, 1h in weeks 12-19" means two hours a week and
+  // then one — never three. Adding them would have the solver place hours the
+  // class never has.
+  test("hours that change part-way through are not added together") {
+    // 4A takes historia 2h over weeks 1-12 and 1h over 12-19. The first covers
+    // more of the imported stretch, so it wins; adding them would give three.
+    val historia = plan.lessonLines
+      .filter(l => l.classCode == "4A" && l.subjectCode == "historia" && l.kind == LessonKind.BASE)
+    assert(historia.sizeIs == 1, historia.toString)
+    assert(historia.head.blocks.sum == 2, s"got ${historia.head.blocks.sum}h")
+  }
+
+  test("the imported week range needs about as many hours as that range really has") {
+    // In-class allocations in weeks 1-18 come to 1040-1047 h/week in the file.
+    // Summing overlapping windows instead of choosing between them gave 1155.
+    val inClass = plan.lessonLines.map(_.blocks.sum).sum
+    assert(inClass > 900 && inClass < 1100, s"got $inClass h/week from lesson lines")
+  }
+
+  test("a mid-period change in hours is reported rather than silently resolved") {
+    assert(plan.warnings.exists(_.message.contains("zmienia liczbę godzin")))
   }

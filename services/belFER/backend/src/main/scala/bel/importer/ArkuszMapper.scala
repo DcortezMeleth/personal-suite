@@ -115,27 +115,32 @@ object ArkuszMapper:
             teacherCode = a.teacherCode,
             // The arkusz states a count, never a shape. Singles are the only
             // honest default; the school sets doubles where it wants them.
-            blocks = List.fill(a.hours.max(1))(1)
+            blocks = List.fill(a.hours.max(1))(1),
+            weekFrom = a.weekFrom,
+            weekTo = a.weekTo
           ))
     }
 
-    // The arkusz states one allocation as several rows when it runs over
-    // different stretches of weeks, and those are joined — but only when the
-    // teacher is the same. Rows differing by teacher are separate allocations,
-    // not a split one: seven classes take "zajęcia rozwijające
-    // zainteresowania" two to four times over, each with its own teacher, and
-    // merging them would keep one teacher and discard the rest.
+    // Where one allocation is stated for several stretches of weeks, those are
+    // alternatives in time, not parts of a sum: "historia 2h in weeks 1-12,
+    // 1h in weeks 12-19" means two hours a week and then one, never three.
+    // Adding them would have the solver place hours the class never has.
+    //
+    // A plan covers one stretch, so the window covering most of it wins and
+    // the others are reported.
     val collapsedLines = lessonLines
       .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
       .toList
       .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString, key._5.getOrElse("")))
-      .map { case ((classCode, subjectCode, audience, kind, teacher), group) =>
-        PlannedLessonLine(classCode, subjectCode, audience, kind, teacher, group.flatMap(_.blocks))
-      }
-    val joined = lessonLines.size - collapsedLines.size
-    if joined > 0 then
-      info(s"Połączono $joined przydziałów tego samego nauczyciela, które arkusz " +
-        "podaje osobno dla różnych zakresów tygodni")
+      .map { case (_, group) => group.maxBy(l => overlapWeeks(l, weeks)) }
+
+    val varying = lessonLines
+      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
+      .count((_, group) => group.map(_.blocks.sum).distinct.sizeIs > 1)
+    if varying > 0 then
+      warn(s"$varying przydziałów zmienia liczbę godzin w trakcie wybranego okresu — " +
+        "wzięto wariant obowiązujący przez większą jego część. Rozważ zaimportowanie " +
+        "węższego zakresu tygodni, jeśli ta zmiana ma być w planie")
 
     val multiTeacher = collapsedLines
       .groupBy(l => (l.classCode, l.subjectCode))
@@ -174,6 +179,10 @@ object ArkuszMapper:
    * own WF rows sometimes carry three or four groups within one class — which
    * the model cannot hold, so those are reported rather than squeezed in.
    */
+  /** How much of the imported stretch an allocation actually applies to. */
+  private def overlapWeeks(line: PlannedLessonLine, weeks: WeekRange): Int =
+    (math.min(line.weekTo, weeks.to) - math.max(line.weekFrom, weeks.from) + 1).max(0)
+
   private def normaliseName(name: String): String =
     name.trim.toLowerCase.replaceAll("\\s+", " ")
 
