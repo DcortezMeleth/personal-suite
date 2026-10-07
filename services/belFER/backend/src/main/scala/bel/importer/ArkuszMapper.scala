@@ -119,23 +119,30 @@ object ArkuszMapper:
           ))
     }
 
-    // The arkusz can state the same class, subject, audience and kind more than
-    // once — most often because one stretch of weeks is listed separately from
-    // another within the imported range. They are one allocation here, so the
-    // hours join. Collapsing here rather than on the way to the database keeps
-    // the preview honest about how many rows will exist.
+    // The arkusz states one allocation as several rows when it runs over
+    // different stretches of weeks, and those are joined — but only when the
+    // teacher is the same. Rows differing by teacher are separate allocations,
+    // not a split one: seven classes take "zajęcia rozwijające
+    // zainteresowania" two to four times over, each with its own teacher, and
+    // merging them would keep one teacher and discard the rest.
     val collapsedLines = lessonLines
-      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind))
+      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
       .toList
-      .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString))
-      .map { case ((classCode, subjectCode, audience, kind), group) =>
-        PlannedLessonLine(classCode, subjectCode, audience, kind,
-          group.flatMap(_.teacherCode).headOption, group.flatMap(_.blocks))
+      .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString, key._5.getOrElse("")))
+      .map { case ((classCode, subjectCode, audience, kind, teacher), group) =>
+        PlannedLessonLine(classCode, subjectCode, audience, kind, teacher, group.flatMap(_.blocks))
       }
     val joined = lessonLines.size - collapsedLines.size
     if joined > 0 then
-      info(s"Połączono $joined przydziałów, które arkusz podaje osobno dla różnych " +
-        "zakresów tygodni")
+      info(s"Połączono $joined przydziałów tego samego nauczyciela, które arkusz " +
+        "podaje osobno dla różnych zakresów tygodni")
+
+    val multiTeacher = collapsedLines
+      .groupBy(l => (l.classCode, l.subjectCode))
+      .count((_, group) => group.map(_.teacherCode).distinct.sizeIs > 1)
+    if multiTeacher > 0 then
+      info(s"$multiTeacher par oddział–przedmiot ma więcej niż jednego nauczyciela — " +
+        "zachowano je jako osobne przydziały")
 
     if lessonLines.exists(_.blocks.sizeIs > 1) then
       info("Godziny zapisano jako pojedyncze lekcje — arkusz nie podaje układu bloków, " +

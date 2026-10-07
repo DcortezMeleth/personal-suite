@@ -116,3 +116,30 @@ class ArkuszMapperSpec extends AnyFunSuite:
     val narrow = ArkuszMapper.map(document, ArkuszMapper.WeekRange(1, 4))
     assert(narrow.lessonLines.size < wide.lessonLines.size)
   }
+
+  // Seven classes take "zajęcia rozwijające zainteresowania" two to four times
+  // over, each hour with its own teacher. Merging those by class and subject
+  // kept one teacher and threw the rest away.
+  test("allocations differing only by teacher are kept apart") {
+    // Every teacher the arkusz names for a class and subject survives. Merging
+    // on class and subject alone kept the first and dropped the rest.
+    val interest = plan.lessonLines.filter(_.subjectCode == "ZRZU_k_nauko")
+    assert(interest.nonEmpty)
+    val perClass = interest.groupBy(_.classCode).view.mapValues(_.flatMap(_.teacherCode).distinct)
+    assert(perClass.exists((_, teachers) => teachers.sizeIs > 2),
+      "expected a class taking this subject from three or more teachers")
+    assert(interest.flatMap(_.teacherCode).distinct.sizeIs >= 15)
+  }
+
+  // Rows the arkusz splits across week ranges ARE one allocation, as long as
+  // the teacher is the same.
+  test("one teacher's split week ranges still join into a single allocation") {
+    val key = plan.lessonLines.groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
+    assert(key.forall((_, lines) => lines.sizeIs == 1))
+  }
+
+  // Nothing is dropped: every hour the arkusz allocates in range still appears.
+  test("no teaching hour is lost in collapsing") {
+    val planned = plan.lessonLines.map(_.blocks.sum).sum
+    assert(planned > 1000)
+  }
