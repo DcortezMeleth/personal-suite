@@ -4,6 +4,13 @@ import { ConfirmDialog } from "@delfin/ui";
 interface Pending {
   message: string;
   onConfirm: () => void;
+  title: string;
+  confirmLabel: string;
+}
+
+export interface ConfirmOptions {
+  title?: string;
+  confirmLabel?: string;
 }
 
 /**
@@ -18,14 +25,17 @@ interface Pending {
  * users suppress — after which it returns false and the delete silently stops
  * working instead.
  */
-export function useConfirm(): [ReactNode, (message: string, onConfirm: () => void) => void] {
+export function useConfirm(): [
+  ReactNode,
+  (message: string, onConfirm: () => void, options?: ConfirmOptions) => void,
+] {
   const [pending, setPending] = useState<Pending | null>(null);
 
   const dialog = pending ? (
     <ConfirmDialog
-      title="Potwierdź usunięcie"
+      title={pending.title}
       message={pending.message}
-      confirmLabel="Usuń"
+      confirmLabel={pending.confirmLabel}
       cancelLabel="Anuluj"
       onConfirm={() => {
         pending.onConfirm();
@@ -35,5 +45,17 @@ export function useConfirm(): [ReactNode, (message: string, onConfirm: () => voi
     />
   ) : null;
 
-  return [dialog, (message, onConfirm) => setPending({ message, onConfirm })];
+  // Deleting is the common case, so it stays the default — but an import also
+  // needs confirming, and asking "confirm deletion / delete" there would
+  // describe the wrong action.
+  return [
+    dialog,
+    (message, onConfirm, options) =>
+      setPending({
+        message,
+        onConfirm,
+        title: options?.title ?? "Potwierdź usunięcie",
+        confirmLabel: options?.confirmLabel ?? "Usuń",
+      }),
+  ];
 }

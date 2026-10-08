@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { PageLayout } from "@delfin/ui";
 import { AllocationPage } from "./pages/AllocationPage";
 import { ClassesPage } from "./pages/ClassesPage";
+import { ImportPage } from "./pages/ImportPage";
 import { CrossClassPage } from "./pages/CrossClassPage";
 import { ResourcesPage } from "./pages/ResourcesPage";
 import { SchoolPage } from "./pages/SchoolPage";
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Oddziały", href: "/oddzialy" },
   { label: "Przydziały", href: "/przydzialy" },
   { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
+  { label: "Import", href: "/import" },
 ];
 
 export default function App() {
@@ -34,6 +36,7 @@ export default function App() {
         <Route path="/oddzialy" element={<ClassesPage />} />
         <Route path="/przydzialy" element={<AllocationPage />} />
         <Route path="/miedzyoddzialowe" element={<CrossClassPage />} />
+        <Route path="/import" element={<ImportPage />} />
       </Routes>
     </PageLayout>
   );

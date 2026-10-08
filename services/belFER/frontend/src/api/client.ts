@@ -194,6 +194,46 @@ export interface CrossClassUnitInput {
   groups: CrossClassGroupInput[];
 }
 
+export interface ImportCounts {
+  teachers: number;
+  subjects: number;
+  classes: number;
+  lessonLines: number;
+  crossClassUnits: number;
+  crossClassGroups: number;
+}
+
+export interface ImportNote {
+  level: string;
+  message: string;
+}
+
+export interface WeekSegment {
+  from: number;
+  to: number;
+  weeks: number;
+  allocations: number;
+  hoursPerWeek: number;
+}
+
+export interface ImportPreview {
+  schoolName: string;
+  counts: ImportCounts;
+  notes: ImportNote[];
+  replaces: ImportCounts;
+  segments: WeekSegment[];
+}
+
+// FormData must not carry an explicit Content-Type: the browser has to set it
+// itself so that the multipart boundary matches the body.
+function upload<T>(path: string, file: File, weekFrom: number, weekTo: number): Promise<T> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("weekFrom", String(weekFrom));
+  form.append("weekTo", String(weekTo));
+  return fetch(`${BASE}${path}`, { method: "POST", body: form }).then(unwrap<T>);
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -258,4 +298,9 @@ export const api = {
   updateCrossClassUnit: (schoolId: string, id: string, input: CrossClassUnitInput) =>
     send<CrossClassUnit>("PUT", `/schools/${schoolId}/cross-class-units/${id}`, input),
   deleteCrossClassUnit: (id: string) => sendNoContent("DELETE", `/cross-class-units/${id}`),
+
+  previewImport: (schoolId: string, file: File, weekFrom: number, weekTo: number) =>
+    upload<ImportPreview>(`/schools/${schoolId}/import/preview`, file, weekFrom, weekTo),
+  applyImport: (schoolId: string, file: File, weekFrom: number, weekTo: number) =>
+    upload<Record<string, number>>(`/schools/${schoolId}/import/apply`, file, weekFrom, weekTo),
 };
