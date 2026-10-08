@@ -234,6 +234,31 @@ function upload<T>(path: string, file: File, weekFrom: number, weekTo: number): 
   return fetch(`${BASE}${path}`, { method: "POST", body: form }).then(unwrap<T>);
 }
 
+export interface Finding {
+  severity: "Blocking" | "Warning";
+  subject: string;
+  message: string;
+}
+
+export interface ClassLoad {
+  name: string;
+  occupied: number;
+  capacity: number;
+}
+
+export interface TeacherLoad {
+  name: string;
+  allocated: number;
+  pensum: number | null;
+}
+
+export interface ValidationReport {
+  blocking: Finding[];
+  warnings: Finding[];
+  classes: ClassLoad[];
+  teachers: TeacherLoad[];
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -303,4 +328,6 @@ export const api = {
     upload<ImportPreview>(`/schools/${schoolId}/import/preview`, file, weekFrom, weekTo),
   applyImport: (schoolId: string, file: File, weekFrom: number, weekTo: number) =>
     upload<Record<string, number>>(`/schools/${schoolId}/import/apply`, file, weekFrom, weekTo),
+
+  validate: (schoolId: string) => send<ValidationReport>("GET", `/schools/${schoolId}/validation`),
 };

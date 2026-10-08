@@ -92,7 +92,7 @@ Each subphase is a migration + repository + routes + a page.
 - **1.7** Specialisation templates — UC-14, UC-15
 - **1.8** Validity windows on assignments, and the derived week segmentation
   — see REQUIREMENTS §4.1
-- **1.9** Validation engine and live counters — UC-23, VAL-01 … VAL-07
+- **1.8** Validation engine and load figures — UC-23, VAL-01 … VAL-07
 
 > 1.5 and 1.6 carry the model decisions that everything downstream depends on
 > (lesson lines; PE units). Worth reviewing against the requirements before

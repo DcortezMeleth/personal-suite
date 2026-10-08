@@ -163,3 +163,13 @@ class ArkuszMapperSpec extends AnyFunSuite:
   test("a mid-period change in hours is reported rather than silently resolved") {
     assert(plan.warnings.exists(_.message.contains("zmienia liczbę godzin")))
   }
+
+  // Religia carries a group number because only some students attend, but the
+  // class's slot is occupied either way. Reading it as a half left every class
+  // with a group 1 and no group 2, which no plan can satisfy.
+  test("religia occupies the whole class rather than becoming a half") {
+    val religia = plan.lessonLines.filter(_.subjectCode == "religia")
+    assert(religia.nonEmpty)
+    assert(religia.forall(_.audience == LessonAudience.WHOLE_CLASS),
+      religia.map(_.audience).distinct.toString)
+  }

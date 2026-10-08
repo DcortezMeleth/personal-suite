@@ -109,8 +109,3 @@ class CrossClassUnitRepository(xa: Transactor[IO]):
 
   def delete(id: UUID): IO[Int] =
     sql"DELETE FROM cross_class_unit WHERE id = $id".update.run.transact(xa)
-
-  /** How many rooms carry a given kind — the ceiling on simultaneous groups. */
-  def roomsOfKind(kindId: UUID): IO[Int] =
-    sql"SELECT count(*) FROM room_kind_assignment WHERE room_kind_id = $kindId"
-      .query[Int].unique.transact(xa)

@@ -103,7 +103,10 @@ class ClassAllocationSpec extends AnyFunSuite:
 
   test("reports lines with no teacher assigned") {
     val lines = List(line(maths, LessonAudience.WHOLE_CLASS, List(1), teacher = None))
-    assert(ClassAllocation.problems(lines, names).exists(_.message.contains("Nieprzypisany")))
+    val problems = ClassAllocation.problems(lines, names)
+    assert(problems.exists(_.message.contains("Nieprzypisany")))
+    // Incomplete, not impossible: the lesson still occupies its class and room.
+    assert(problems.filter(_.message.contains("Nieprzypisany")).forall(!_.blocking))
   }
 
   test("a class's total includes the cross-class lessons it takes part in") {

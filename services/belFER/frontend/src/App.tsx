@@ -6,6 +6,7 @@ import { ImportPage } from "./pages/ImportPage";
 import { CrossClassPage } from "./pages/CrossClassPage";
 import { ResourcesPage } from "./pages/ResourcesPage";
 import { SchoolPage } from "./pages/SchoolPage";
+import { ValidationPage } from "./pages/ValidationPage";
 import { TeachersPage } from "./pages/TeachersPage";
 
 // The interface is Polish, because the people using it are.
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { label: "Przydziały", href: "/przydzialy" },
   { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
   { label: "Import", href: "/import" },
+  { label: "Kontrola", href: "/kontrola" },
 ];
 
 export default function App() {
@@ -37,6 +39,7 @@ export default function App() {
         <Route path="/przydzialy" element={<AllocationPage />} />
         <Route path="/miedzyoddzialowe" element={<CrossClassPage />} />
         <Route path="/import" element={<ImportPage />} />
+        <Route path="/kontrola" element={<ValidationPage />} />
       </Routes>
     </PageLayout>
   );

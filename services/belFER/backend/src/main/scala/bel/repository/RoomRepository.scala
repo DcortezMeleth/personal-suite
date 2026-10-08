@@ -110,5 +110,11 @@ class RoomRepository(xa: Transactor[IO]):
       yield saved
     program.transact(xa)
 
+  /** How many rooms carry a given kind — the ceiling on how many groups of a
+    * cross-class lesson can run at once, since they all run together. */
+  def roomsOfKind(kindId: UUID): IO[Int] =
+    sql"SELECT count(*) FROM room_kind_assignment WHERE room_kind_id = $kindId"
+      .query[Int].unique.transact(xa)
+
   def deleteRoom(id: UUID): IO[Int] =
     sql"DELETE FROM room WHERE id = $id".update.run.transact(xa)

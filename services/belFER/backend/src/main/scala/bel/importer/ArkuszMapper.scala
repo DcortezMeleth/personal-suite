@@ -202,7 +202,12 @@ object ArkuszMapper:
     OptionalSubjectHints.exists(hint => scheme.toLowerCase.contains(hint))
 
   private def audienceOf(a: ArkuszAssignment): Either[String, LessonAudience] =
-    a.groupNumber match
+    // Religia and etyka carry a group number because only some students
+    // attend, but the class's slot is occupied either way — which is exactly
+    // why they are placed first or last rather than split. Reading that number
+    // as a half would leave the other half with nothing to do.
+    if a.groupScheme.exists(isOptionalScheme) then Right(LessonAudience.WHOLE_CLASS)
+    else a.groupNumber match
       case None | Some(0) => Right(LessonAudience.WHOLE_CLASS)
       case Some(1)        => Right(LessonAudience.GROUP_1)
       case Some(2)        => Right(LessonAudience.GROUP_2)

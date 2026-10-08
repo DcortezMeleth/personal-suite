@@ -103,7 +103,13 @@ object AllocationSummary:
 
 object ClassAllocation:
 
-  case class Problem(message: String)
+  /**
+   * `blocking` separates "no arrangement of these hours can work" from "this
+   * looks incomplete". Unequal group hours are the former — one half would sit
+   * idle while the other had a lesson. A missing teacher is the latter: the
+   * lesson still occupies its class and room, it just is not finished.
+   */
+  case class Problem(message: String, blocking: Boolean)
 
   def summary(
     lines: List[LessonLine],
@@ -127,14 +133,15 @@ object ClassAllocation:
         if first != second then
           Some(Problem(
             s"${subjectName.getOrElse(subjectId, "?")}: grupa 1 ma $first godz., a grupa 2 — $second. " +
-              "Obie grupy muszą być zajęte w tym samym czasie."))
+              "Obie grupy muszą być zajęte w tym samym czasie.",
+            blocking = true))
         else None
       }
 
     val missingTeacher =
       lines.filter(_.teacherId.isEmpty) match
         case Nil   => Nil
-        case unset => List(Problem(s"Nieprzypisany nauczyciel: ${unset.size} przydz."))
+        case unset => List(Problem(s"Nieprzypisany nauczyciel: ${unset.size} przydz.", blocking = false))
 
     groupMismatches ++ missingTeacher
 

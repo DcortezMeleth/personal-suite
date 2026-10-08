@@ -1,7 +1,7 @@
 package bel.api
 
 import bel.domain.*
-import bel.repository.{CrossClassUnitRepository, SchoolRepository}
+import bel.repository.{CrossClassUnitRepository, RoomRepository, SchoolRepository}
 import cats.effect.IO
 import cats.syntax.traverse.*
 import io.circe.syntax.*
@@ -10,14 +10,18 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import java.util.UUID
 
-class CrossClassUnitRoutes(repo: CrossClassUnitRepository, schools: SchoolRepository):
+class CrossClassUnitRoutes(
+  repo: CrossClassUnitRepository,
+  schools: SchoolRepository,
+  rooms: RoomRepository
+):
 
   private def validated(schoolId: UUID, input: CrossClassUnitInput)(
     onValid: => IO[Response[IO]]
   ): IO[Response[IO]] =
     for
       slots <- schools.slotCount(schoolId)
-      rooms <- input.requiredRoomKindId.traverse(repo.roomsOfKind)
+      rooms <- input.requiredRoomKindId.traverse(rooms.roomsOfKind)
       result <- CrossClassUnitValidation.validate(input, slots, rooms) match
                   case Left(message) => UnprocessableEntity(ApiError.body(message))
                   case Right(_)      => onValid

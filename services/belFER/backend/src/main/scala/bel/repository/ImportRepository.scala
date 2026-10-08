@@ -4,6 +4,8 @@ import bel.domain.{LessonAudience, LessonKind}
 import bel.importer.*
 import bel.repository.DoobieMeta.given
 import cats.effect.IO
+import cats.syntax.apply.*
+import cats.syntax.functor.*
 import cats.syntax.traverse.*
 import doobie.*
 import doobie.implicits.*
@@ -48,6 +50,7 @@ class ImportRepository(xa: Transactor[IO]):
         classes  <- insertClasses(schoolId, plan.classes, teachers)
         lines    <- insertLessonLines(schoolId, plan.lessonLines, classes, subjects, teachers)
         units    <- insertUnits(schoolId, plan.crossClassUnits, classes, subjects, teachers)
+        _        <- deriveTeacherSubjects(schoolId, plan, classes, subjects, teachers)
       yield Applied(teachers.size, subjects.size, classes.size, lines, units)
     program.transact(xa)
 
@@ -127,6 +130,32 @@ class ImportRepository(xa: Transactor[IO]):
         """.update.run
       }
       .map(_.sum)
+
+  /**
+   * The arkusz never says what a teacher teaches, only what they have been
+   * allocated — which amounts to the same thing and is the only source there
+   * is. Without this every teacher would import with no subjects at all, and
+   * the check for "allocated a subject they do not teach" would flag the whole
+   * school.
+   */
+  private def deriveTeacherSubjects(
+    schoolId: UUID,
+    plan: ImportPlan,
+    classes: Map[String, UUID],
+    subjects: Map[String, UUID],
+    teachers: Map[String, UUID]
+  ): ConnectionIO[Unit] =
+    val fromLines = plan.lessonLines.flatMap(l => l.teacherCode.map(_ -> l.subjectCode))
+    val fromUnits = plan.crossClassUnits.flatMap(u =>
+      u.groups.flatMap(_.teacherCode).map(_ -> u.subjectCode))
+
+    (fromLines ++ fromUnits).distinct
+      .flatMap((teacherCode, subjectCode) =>
+        (teachers.get(teacherCode), subjects.get(subjectCode)).tupled)
+      .traverse((teacherId, subjectId) =>
+        sql"""INSERT INTO teacher_subject (teacher_id, subject_id, school_id)
+              VALUES ($teacherId, $subjectId, $schoolId)""".update.run)
+      .void
 
   private def insertUnits(
     schoolId: UUID,

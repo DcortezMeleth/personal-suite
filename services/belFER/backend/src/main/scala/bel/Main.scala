@@ -39,8 +39,9 @@ object Main extends IOApp.Simple:
           TeacherRoutes(teacherRepo, schoolRepo).routes <+>
           SchoolClassRoutes(classRepo, schoolRepo).routes <+>
           LessonLineRoutes(lineRepo, schoolRepo, subjectRepo, peRepo).routes <+>
-          CrossClassUnitRoutes(peRepo, schoolRepo).routes <+>
-          ImportRoutes(importRepo).routes
+          CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
+          ImportRoutes(importRepo).routes <+>
+          ValidationRoutes(schoolRepo, classRepo, teacherRepo, subjectRepo, lineRepo, peRepo, roomRepo).routes
 
         EmberServerBuilder
           .default[IO]
