@@ -136,14 +136,37 @@ Five segments cover **31 of the 38 weeks**, and differ from one another by only
 a handful of assignments (751 / 753 / 753 / 752 / 611). The other seven are
 single-week blips.
 
-**The windows describe exceptions around one broadly stable plan, not twelve
-distinct plans.** The design follows from that:
+**Resolved with the school: a plan covers one stretch of weeks, and when the
+allocation changes the school issues a new plan.** History drops from two hours
+a week to one at week 12, and from week 13 the classes get a fresh timetable —
+the expiring hour is not simply dropped, because doing so would leave the class
+with a gap unless it happened to be the last lesson of its day.
+
+So the importer detects the stretches over which the allocation is constant and
+offers them, rather than asking for two numbers. In the real arkusz they are:
+
+| Weeks | Length | Allocations | h/week |
+|---|---|---|---|
+| 1–4 | 4 wk | 622 | 1110 |
+| 5–11 | 7 wk | 624 | 1114 |
+| 13–18 | 6 wk | 624 | 1107 |
+| 20–29 | 10 wk | 624 | 1104 |
+| 31–35 | 5 wk | 499 | 846 |
+
+The last is the drop after the final-year classes leave. Single-week boundaries
+(12, 19, 30, 36–38) are not offered: the school handles those by hand rather
+than reprinting a timetable.
+
+**Hours from different windows are never added together.** An allocation stated
+for two stretches is two variants in time, not two parts of a sum. The design
+follows from that:
 
 - **The data layer keeps every window.** Nothing is lost on import, and the
   post-MVP mid-year patching work depends on knowing them.
 - **The solver works on one chosen interval at a time.** Constraints are
   evaluated across the assignments active in that interval; they are not
-  individually time-aware. Making every pairwise constraint conditional on
+  individually time-aware. A new interval means a new plan, which is what the
+  school already does. Making every pairwise constraint conditional on
   overlapping weeks would multiply the solver's cost and, more to the point,
   would yield a timetable that changes every few weeks — which cannot be
   printed and hung in a corridor.

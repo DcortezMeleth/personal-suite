@@ -3,6 +3,7 @@ package bel.api
 import bel.importer.*
 import bel.repository.ImportRepository
 import cats.effect.IO
+import cats.syntax.apply.*
 import io.circe.{Encoder, Json}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
@@ -22,10 +23,20 @@ object ImportSummary:
     crossClassGroups: Int
   )
   case class Note(level: String, message: String)
-  case class Preview(schoolName: String, counts: Counts, notes: List[Note], replaces: Counts)
+  case class Segment(from: Int, to: Int, weeks: Int, allocations: Int, hoursPerWeek: Int)
+  case class Preview(
+    schoolName: String,
+    counts: Counts,
+    notes: List[Note],
+    replaces: Counts,
+    // Offered so the planner picks a stretch whose allocation is constant,
+    // rather than discovering half way through that it covers two.
+    segments: List[Segment]
+  )
 
   given Encoder[Counts]  = deriveEncoder
   given Encoder[Note]    = deriveEncoder
+  given Encoder[Segment] = deriveEncoder
   given Encoder[Preview] = deriveEncoder
 
 class ImportRoutes(repo: ImportRepository):
@@ -68,6 +79,9 @@ class ImportRoutes(repo: ImportRepository):
       ArkuszParser.parse(bytes).map(doc => ArkuszMapper.map(doc, weeks))
     })
 
+  private def documentFrom(mp: Multipart[IO]): IO[Either[String, ArkuszDocument]] =
+    readUpload(mp).map(_.flatMap((bytes, _) => ArkuszParser.parse(bytes)))
+
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
     // Says what would happen without doing it. The import replaces a school's
@@ -75,9 +89,10 @@ class ImportRoutes(repo: ImportRepository):
     // decision and a surprise.
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "import" / "preview" =>
       req.decode[Multipart[IO]] { mp =>
-        planFrom(mp).flatMap {
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
-          case Right(plan) =>
+        (planFrom(mp), documentFrom(mp)).tupled.flatMap {
+          case (Left(message), _) => UnprocessableEntity(ApiError.body(message))
+          case (_, Left(message)) => UnprocessableEntity(ApiError.body(message))
+          case (Right(plan), Right(doc)) =>
             repo.existingCounts(schoolId).flatMap { existing =>
               Ok(ImportSummary.Preview(
                 schoolName = plan.schoolName,
@@ -85,7 +100,9 @@ class ImportRoutes(repo: ImportRepository):
                 notes = plan.notes.map(n => ImportSummary.Note(n.level.toString, n.message)),
                 replaces = ImportSummary.Counts(
                   existing.teachers, existing.subjects, existing.classes,
-                  existing.lessonLines, existing.crossClassUnits, 0)
+                  existing.lessonLines, existing.crossClassUnits, 0),
+                segments = ArkuszSegments.suggested(doc).map(s =>
+                  ImportSummary.Segment(s.from, s.to, s.weeks, s.allocations, s.hoursPerWeek))
               ).asJson)
             }
         }
