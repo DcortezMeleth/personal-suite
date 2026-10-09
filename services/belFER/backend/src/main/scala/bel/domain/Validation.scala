@@ -15,7 +15,18 @@ object Severity:
   given Decoder[Severity] = Decoder[String].emap(s =>
     scala.util.Try(valueOf(s)).toEither.left.map(_.getMessage))
 
-case class Finding(severity: Severity, subject: String, message: String)
+/**
+ * @param entityId the class, teacher or unit the finding is about, so a screen
+ *   can show it beside the row it concerns rather than only on a page of its
+ *   own. A list of problems somewhere else is a list someone has to remember
+ *   to go and read.
+ */
+case class Finding(
+  severity: Severity,
+  subject: String,
+  message: String,
+  entityId: Option[UUID] = None
+)
 
 object Finding:
   given Encoder[Finding] = deriveEncoder
@@ -66,10 +77,12 @@ object Validation:
       val total = own + cross
       if total > capacity then
         Some(Finding(Severity.Blocking, cls.name,
-          s"$total godz. tygodniowo, a w planie mieści się $capacity — nie da się ułożyć"))
+          s"$total godz. tygodniowo, a w planie mieści się $capacity — nie da się ułożyć",
+          Some(cls.id)))
       else if total == capacity then
         Some(Finding(Severity.Warning, cls.name,
-          s"$total godz. wypełnia cały tydzień co do godziny — brak miejsca na jakikolwiek ruch"))
+          s"$total godz. wypełnia cały tydzień co do godziny — brak miejsca na jakikolwiek ruch",
+          Some(cls.id)))
       else None
     }
 
@@ -84,7 +97,8 @@ object Validation:
       if line.blocks.sizeIs > s.teachingDays then
         Some(Finding(Severity.Blocking, classNames.getOrElse(line.classId, "?"),
           s"${names.getOrElse(line.subjectId, "?")}: ${line.blocks.size} bloków, " +
-            s"a dni nauki jest ${s.teachingDays} — najwyżej jeden blok dziennie"))
+            s"a dni nauki jest ${s.teachingDays} — najwyżej jeden blok dziennie",
+          Some(line.classId)))
       else None
     }
 
@@ -95,7 +109,7 @@ object Validation:
       ClassAllocation
         .problems(s.lessonLines.filter(_.classId == cls.id), names)
         .map(p => Finding(if p.blocking then Severity.Blocking else Severity.Warning,
-          cls.name, p.message))
+          cls.name, p.message, Some(cls.id)))
     }
 
   // ── Teachers ──────────────────────────────────────────────────────────────
@@ -122,7 +136,7 @@ object Validation:
       if total > ceiling then
         Some(Finding(Severity.Blocking, name,
           s"$total godz. przydziału, a zmieścić się może najwyżej $ceiling " +
-            s"(dostępność $available, limity $byLimits)"))
+            s"(dostępność $available, limity $byLimits)", Some(teacher.id)))
       else None
     }
 
@@ -156,7 +170,7 @@ object Validation:
         if teaches.nonEmpty && !teaches.contains(subjectId) then
           Some(Finding(Severity.Warning, teacherNames.getOrElse(teacherId, "?"),
             s"przydzielono ${subjectNames.getOrElse(subjectId, "?")}, " +
-              "a przedmiot nie jest wpisany jako uczony"))
+              "a przedmiot nie jest wpisany jako uczony", Some(teacherId)))
         else None
       }
 
@@ -167,7 +181,7 @@ object Validation:
     s.classes.flatMap { cls =>
       val missing =
         if cls.homeroomTeacherId.isEmpty then
-          List(Finding(Severity.Warning, cls.name, "brak wychowawcy"))
+          List(Finding(Severity.Warning, cls.name, "brak wychowawcy", Some(cls.id)))
         else Nil
 
       // Godzina wychowawcza is the wychowawca's hour by definition; anyone else
@@ -178,7 +192,7 @@ object Validation:
             .filter(l => l.classId == cls.id && l.subjectId == subject.id)
             .filter(l => l.teacherId.exists(_ != wychowawca))
             .map(_ => Finding(Severity.Warning, cls.name,
-              s"${subject.name} prowadzi ktoś inny niż wychowawca"))
+              s"${subject.name} prowadzi ktoś inny niż wychowawca", Some(cls.id)))
         case _ => Nil
 
       missing ++ wrongTeacher
@@ -193,12 +207,12 @@ object Validation:
         .filter(_ < unit.groups.size)
         .map(available => Finding(Severity.Blocking, unit.name,
           s"${unit.groups.size} grup, a sal tego typu ${available} — " +
-            "wszystkie odbywają się jednocześnie"))
+            "wszystkie odbywają się jednocześnie", Some(unit.id)))
 
       val unassigned = unit.groups.count(_.teacherId.isEmpty)
       val noTeacher =
         if unassigned > 0 then
-          Some(Finding(Severity.Warning, unit.name, s"$unassigned grup bez nauczyciela"))
+          Some(Finding(Severity.Warning, unit.name, s"$unassigned grup bez nauczyciela", Some(unit.id)))
         else None
 
       tooManyGroups.toList ++ noTeacher.toList

@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
 import { useConfirm } from "../hooks/useConfirm";
+import { useFindings } from "../hooks/useFindings";
+import { FindingMark } from "../components/FindingMark";
 import {
   api,
   type Room,
   type School,
   type Subject,
+  type Finding,
   type Teacher,
   type TeacherInput,
   type UnavailabilityBlock,
@@ -59,6 +62,7 @@ export function TeachersPage() {
   const [filter, setFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirmDialog, confirm] = useConfirm();
+  const { findingsFor, reloadFindings } = useFindings(school?.id);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -94,6 +98,7 @@ export function TeachersPage() {
       await action();
       setError(null);
       await load();
+      await reloadFindings();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -161,6 +166,7 @@ export function TeachersPage() {
           <table className="w-full text-left text-sm">
             <thead className="text-neutral-500">
               <tr>
+                <th className="w-5 pb-2" />
                 <th className="pb-2">Kod</th>
                 <th className="pb-2">Imię</th>
                 <th className="pb-2">Nazwisko</th>
@@ -182,6 +188,7 @@ export function TeachersPage() {
                   subjects={subjects}
                   slotCount={slotCount}
                   school={school}
+                  findings={findingsFor(teacher.id)}
                   expanded={expanded === teacher.id}
                   onToggleExpand={() => setExpanded(expanded === teacher.id ? null : teacher.id)}
                   onSave={(input) => run(() => api.updateTeacher(school.id, teacher.id, input))}
@@ -212,6 +219,7 @@ function TeacherRow(props: {
   subjects: Subject[];
   slotCount: number;
   school: School;
+  findings: Finding[];
   expanded: boolean;
   onToggleExpand: () => void;
   onSave: (input: TeacherInput) => void;
@@ -254,7 +262,10 @@ function TeacherRow(props: {
   return (
     <>
       <tr className="border-t border-neutral-200">
-        <td className="py-2 pr-2 w-20">
+        <td className="py-2 align-middle">
+          <FindingMark findings={props.findings} />
+        </td>
+        <td className="py-2 pr-2 w-24">
           <input className={field} value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
         </td>
         <td className="py-2 pr-2">
@@ -331,7 +342,7 @@ function TeacherRow(props: {
 
       {props.expanded && (
         <tr className="border-t border-neutral-100 bg-neutral-50">
-          <td colSpan={10} className="px-2 py-4">
+          <td colSpan={11} className="px-2 py-4">
             <div className="grid gap-6 lg:grid-cols-2">
               <div>
                 <h4 className="mb-2 font-medium text-neutral-700">Uczy przedmiotów</h4>

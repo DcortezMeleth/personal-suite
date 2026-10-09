@@ -238,15 +238,20 @@ export interface Finding {
   severity: "Blocking" | "Warning";
   subject: string;
   message: string;
+  // Which class, teacher or unit the finding is about, so a screen can show it
+  // beside the row it concerns.
+  entityId: string | null;
 }
 
 export interface ClassLoad {
+  id: string;
   name: string;
   occupied: number;
   capacity: number;
 }
 
 export interface TeacherLoad {
+  id: string;
   name: string;
   allocated: number;
   pensum: number | null;

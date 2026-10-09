@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
 import { useConfirm } from "../hooks/useConfirm";
+import { useFindings } from "../hooks/useFindings";
+import { FindingMark } from "../components/FindingMark";
 import {
   api,
   type School,
   type SchoolClass,
   type SchoolClassInput,
+  type Finding,
   type Teacher,
 } from "../api/client";
 
@@ -21,6 +24,7 @@ export function ClassesPage() {
   const [genYear, setGenYear] = useState(1);
   const [genLetters, setGenLetters] = useState("A, B, C, D");
   const [confirmDialog, confirm] = useConfirm();
+  const { findingsFor, reloadFindings } = useFindings(school?.id);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +53,9 @@ export function ClassesPage() {
       await action();
       setError(null);
       await load();
+      // Fixing a class can resolve or create a finding, so they are refreshed
+      // with the data rather than going stale until a reload.
+      await reloadFindings();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -142,6 +149,7 @@ export function ClassesPage() {
                   year={year}
                   classes={byYear.get(year) ?? []}
                   teachers={teachers}
+                  findingsFor={findingsFor}
                   onSave={(id, input) => run(() => api.updateClass(school.id, id, input))}
                   onDelete={(id, name) =>
                     confirm(`Usunąć oddział ${name}?`, () => run(() => api.deleteClass(id)))
@@ -160,6 +168,7 @@ function ClassYear(props: {
   year: number;
   classes: SchoolClass[];
   teachers: Teacher[];
+  findingsFor: (id: string) => Finding[];
   onSave: (id: string, input: SchoolClassInput) => void;
   onDelete: (id: string, name: string) => void;
 }) {
@@ -175,6 +184,7 @@ function ClassYear(props: {
           key={cls.id}
           cls={cls}
           teachers={props.teachers}
+          findings={props.findingsFor(cls.id)}
           onSave={(input) => props.onSave(cls.id, input)}
           onDelete={() => props.onDelete(cls.id, cls.name)}
         />
@@ -186,6 +196,7 @@ function ClassYear(props: {
 function ClassRow(props: {
   cls: SchoolClass;
   teachers: Teacher[];
+  findings: Finding[];
   onSave: (input: SchoolClassInput) => void;
   onDelete: () => void;
 }) {
@@ -205,6 +216,7 @@ function ClassRow(props: {
     <tr className="border-t border-neutral-200">
       <td className="py-2 pr-2 font-medium text-neutral-700">
         {draft.year}
+        <FindingMark findings={props.findings} />
         <input
           className={`${field} ml-1 inline-block w-14`}
           value={draft.letter}
