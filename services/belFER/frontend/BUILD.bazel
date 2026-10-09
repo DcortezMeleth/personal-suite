@@ -21,16 +21,34 @@ ts_project(
         ":node_modules/react-calendar",
         ":node_modules/react-dom",
         ":node_modules/react-router-dom",
-        "//libs/ui:ui",
+        ":node_modules/@delfin/ui",
     ],
     # tsconfig.base.json sets noEmit: true — this is a pure type-check gate,
     # producing no .js or .d.ts at all. Vite (below) transpiles the actual JS
     # straight from these .ts/.tsx sources.
+    #
+    # declaration/declaration_map/source_map look redundant beside no_emit, but
+    # rules_ts validates that these attributes mirror tsconfig.base.json and
+    # fails the build when they drift — so they stay.
     declaration = True,
     declaration_map = True,
     source_map = True,
     resolve_json_module = True,
     no_emit = True,
+    visibility = ["//visibility:private"],
+)
+
+# With no_emit, rules_ts puts the type check in an output group rather than in
+# the target's default outputs — so :app_ts alone builds nothing, and Bazel
+# never runs an action that produces nothing. The check reported success on
+# every build while never once running.
+#
+# Naming the group here turns it into a real file, and listing it in the Vite
+# build below makes a type error fail the build that matters.
+filegroup(
+    name = "app_typecheck",
+    srcs = [":app_ts"],
+    output_group = "typecheck",
     visibility = ["//visibility:private"],
 )
 
@@ -43,6 +61,7 @@ vite_bin.vite(
         # error fails this build too, but Vite reads these raw sources itself
         # (it does its own transpiling), hence the glob alongside it.
         ":app_ts",
+        ":app_typecheck",
         "index.html",
         "tailwind.config.js",
         "postcss.config.js",

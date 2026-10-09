@@ -1,5 +1,6 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
@@ -41,5 +42,24 @@ js_library(
     # so Vite fails to resolve the import. It is not in :ui_ts because
     # TypeScript has no business type-checking a stylesheet.
     srcs = [":ui_ts"] + glob(["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"]),
+    visibility = ["//visibility:public"],
+)
+
+# Linked into each frontend's node_modules as @delfin/ui, which is how its
+# consumers already declare it in package.json.
+#
+# Without this the only route to these sources was a tsconfig `paths` mapping
+# to a relative file path, which Vite honoured and tsc could not resolve inside
+# the Bazel sandbox — so every import of @delfin/ui was an unchecked `any`.
+npm_package(
+    name = "pkg",
+    # package.json is not optional here: it carries the "exports" map that
+    # points at src/index.ts, which is how tsc and Vite both find the entry
+    # point. Without it the linked package is a directory of orphan files.
+    srcs = [
+        "package.json",
+        ":ui",
+    ],
+    package = "@delfin/ui",
     visibility = ["//visibility:public"],
 )
