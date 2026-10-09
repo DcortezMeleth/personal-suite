@@ -1,15 +1,10 @@
-import { AppHeader } from "./AppHeader";
+import type { ReactNode } from "react";
+import { AppHeader, type NavItem } from "./AppHeader";
 
-interface NavItem {
-  label: string;
-  href: string;
-  active?: boolean;
-}
-
-interface PageLayoutProps {
+export interface PageLayoutProps {
   title?: string;
   navItems?: NavItem[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function PageLayout({ title, navItems, children }: PageLayoutProps) {

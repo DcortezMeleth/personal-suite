@@ -1,6 +1,6 @@
-type AlertLevel = "info" | "warning" | "danger" | "success";
+export type AlertLevel = "info" | "warning" | "danger" | "success";
 
-interface AlertBannerProps {
+export interface AlertBannerProps {
   level: AlertLevel;
   message: string;
   onDismiss?: () => void;

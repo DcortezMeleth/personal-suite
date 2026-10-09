@@ -1,10 +1,10 @@
-interface NavItem {
+export interface NavItem {
   label: string;
   href: string;
   active?: boolean;
 }
 
-interface AppHeaderProps {
+export interface AppHeaderProps {
   title?: string;
   navItems?: NavItem[];
 }

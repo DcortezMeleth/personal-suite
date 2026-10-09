@@ -1,8 +1,10 @@
-interface DataCardProps {
+import type { ReactNode } from "react";
+
+export interface DataCardProps {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
 }
 
 export function DataCard({ title, children, className = "", actions }: DataCardProps) {

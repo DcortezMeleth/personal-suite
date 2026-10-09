@@ -1,4 +1,11 @@
-import { useRef } from "react";
+// Aliased because MouseEvent is also a DOM global, and React's synthetic
+// event is not that type.
+import { useRef, type MouseEvent as ReactMouseEvent } from "react";
+
+export interface BackdropDismissProps {
+  onMouseDown: (e: ReactMouseEvent) => void;
+  onMouseUp: (e: ReactMouseEvent) => void;
+}
 
 /**
  * Props for a modal backdrop that dismisses on a deliberate click outside the
@@ -14,14 +21,14 @@ import { useRef } from "react";
  * click-outside working while a selection that merely ends there does nothing.
  * It also means the panel no longer needs to stop propagation to defend itself.
  */
-export function useBackdropDismiss(onDismiss: () => void) {
+export function useBackdropDismiss(onDismiss: () => void): BackdropDismissProps {
   const pressedOnBackdrop = useRef(false);
 
   return {
-    onMouseDown: (e: React.MouseEvent) => {
+    onMouseDown: (e: ReactMouseEvent) => {
       pressedOnBackdrop.current = e.target === e.currentTarget;
     },
-    onMouseUp: (e: React.MouseEvent) => {
+    onMouseUp: (e: ReactMouseEvent) => {
       const pressed = pressedOnBackdrop.current;
       pressedOnBackdrop.current = false;
       if (pressed && e.target === e.currentTarget) onDismiss();

@@ -1,3 +1,6 @@
+export type Colors = typeof colors;
+export type Typography = typeof typography;
+
 export const colors = {
   primary: {
     50: "#eff6ff",

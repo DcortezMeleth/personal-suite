@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
+import { singleDate } from "./calendarValue";
 import "./calendar.css";
 
 function parseMonth(value: string): Date {
@@ -15,7 +16,7 @@ function displayMonth(value: string): string {
   return parseMonth(value).toLocaleDateString(undefined, { year: "numeric", month: "long" });
 }
 
-interface Props {
+export interface MonthPickerProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
@@ -24,7 +25,7 @@ interface Props {
 // Replaces the native <input type="month">. Locks react-calendar to its
 // year view (minDetail = maxDetail = "year") so clicking a tile picks a
 // month directly instead of drilling into individual days.
-export function MonthPicker({ value, onChange, className }: Props) {
+export function MonthPicker({ value, onChange, className }: MonthPickerProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,7 +65,9 @@ export function MonthPicker({ value, onChange, className }: Props) {
             maxDetail="year"
             value={parseMonth(value)}
             onChange={(v) => {
-              onChange(formatMonth(v as Date));
+              const picked = singleDate(v);
+              if (!picked) return;
+              onChange(formatMonth(picked));
               setOpen(false);
             }}
           />

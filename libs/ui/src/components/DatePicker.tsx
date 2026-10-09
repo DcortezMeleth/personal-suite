@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
+import { singleDate } from "./calendarValue";
 import "./calendar.css";
 
 function parseLocalDate(value: string): Date | undefined {
@@ -21,7 +22,7 @@ function displayDate(value: string): string {
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-interface Props {
+export interface DatePickerProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -32,7 +33,7 @@ interface Props {
 // Replaces the native <input type="date">, whose calendar popup looks like
 // the OS default and can't be restyled. Value/onChange use the same
 // "YYYY-MM-DD" string format the native input did, so it's a drop-in swap.
-export function DatePicker({ value, onChange, placeholder = "Select date…", className, align = "left" }: Props) {
+export function DatePicker({ value, onChange, placeholder = "Select date…", className, align = "left" }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -74,7 +75,9 @@ export function DatePicker({ value, onChange, placeholder = "Select date…", cl
             className="rc-cal"
             value={parseLocalDate(value) ?? null}
             onChange={(v) => {
-              onChange(formatLocalDate(v as Date));
+              const picked = singleDate(v);
+              if (!picked) return;
+              onChange(formatLocalDate(picked));
               setOpen(false);
             }}
           />
