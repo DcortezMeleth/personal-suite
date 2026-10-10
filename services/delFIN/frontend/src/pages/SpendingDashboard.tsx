@@ -261,6 +261,12 @@ export function SpendingDashboard() {
                   cx="35%"
                   cy="50%"
                   outerRadius={90}
+                  // React 18 StrictMode mounts twice in development, which
+                  // leaves the Pie's mount animation stranded at frame zero —
+                  // the sector layer renders empty and never recovers. The
+                  // legend still fills, so the chart looks merely blank rather
+                  // than broken. Present in recharts 2 and still in 3.
+                  isAnimationActive={false}
                 >
                   {summary.spendingByCategory.map((entry) => (
                     <Cell key={entry.categoryId} fill={entry.color} />
@@ -282,8 +288,8 @@ export function SpendingDashboard() {
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <BarTooltip formatter={tooltipFmt} />
-                <Bar dataKey="totalSpent"  fill="#6366f1" name="Spent"  />
-                <Bar dataKey="totalIncome" fill="#16a34a" name="Income" />
+                <Bar dataKey="totalSpent"  fill="#6366f1" name="Spent"  isAnimationActive={false} />
+                <Bar dataKey="totalIncome" fill="#16a34a" name="Income" isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -307,7 +313,7 @@ export function SpendingDashboard() {
               <XAxis type="number" tick={{ fontSize: 11 }} />
               <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 12 }} />
               <BarTooltip formatter={tooltipFmt} />
-              <Bar dataKey="amount" name="Spent">
+              <Bar dataKey="amount" name="Spent" isAnimationActive={false}>
                 {summary.spendingByTag.map((entry) => (
                   <Cell key={entry.tagId} fill={entry.color} />
                 ))}

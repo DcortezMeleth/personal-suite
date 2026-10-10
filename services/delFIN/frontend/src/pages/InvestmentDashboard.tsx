@@ -141,6 +141,12 @@ export function InvestmentDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
+                  // React 18 StrictMode mounts twice in development, which
+                  // leaves the Pie's mount animation stranded at frame zero —
+                  // the sector layer renders empty and never recovers. The
+                  // legend still fills, so the chart looks merely blank rather
+                  // than broken. Present in recharts 2 and still in 3.
+                  isAnimationActive={false}
                   // recharts spreads the datum into the label props but types it
                   // as unknown-ish, so the original row is read back off
                   // payload rather than destructured out of the props.
@@ -177,6 +183,7 @@ export function InvestmentDashboard() {
                 <Tooltip />
                 <Legend />
                 <Line
+                  isAnimationActive={false}
                   type="monotone"
                   dataKey="cpiIndex"
                   name="CPI Index"
