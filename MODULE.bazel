@@ -60,25 +60,25 @@ maven.install(
         # IP address helpers
         "com.comcast:ip4s-core_3:3.4.0",
         # JSON
-        "io.circe:circe-core_3:0.14.10",
-        "io.circe:circe-generic_3:0.14.10",
-        "io.circe:circe-parser_3:0.14.10",
+        "io.circe:circe-core_3:0.14.17",
+        "io.circe:circe-generic_3:0.14.17",
+        "io.circe:circe-parser_3:0.14.17",
         # Database (RC4 uses CE 3.5.0 + cats 2.9.0)
         "org.tpolecat:doobie-core_3:1.0.0-RC4",
         "org.tpolecat:doobie-free_3:1.0.0-RC4",
         "org.tpolecat:doobie-postgres_3:1.0.0-RC4",
         "org.tpolecat:doobie-hikari_3:1.0.0-RC4",
         "org.tpolecat:typename_3:1.1.0",
-        "org.postgresql:postgresql:42.7.11",
+        "org.postgresql:postgresql:42.7.14",
         # Migrations (pure Java, no Scala version dependency)
-        "org.flywaydb:flyway-core:12.8.0",
-        "org.flywaydb:flyway-database-postgresql:12.8.0",
+        "org.flywaydb:flyway-core:13.10.0",
+        "org.flywaydb:flyway-database-postgresql:13.10.0",
         # Logging
-        "ch.qos.logback:logback-classic:1.5.34",
-        "org.typelevel:log4cats-core_3:2.6.0",
-        "org.typelevel:log4cats-slf4j_3:2.6.0",
+        "ch.qos.logback:logback-classic:1.6.5",
+        "org.typelevel:log4cats-core_3:2.8.0",
+        "org.typelevel:log4cats-slf4j_3:2.8.0",
         # Config
-        "com.typesafe:config:1.4.3",
+        "com.typesafe:config:1.4.9",
         # Explicitly pin transitive Scala 3 deps needed for compilation
         # (http4s-core transitively depends on all of these via opaque types)
         "org.typelevel:vault_3:3.5.0",
@@ -91,6 +91,15 @@ maven.install(
         # Scala version suffix — and belFER's solver module is Java too, which
         # keeps Timefold's annotation- and JavaBean-driven API away from
         # Scala 3 entirely.
+        #
+        # Held at 1.x deliberately. 2.x drops SolverConfig.withDomainAccessType
+        # and moves DomainAccessType into impl, so SolverFactory.create always
+        # asks for AUTO — which does not fall back to reflection, it throws
+        # ClassNotFoundException: io.quarkus.gizmo2.Expr. Reaching 2.x therefore
+        # means either taking on Gizmo runtime bytecode generation, which the
+        # spike avoided on purpose for the sealed image, or calling the impl
+        # constructor DefaultSolverFactory(config, FORCE_REFLECTION) and owning
+        # an unsupported API. That is a Phase 3 decision, not a version bump.
         "ai.timefold.solver:timefold-solver-core:1.16.0",
     ],
     repositories = [
