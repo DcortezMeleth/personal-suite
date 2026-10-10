@@ -3,14 +3,20 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
+import type { PieLabelRenderProps, TooltipValueType } from "recharts";
 import { DataCard, AlertBanner } from "@delfin/ui";
 import { api } from "../api/client";
 import type {
   PortfolioSummary, PositionDetail, BondWithValue, DepositWithValue,
-  InflationPoint, AccountOwner,
+  InflationPoint, AccountOwner, TypeAllocation,
 } from "../api/client";
 import { AddBondModal } from "../components/AddBondModal";
 import { AddDepositModal } from "../components/AddDepositModal";
+
+// recharts 3 types a tooltip value as number | string | array, because one
+// formatter signature serves every chart. Ours are all single numbers.
+const tooltipPLN = (value: TooltipValueType | undefined) =>
+  typeof value === "number" ? PLN(value) : "";
 
 const PLN = (n: number) =>
   n.toLocaleString("pl-PL", { style: "currency", currency: "PLN", maximumFractionDigits: 2 });
@@ -135,15 +141,19 @@ export function InvestmentDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  label={({ typeName, pct }: { typeName: string; pct: number }) =>
-                    `${typeName} ${pct.toFixed(1)}%`
-                  }
+                  // recharts spreads the datum into the label props but types it
+                  // as unknown-ish, so the original row is read back off
+                  // payload rather than destructured out of the props.
+                  label={(props: PieLabelRenderProps) => {
+                    const slice = props.payload as TypeAllocation | undefined;
+                    return slice ? `${slice.typeName} ${slice.pct.toFixed(1)}%` : "";
+                  }}
                 >
                   {summary.byType.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => PLN(v)} />
+                <Tooltip formatter={tooltipPLN} />
               </PieChart>
             </ResponsiveContainer>
           ) : (

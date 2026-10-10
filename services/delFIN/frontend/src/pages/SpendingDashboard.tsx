@@ -3,6 +3,7 @@ import {
   PieChart, Pie, Cell, Legend, Tooltip as PieTooltip,
   BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, ResponsiveContainer,
 } from "recharts";
+import type { DefaultLegendContentProps, TooltipValueType } from "recharts";
 import { AlertBanner, DataCard, MonthPicker } from "@delfin/ui";
 import { ImportModal } from "../components/ImportModal";
 import { AddAccountModal } from "../components/AddAccountModal";
@@ -17,6 +18,11 @@ import {
   TransactionRow,
 } from "../api/client";
 
+// recharts 3 types a tooltip value as number | string | array, because one
+// formatter signature serves every chart. Ours are all single numbers.
+const tooltipFmt = (value: TooltipValueType | undefined) =>
+  typeof value === "number" ? fmt(value) : "";
+
 function fmt(amount: number) {
   return amount.toLocaleString("pl-PL", { style: "currency", currency: "PLN" });
 }
@@ -27,13 +33,18 @@ function fmt(amount: number) {
 // React-controlled tooltip (onMouseEnter/onMouseLeave + local state) rather
 // than the native `title` attribute — that depends on the browser's own
 // hover-dwell timing, which turned out not to fire reliably here.
-function CategoryLegend(props: { payload?: { color?: string; payload?: unknown }[] }) {
+function CategoryLegend(props: DefaultLegendContentProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   if (!props.payload) return null;
   return (
     <ul className="space-y-1 pl-2 text-xs">
-      {props.payload.map(({ color, payload: raw }) => {
-        const entry = raw as CategorySpending;
+      {[...props.payload]
+        .sort((a, b) =>
+          ((b.payload as CategorySpending | undefined)?.amount ?? 0) -
+          ((a.payload as CategorySpending | undefined)?.amount ?? 0))
+        .map(({ color, payload: raw }) => {
+        const entry = raw as CategorySpending | undefined;
+        if (!entry) return null;
         return (
           <li
             key={entry.categoryId}
@@ -255,7 +266,7 @@ export function SpendingDashboard() {
                     <Cell key={entry.categoryId} fill={entry.color} />
                   ))}
                 </Pie>
-                <PieTooltip formatter={(v: number) => fmt(v)} />
+                <PieTooltip formatter={tooltipFmt} />
                 <Legend layout="vertical" align="right" verticalAlign="middle" content={CategoryLegend} />
               </PieChart>
             </ResponsiveContainer>
@@ -270,7 +281,7 @@ export function SpendingDashboard() {
               <BarChart data={trend} margin={{ top: 4, right: 8, bottom: 4, left: 8 }}>
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <BarTooltip formatter={(v: number) => fmt(v)} />
+                <BarTooltip formatter={tooltipFmt} />
                 <Bar dataKey="totalSpent"  fill="#6366f1" name="Spent"  />
                 <Bar dataKey="totalIncome" fill="#16a34a" name="Income" />
               </BarChart>
@@ -295,7 +306,7 @@ export function SpendingDashboard() {
             >
               <XAxis type="number" tick={{ fontSize: 11 }} />
               <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 12 }} />
-              <BarTooltip formatter={(v: number) => fmt(v)} />
+              <BarTooltip formatter={tooltipFmt} />
               <Bar dataKey="amount" name="Spent">
                 {summary.spendingByTag.map((entry) => (
                   <Cell key={entry.tagId} fill={entry.color} />

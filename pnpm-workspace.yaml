@@ -4,11 +4,3 @@ packages:
 allowBuilds:
   esbuild: true
 
-# recharts' .d.ts files reference React's types but the package never declares
-# @types/react, so inside its own store entry React.Component resolved to an
-# untyped import and every chart component came out as "cannot be used as a JSX
-# component". Declaring it here fixes the package rather than our call sites.
-packageExtensions:
-  recharts:
-    dependencies:
-      "@types/react": "^18.3.18"
