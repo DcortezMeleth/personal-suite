@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "../../../../libs/ui/src/theme/theme.css";
+
+/* The theme comes in by path rather than as "@delfin/ui/theme.css": the CSS
+   import is resolved by postcss-import, which does not read a package's
+   exports map and would look for theme.css underneath the package's main
+   entry point. */
+
+/* Tailwind 4 scans for class names itself, starting from this file's directory.
+   That finds this app but not the shared library next door, so its sources are
+   named explicitly — the same two globs the old config's `content` array had. */
+@source "../src";
+@source "../../../../libs/ui/src";
 
 @layer base {
   html {
