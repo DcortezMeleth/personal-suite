@@ -5,27 +5,29 @@ module(
 
 # ── Core ──────────────────────────────────────────────────────────────────────
 
-bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "rules_pkg", version = "1.2.0")
-bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.2")
+bazel_dep(name = "rules_pkg", version = "1.3.0")
+bazel_dep(name = "platforms", version = "1.1.0")
 
 # ── Scala 3 backend ───────────────────────────────────────────────────────────
 
 # Bazel 9 no longer provides java_library natively, and belFER's solver is
 # written in Java. 9.3.0 is the version rules_scala and rules_jvm_external
 # already resolve to, so this pins what is in the graph rather than adding to it.
-bazel_dep(name = "rules_java", version = "9.3.0")
-bazel_dep(name = "rules_scala", version = "7.2.5")
-bazel_dep(name = "rules_jvm_external", version = "7.0")
+bazel_dep(name = "rules_java", version = "9.9.0")
+bazel_dep(name = "rules_scala", version = "7.3.0")
+bazel_dep(name = "rules_jvm_external", version = "7.1")
 
 scala_config = use_extension(
     "@rules_scala//scala/extensions:config.bzl",
     "scala_config",
 )
-# 3.3.7 LTS: the http4s / cats-effect 3.5.x ecosystem was compiled against 3.3.x.
+# 3.3.8 LTS: the http4s / cats-effect 3.5.x ecosystem was compiled against 3.3.x.
+# The exact patch is not free to choose — rules_scala pins one per release and
+# fails the build if scala_config disagrees.
 # Downgrading from 3.7.0 to 3.5.7 avoids the cats-core 2.12+ TupleParallelSyntax
 # TASTy crash that affects all Scala 3 versions when reading cats 2.12+/2.13 TASTy.
-scala_config.settings(scala_version = "3.3.7")
+scala_config.settings(scala_version = "3.3.8")
 
 scala_deps = use_extension(
     "@rules_scala//scala/extensions:deps.bzl",
@@ -101,8 +103,8 @@ use_repo(maven, "maven")
 
 # ── JavaScript / TypeScript frontend ──────────────────────────────────────────
 
-bazel_dep(name = "aspect_rules_js", version = "3.2.0")
-bazel_dep(name = "aspect_rules_ts", version = "3.8.10")
+bazel_dep(name = "aspect_rules_js", version = "3.5.1")
+bazel_dep(name = "aspect_rules_ts", version = "3.10.1")
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(

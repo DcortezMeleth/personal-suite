@@ -45,6 +45,11 @@ ts_project(
 #
 # Naming the group here turns it into a real file, and listing it in the Vite
 # build below makes a type error fail the build that matters.
+#
+# rules_ts also generates :app_ts_typecheck_test, which `bazel test //...`
+# picks up. That is the idiomatic route and it works, but it only guards the
+# test command — this filegroup is what stops `bazel build` from emitting a
+# bundle that does not type-check.
 filegroup(
     name = "app_typecheck",
     srcs = [":app_ts"],
