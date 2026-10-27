@@ -121,11 +121,11 @@ object SolveCli extends IOApp:
         RoomRepository(xa), IndividualPlanRepository(xa))
 
       for
-        snapshot <- loader.load(schoolId)
-        actual   <- loader.roomsOf(schoolId)
+        loaded   <- loader.loadWithRooms(schoolId)
+        actual   =  loaded.map(_._2).getOrElse(Nil)
         rooms    =  pretendRooms.fold(actual)(n => actual ++ (actual.size until n).map(i =>
                       Room(UUID.randomUUID, s"X$i", None, true, Nil)))
-        code     <- snapshot match
+        code     <- loaded.map(_._1) match
           case None => IO.println("Nie ma takiej szkoły").as(ExitCode(1))
           case Some(full) =>
             val narrowed = limit.fold(full)(n => narrow(full, n))

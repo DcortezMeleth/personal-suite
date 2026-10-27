@@ -24,6 +24,17 @@ class SnapshotLoader(
 ):
 
   def load(schoolId: UUID): IO[Option[SchoolSnapshot]] =
+    loadWithRooms(schoolId).map(_.map(_._1))
+
+  /**
+   * The same picture, keeping the rooms themselves.
+   *
+   * The snapshot counts rooms by kind, which is all validation ever needed.
+   * Anything that lays a plan out needs the rooms, and they are already
+   * fetched here to do the counting — so asking for them separately was a
+   * second trip to the database for a list we had just thrown away.
+   */
+  def loadWithRooms(schoolId: UUID): IO[Option[(SchoolSnapshot, List[Room])]] =
     schools.find(schoolId).flatMap {
       case None => IO.pure(None)
       case Some(school) =>
@@ -38,7 +49,7 @@ class SnapshotLoader(
           allRooms    <- rooms.findRooms(schoolId)
           kinds       <- rooms.findKinds(schoolId)
           counts      <- kinds.traverse(kind => rooms.roomsOfKind(kind.id).map(count => kind.id -> count))
-        yield Some(SchoolSnapshot(
+        yield Some((SchoolSnapshot(
           settings = school.settings,
           slotsPerDay = slots,
           teachingDays = 5,
@@ -51,8 +62,5 @@ class SnapshotLoader(
           teacherSubjects = allTeachers.map(t => t.id -> t.subjectIds.toSet).toMap,
           roomsOfKind = counts.toMap,
           totalRooms = allRooms.size
-        ))
+        ), allRooms))
     }
-
-  /** The rooms themselves, which only the solver needs — validation counts kinds. */
-  def roomsOf(schoolId: UUID): IO[List[Room]] = rooms.findRooms(schoolId)

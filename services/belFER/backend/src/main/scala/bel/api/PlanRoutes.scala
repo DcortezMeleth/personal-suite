@@ -76,20 +76,7 @@ object PlanView:
   given Encoder[Summary]     = deriveEncoder
   given Encoder[TeacherGaps] = deriveEncoder
 
-class PlanRoutes(
-  plans: PlanRepository,
-  rooms: RoomRepository,
-  schools: SchoolRepository,
-  classes: SchoolClassRepository,
-  teachers: TeacherRepository,
-  subjects: SubjectRepository,
-  lines: LessonLineRepository,
-  crossClass: CrossClassUnitRepository,
-  individual: IndividualPlanRepository
-):
-
-  private val loader =
-    SnapshotLoader(schools, classes, teachers, subjects, lines, crossClass, rooms, individual)
+class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
@@ -117,12 +104,11 @@ class PlanRoutes(
       plans.current(schoolId).flatMap {
         case None => NotFound(ApiError.body("Nie ma jeszcze żadnego planu"))
         case Some(plan) =>
-          loader.load(schoolId).flatMap {
+          loader.loadWithRooms(schoolId).flatMap {
             case None => NotFound(ApiError.body("Nie ma takiej szkoły"))
-            case Some(s) =>
+            case Some((s, allRooms)) =>
               for
                 placements <- plans.placements(plan.id)
-                allRooms <- rooms.findRooms(schoolId)
                 body = gapsOf(PlanLayout.of(s, placements, allRooms))
                 response <- Ok(body.asJson)
               yield response
@@ -144,12 +130,11 @@ class PlanRoutes(
   }
 
   private def timetable(schoolId: UUID, plan: Plan): IO[Response[IO]] =
-    loader.load(schoolId).flatMap {
+    loader.loadWithRooms(schoolId).flatMap {
       case None => NotFound(ApiError.body("Nie ma takiej szkoły"))
-      case Some(s) =>
+      case Some((s, allRooms)) =>
         for
           placements <- plans.placements(plan.id)
-          allRooms <- rooms.findRooms(schoolId)
           entries = PlanLayout.of(s, placements, allRooms)
           response <- Ok(PlanView.Timetable(
             planId = plan.id,

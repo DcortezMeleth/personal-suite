@@ -30,19 +30,7 @@ object ValidationReport:
   given Encoder[TeacherLoad] = deriveEncoder
   given Encoder[Report]      = deriveEncoder
 
-class ValidationRoutes(
-  schools: SchoolRepository,
-  classes: SchoolClassRepository,
-  teachers: TeacherRepository,
-  subjects: SubjectRepository,
-  lines: LessonLineRepository,
-  crossClass: CrossClassUnitRepository,
-  rooms: RoomRepository,
-  individual: IndividualPlanRepository
-):
-
-  private val loader =
-    SnapshotLoader(schools, classes, teachers, subjects, lines, crossClass, rooms, individual)
+class ValidationRoutes(loader: SnapshotLoader):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 

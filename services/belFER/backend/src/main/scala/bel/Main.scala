@@ -2,7 +2,7 @@ package bel
 
 import bel.api.*
 import bel.db.Database
-import bel.repository.{CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
+import bel.repository.{SnapshotLoader, CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
 import cats.effect.*
 import cats.syntax.semigroupk.*
 import com.comcast.ip4s.Host
@@ -34,6 +34,13 @@ object Main extends IOApp.Simple:
         val planRepo    = PlanRepository(xa)
         val importRepo  = ImportRepository(xa)
 
+        // One picture of a school, assembled the same way for whoever asks:
+        // the checks that run before anyone presses generate, and the plan
+        // the screens read afterwards.
+        val loader = SnapshotLoader(
+          schoolRepo, classRepo, teacherRepo, subjectRepo, lineRepo, peRepo,
+          roomRepo, individualRepo)
+
         val apiRoutes =
           SchoolRoutes(schoolRepo).routes <+>
           RoomRoutes(roomRepo).routes     <+>
@@ -43,10 +50,8 @@ object Main extends IOApp.Simple:
           LessonLineRoutes(lineRepo, schoolRepo, subjectRepo, peRepo).routes <+>
           CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
           ImportRoutes(importRepo, schoolRepo).routes <+>
-          ValidationRoutes(schoolRepo, classRepo, teacherRepo, subjectRepo, lineRepo, peRepo,
-            roomRepo, individualRepo).routes <+>
-          PlanRoutes(planRepo, roomRepo, schoolRepo, classRepo, teacherRepo, subjectRepo,
-            lineRepo, peRepo, individualRepo).routes
+          ValidationRoutes(loader).routes <+>
+          PlanRoutes(planRepo, loader).routes
 
         EmberServerBuilder
           .default[IO]
