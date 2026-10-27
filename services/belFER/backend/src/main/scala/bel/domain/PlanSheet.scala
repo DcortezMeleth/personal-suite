@@ -83,7 +83,7 @@ object PlanSheet:
     val at = lessons.groupBy(e => (e.day, e.position))
     val b = StringBuilder()
     b ++= "<table><tr><th></th>"
-    for d <- 0 until days do b ++= s"<th>${PlanLayout.DayNames(d)}</th>"
+    for d <- 0 until days do b ++= s"<th>${SchoolWeek.DayNames(d)}</th>"
     b ++= "</tr>\n"
     for p <- 0 until slots do
       b ++= s"""<tr><td class="hour">${p + 1}</td>"""

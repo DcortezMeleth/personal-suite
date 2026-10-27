@@ -37,9 +37,6 @@ object PlanLayout:
     individual: Boolean
   )
 
-  val DayNames =
-    List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela")
-
   /** How a teacher is named on a screen, where there is room to be unambiguous. */
   def fullName(t: Teacher): String = s"${t.lastName} ${t.firstName} (${t.code})"
 

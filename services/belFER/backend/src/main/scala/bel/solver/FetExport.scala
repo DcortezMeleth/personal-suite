@@ -39,10 +39,8 @@ object FetExport:
    */
   case class Written(xml: String, means: Map[Int, LessonRef])
 
-  private val Days = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek")
-
   /** The day names this file will use, which is how FET answers back. */
-  def dayNames(teachingDays: Int): List[String] = Days.take(teachingDays)
+  def dayNames(teachingDays: Int): List[String] = SchoolWeek.names(teachingDays)
 
   /** An activity, after names have been resolved and blocks split out. */
   private case class Act(
@@ -80,7 +78,7 @@ object FetExport:
 
     b ++= "<Days_List>\n"
     b ++= s"\t<Number_of_Days>${snapshot.teachingDays}</Number_of_Days>\n"
-    for d <- Days.take(snapshot.teachingDays) do
+    for d <- dayNames(snapshot.teachingDays) do
       b ++= s"\t<Day>\n\t\t<Name>${esc(d)}</Name>\n\t</Day>\n"
     b ++= "</Days_List>\n\n"
 
@@ -219,7 +217,7 @@ object FetExport:
       b ++= s"\t\t<Number_of_Not_Available_Times>${slots.size}</Number_of_Not_Available_Times>\n"
       for (day, hour) <- slots do
         b ++= "\t\t<Not_Available_Time>\n"
-        b ++= s"\t\t\t<Day>${esc(Days(day - 1))}</Day>\n\t\t\t<Hour>$hour</Hour>\n"
+        b ++= s"\t\t\t<Day>${esc(SchoolWeek.DayNames(day - 1))}</Day>\n\t\t\t<Hour>$hour</Hour>\n"
         b ++= "\t\t</Not_Available_Time>\n"
       b ++= "\t\t<Active>true</Active>\n\t\t<Comments></Comments>\n"
       b ++= "\t</ConstraintTeacherNotAvailableTimes>\n"

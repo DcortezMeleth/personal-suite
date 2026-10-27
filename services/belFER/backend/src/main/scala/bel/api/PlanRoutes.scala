@@ -143,7 +143,7 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
             createdAt = plan.createdAt.toString,
             rulesKept = plan.rulesKept,
             rulesTotal = plan.rulesTotal,
-            days = PlanLayout.DayNames.take(s.teachingDays),
+            days = SchoolWeek.names(s.teachingDays),
             slotsPerDay = s.slotsPerDay,
             classes = s.classes.map(_.name).sorted,
             teachers = entries.flatMap(_.teachers).distinct.sorted,

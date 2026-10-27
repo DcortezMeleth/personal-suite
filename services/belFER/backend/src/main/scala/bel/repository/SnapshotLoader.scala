@@ -50,7 +50,7 @@ class SnapshotLoader(
         yield Some((SchoolSnapshot(
           settings = school.settings,
           slotsPerDay = slots,
-          teachingDays = 5,
+          teachingDays = SchoolWeek.TeachingDays,
           classes = allClasses,
           teachers = allTeachers,
           subjects = allSubjects,

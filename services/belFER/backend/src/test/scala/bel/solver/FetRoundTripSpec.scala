@@ -238,10 +238,22 @@ class FetRoundTripSpec extends AnyFunSuite:
     assert(read.placed.isEmpty)
     assert(read.unplaced === written.means.size)
 
-  test("the export names every day it says it has"):
+  /**
+   * The file's own header has to agree with its body. FET answers with day
+   * names, so a file that claims six days and names five produces a result
+   * whose days we cannot look up — which loses the whole week, quietly, in
+   * the `unplaced` count rather than as a complaint.
+   */
+  test("the export names exactly as many days as it says it has"):
     assert(days.size === snapshot.teachingDays)
     val doc = parse(written.xml)
+    val declared = text(doc.getDocumentElement, "Number_of_Days").flatMap(_.toIntOption)
     val named = doc.getElementsByTagName("Day")
     val names = (0 until named.getLength).toList
       .flatMap(i => text(named.item(i).asInstanceOf[Element], "Name").toList)
+    assert(declared === Some(names.size))
     assert(names === days)
+
+  test("a week longer than the days that have names is refused, not truncated"):
+    assertThrows[IllegalArgumentException](SchoolWeek.names(8))
+    assert(SchoolWeek.names(SchoolWeek.TeachingDays).size === SchoolWeek.TeachingDays)
