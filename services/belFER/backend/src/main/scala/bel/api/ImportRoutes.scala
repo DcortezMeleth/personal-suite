@@ -3,7 +3,6 @@ package bel.api
 import bel.importer.*
 import bel.repository.ImportRepository
 import cats.effect.IO
-import cats.syntax.apply.*
 import io.circe.{Encoder, Json}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
@@ -39,7 +38,7 @@ object ImportSummary:
   given Encoder[Segment] = deriveEncoder
   given Encoder[Preview] = deriveEncoder
 
-class ImportRoutes(repo: ImportRepository):
+class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolRepository):
 
   private given EntityDecoder[IO, Multipart[IO]] = EntityDecoder.multipart[IO]
 
@@ -74,13 +73,14 @@ class ImportRoutes(repo: ImportRepository):
           if bytes.length > MaxUploadBytes then Left("Plik jest za duży")
           else Right((bytes, ArkuszMapper.WeekRange(from.getOrElse(1), to.getOrElse(38))))
 
-  private def planFrom(mp: Multipart[IO]): IO[Either[String, ImportPlan]] =
-    readUpload(mp).map(_.flatMap { (bytes, weeks) =>
-      ArkuszParser.parse(bytes).map(doc => ArkuszMapper.map(doc, weeks))
-    })
-
-  private def documentFrom(mp: Multipart[IO]): IO[Either[String, ArkuszDocument]] =
-    readUpload(mp).map(_.flatMap((bytes, _) => ArkuszParser.parse(bytes)))
+  /**
+   * The parsed file and the week range asked for, from one read.
+   *
+   * Preview needs both the mapped plan and the document the segments come out
+   * of; deriving them from separate reads parsed the same upload twice.
+   */
+  private def uploadFrom(mp: Multipart[IO]): IO[Either[String, (ArkuszDocument, ArkuszMapper.WeekRange)]] =
+    readUpload(mp).map(_.flatMap((bytes, weeks) => ArkuszParser.parse(bytes).map(_ -> weeks)))
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
@@ -89,10 +89,10 @@ class ImportRoutes(repo: ImportRepository):
     // decision and a surprise.
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "import" / "preview" =>
       req.decode[Multipart[IO]] { mp =>
-        (planFrom(mp), documentFrom(mp)).tupled.flatMap {
-          case (Left(message), _) => UnprocessableEntity(ApiError.body(message))
-          case (_, Left(message)) => UnprocessableEntity(ApiError.body(message))
-          case (Right(plan), Right(doc)) =>
+        uploadFrom(mp).flatMap {
+          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Right((doc, weeks)) =>
+            val plan = ArkuszMapper.map(doc, weeks)
             repo.existingCounts(schoolId).flatMap { existing =>
               Ok(ImportSummary.Preview(
                 schoolName = plan.schoolName,
@@ -110,10 +110,16 @@ class ImportRoutes(repo: ImportRepository):
 
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "import" / "apply" =>
       req.decode[Multipart[IO]] { mp =>
-        planFrom(mp).flatMap {
+        uploadFrom(mp).flatMap {
           case Left(message) => UnprocessableEntity(ApiError.body(message))
-          case Right(plan) =>
-            repo.apply(schoolId, plan).flatMap { applied =>
+          case Right((doc, weeks)) =>
+            val plan = ArkuszMapper.map(doc, weeks)
+            // Checked before writing: without it an unknown school reaches the
+            // insert and comes back as a foreign-key violation, which reads to
+            // the user as the file being broken.
+            schools.find(schoolId).flatMap {
+              case None => NotFound(ApiError.body("Nie ma takiej szkoły"))
+              case Some(_) => repo.apply(schoolId, plan).flatMap { applied =>
               Ok(Json.obj(
                 "teachers" -> Json.fromInt(applied.teachers),
                 "subjects" -> Json.fromInt(applied.subjects),
@@ -121,6 +127,7 @@ class ImportRoutes(repo: ImportRepository):
                 "lessonLines" -> Json.fromInt(applied.lessonLines),
                 "crossClassUnits" -> Json.fromInt(applied.crossClassUnits)
               ))
+              }
             }
         }
       }

@@ -31,8 +31,6 @@ class ImportRepository(xa: Transactor[IO]):
 
   /** What the import would overwrite, so the user can be asked first. */
   def existingCounts(schoolId: UUID): IO[Applied] =
-    val count = (table: String) =>
-      Fragment.const(s"SELECT count(*) FROM $table WHERE school_id = ?")
     (for
       teachers <- sql"SELECT count(*) FROM teacher WHERE school_id = $schoolId".query[Int].unique
       subjects <- sql"SELECT count(*) FROM subject WHERE school_id = $schoolId".query[Int].unique
