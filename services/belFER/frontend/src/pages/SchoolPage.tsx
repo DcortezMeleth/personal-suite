@@ -30,6 +30,21 @@ const fromServer = (slots: TimeSlot[]): TimeSlotInput[] =>
 const field = "w-full rounded border border-neutral-300 px-3 py-2";
 const label = "block text-sm font-medium text-neutral-700";
 
+/**
+ * A number typed into an <input type="number">, or null while the field is
+ * empty.
+ *
+ * Number("") is 0, and these fields save as they change, so clearing one to
+ * retype it sent a 0 straight to the server — which rejects it, leaving an
+ * error banner over a field the user was halfway through editing. min= does
+ * not help: it constrains the steppers, not what can be typed or deleted.
+ */
+function typedNumber(value: string): number | null {
+  if (value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function SchoolPage() {
   const [school, setSchool] = useState<School | null>(null);
   const [slots, setSlots] = useState<TimeSlotInput[]>([]);
@@ -172,7 +187,10 @@ export function SchoolPage() {
               max={12}
               className={field}
               value={school.years}
-              onChange={(e) => setSchool({ ...school, years: Number(e.target.value) })}
+              onChange={(e) => {
+                const years = typedNumber(e.target.value);
+                if (years !== null) setSchool({ ...school, years });
+              }}
             />
           </div>
         </div>
@@ -197,7 +215,10 @@ export function SchoolPage() {
                 min={0}
                 className={field}
                 value={school.settings.maxConsecutiveTeacherGaps}
-                onChange={(e) => patchSettings({ maxConsecutiveTeacherGaps: Number(e.target.value) })}
+                onChange={(e) => {
+                  const value = typedNumber(e.target.value);
+                  if (value !== null) patchSettings({ maxConsecutiveTeacherGaps: value });
+                }}
               />
             </div>
             <div>
@@ -208,9 +229,10 @@ export function SchoolPage() {
                 max={7}
                 className={field}
                 value={school.settings.defaultTeacherMaxWorkingDays}
-                onChange={(e) =>
-                  patchSettings({ defaultTeacherMaxWorkingDays: Number(e.target.value) })
-                }
+                onChange={(e) => {
+                  const value = typedNumber(e.target.value);
+                  if (value !== null) patchSettings({ defaultTeacherMaxWorkingDays: value });
+                }}
               />
             </div>
             <div>
@@ -220,9 +242,10 @@ export function SchoolPage() {
                 min={1}
                 className={field}
                 value={school.settings.defaultTeacherMaxLessonsPerDay}
-                onChange={(e) =>
-                  patchSettings({ defaultTeacherMaxLessonsPerDay: Number(e.target.value) })
-                }
+                onChange={(e) => {
+                  const value = typedNumber(e.target.value);
+                  if (value !== null) patchSettings({ defaultTeacherMaxLessonsPerDay: value });
+                }}
               />
             </div>
           </div>
