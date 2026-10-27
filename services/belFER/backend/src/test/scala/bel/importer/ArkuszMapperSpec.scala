@@ -82,7 +82,7 @@ class ArkuszMapperSpec extends AnyFunSuite:
   // part-way through the semester, which a single plan cannot express.
   test("the only warning left is the mid-period change in hours") {
     assert(plan.warnings.sizeIs == 1, plan.warnings.map(_.message).mkString("; "))
-    assert(plan.warnings.head.message.contains("zmienia liczbę godzin"))
+    assert(plan.warnings.head.message.contains("liczba godzin zmienia się"))
   }
 
   // Groups sharing a class must run together, so they must end up in one unit.
@@ -160,8 +160,17 @@ class ArkuszMapperSpec extends AnyFunSuite:
     assert(inClass > 900 && inClass < 1100, s"got $inClass h/week from lesson lines")
   }
 
+  // 4D's ZRZU passes from one teacher to another part-way through: ŻT holds it
+  // for weeks 1-19 and SJ from 19-30, alongside two teachers who run the whole
+  // year. Collapsing per teacher kept all four for an import of weeks 1-19,
+  // giving the class four hours of a subject it has three of.
+  test("a subject changing teacher part-way through is not counted twice") {
+    val zrzu = plan.lessonLines.filter(l => l.classCode == "4D" && l.subjectCode.startsWith("ZRZU"))
+    assert(zrzu.sizeIs == 3, zrzu.map(l => s"${l.teacherCode}=${l.blocks.sum}h").toString)
+  }
+
   test("a mid-period change in hours is reported rather than silently resolved") {
-    assert(plan.warnings.exists(_.message.contains("zmienia liczbę godzin")))
+    assert(plan.warnings.exists(_.message.contains("liczba godzin zmienia się")))
   }
 
   // Religia carries a group number because only some students attend, but the

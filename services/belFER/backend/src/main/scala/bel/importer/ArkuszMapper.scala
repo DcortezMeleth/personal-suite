@@ -94,7 +94,12 @@ object ArkuszMapper:
       info(s"Pominięto $dropped przydziałów spoza tygodni ${weeks.from}–${weeks.to}")
 
     // ── Ordinary in-class allocations ─────────────────────────────────────────
-    val ordinary = inRange.filter(_.isOrdinary).filter(a => a.classCode.exists(knownClasses.contains))
+    val addressed = inRange.filter(_.isOrdinary).filter(a => a.classCode.exists(knownClasses.contains))
+    // An allocation of no hours is not an allocation. `max(1)` below would
+    // round it up to one and hand the class an hour the file never gave it.
+    val (ordinary, empty) = addressed.partition(_.hours > 0)
+    if empty.nonEmpty then
+      info(s"Pominięto ${empty.size} przydziałów z zerową liczbą godzin")
 
     // Rows under a scheme other than the class's own split are an independent
     // grouping — they become units of their own below, not lines.
@@ -126,21 +131,39 @@ object ArkuszMapper:
     // 1h in weeks 12-19" means two hours a week and then one, never three.
     // Adding them would have the solver place hours the class never has.
     //
-    // A plan covers one stretch, so the window covering most of it wins and
-    // the others are reported.
+    // A plan describes one week, so the question asked of each class-subject is
+    // "what does this look like in a typical week of the chosen stretch" — and
+    // the answer is whatever is running in the middle of it. Choosing per
+    // teacher instead would re-create the sum wherever a teacher changes
+    // hands: the file has 4D's ZRZU passing from one teacher at weeks 1-19 to
+    // another at 19-30, and keeping both gives the class an hour it never has.
+    val sampleWeek = weeks.from + (weeks.to - weeks.from) / 2
+
     val collapsedLines = lessonLines
-      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
+      .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind))
       .toList
-      .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString, key._5.getOrElse("")))
-      .map { case (_, group) => group.maxBy(l => overlapWeeks(l, weeks)) }
+      .sortBy((key, _) => (key._1, key._2, key._3.toString, key._4.toString))
+      .flatMap { case (_, group) =>
+        val running = group.filter(l => l.weekFrom <= sampleWeek && l.weekTo >= sampleWeek)
+        // Nothing covers the middle when every window sits at one end of the
+        // stretch; the longest-running one is then the best available answer.
+        val chosen = if running.nonEmpty then running else List(group.maxBy(overlapWeeks(_, weeks)))
+        // Several teachers at once is real — co-teaching, or a subject split
+        // between them — so they are kept. One teacher stated twice is not.
+        chosen
+          .groupBy(_.teacherCode)
+          .toList
+          .sortBy((teacher, _) => teacher.getOrElse(""))
+          .map((_, same) => same.maxBy(overlapWeeks(_, weeks)))
+      }
 
     val varying = lessonLines
       .groupBy(l => (l.classCode, l.subjectCode, l.audience, l.kind, l.teacherCode))
       .count((_, group) => group.map(_.blocks.sum).distinct.sizeIs > 1)
     if varying > 0 then
-      warn(s"$varying przydziałów zmienia liczbę godzin w trakcie wybranego okresu — " +
-        "wzięto wariant obowiązujący przez większą jego część. Rozważ zaimportowanie " +
-        "węższego zakresu tygodni, jeśli ta zmiana ma być w planie")
+      warn(s"W $varying przydziałach liczba godzin zmienia się w trakcie wybranego okresu — " +
+        "wzięto wariant obowiązujący w jego środku. Rozważ zaimportowanie węższego " +
+        "zakresu tygodni, jeśli ta zmiana ma być w planie")
 
     val multiTeacher = collapsedLines
       .groupBy(l => (l.classCode, l.subjectCode))
@@ -187,7 +210,7 @@ object ArkuszMapper:
     name.trim.toLowerCase.replaceAll("\\s+", " ")
 
   private def withoutExtendedAdjective(name: String): String =
-    name.replaceAll("(?i)\\s+rozszerzon[ayे]?\\w*", "").trim
+    name.replaceAll("(?i)\\s+rozszerzon\\w*", "").trim
 
   /** A named grouping that is not the class's own two-way split. */
   private def isIndependentGrouping(a: ArkuszAssignment, splitScheme: String): Boolean =
