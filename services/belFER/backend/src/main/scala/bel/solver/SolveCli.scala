@@ -68,6 +68,8 @@ object SolveCli extends IOApp:
         val literal = rest.contains("--literal")
         // --fet=<plik> writes the school out for FET instead of solving it.
         val fet = rest.collectFirst { case s if s.startsWith("--fet=") => s.drop(6) }
+        // --read=<plik> takes FET's answer back, by re-deriving what we sent.
+        val readBack = rest.collectFirst { case s if s.startsWith("--read=") => s.drop(7) }
         // --slack=N lets a day run N hours either side of its shape.
         val slack = rest.collectFirst { case s if s.startsWith("--slack=") => s.drop(8).toInt }
           .getOrElse(0)
@@ -85,7 +87,7 @@ object SolveCli extends IOApp:
         val seconds = plain.headOption.flatMap(_.toLongOption).getOrElse(300L)
         val workers = plain.drop(1).headOption.flatMap(_.toIntOption).getOrElse(0)
         solve(UUID.fromString(schoolId), seconds, workers, diagnose, limit, doubles, warm, apart,
-          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet)
+          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack)
 
   private def solve(schoolId: UUID, seconds: Long, workers: Int, diagnose: Boolean,
                     limit: Option[Int], doubles: Boolean, warm: Option[Int],
@@ -93,7 +95,7 @@ object SolveCli extends IOApp:
                     onlyDay: Option[Int], week: Boolean, slack: Int,
                     spread: Boolean, relaxed: Set[TimetableProblem.Rule],
                     rounds: Int, oneDay: Boolean, literal: Boolean,
-                    fet: Option[String]): IO[ExitCode] =
+                    fet: Option[String], readBack: Option[String]): IO[ExitCode] =
     val config = ConfigFactory.load()
     Database.transactor(config).use { xa =>
       val loader = SnapshotLoader(
@@ -115,7 +117,7 @@ object SolveCli extends IOApp:
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack)
       yield code
     }
 
@@ -135,7 +137,8 @@ object SolveCli extends IOApp:
     rounds: Int = 30,
     oneDay: Boolean = false,
     literal: Boolean = false,
-    fet: Option[String] = None
+    fet: Option[String] = None,
+    readBack: Option[String] = None
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -159,7 +162,8 @@ object SolveCli extends IOApp:
       _ <- IO.whenA(faults.nonEmpty)(
              IO.println(s"\n${faults.size} powodów, dla których ten kształt tygodnia nie zadziała:") *>
                faults.take(10).traverse_(f => IO.println(s"  $f")))
-      code <- if fet.isDefined then writeFet(snapshot, rooms, fet.get)
+      code <- if readBack.isDefined then readFet(snapshot, rooms, readBack.get)
+              else if fet.isDefined then writeFet(snapshot, rooms, fet.get)
               else if faults.nonEmpty then IO.pure(ExitCode(1))
               else if week then solveWeek(snapshot, rooms, seconds, workers, shape, slack, spread, relaxed, rounds,
                             oneDay, literal)
@@ -618,12 +622,28 @@ object SolveCli extends IOApp:
 
     if useSpread then byPlan(Nil, 1) else fill(0, Nil)
 
+  /** FET's answer, read back and counted. */
+  private def readFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =
+    for
+      written <- IO.pure(FetExport(snapshot, rooms))
+      xml <- IO.blocking(java.nio.file.Files.readString(java.nio.file.Path.of(path)))
+      result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
+      _ <- IO.println(f"odczytano ${result.placed.size} zajęć, " +
+             f"${result.unplaced} bez godziny")
+      byKind = result.placed.groupBy(_.what.getClass.getSimpleName).view
+                 .mapValues(_.size).toList.sorted
+      _ <- byKind.traverse_((kind, n) => IO.println(f"  $kind%-22s $n"))
+      days = result.placed.groupBy(_.day).view.mapValues(_.size).toList.sorted
+      _ <- days.traverse_((d, n) => IO.println(f"  dzień ${d + 1}: $n zajęć"))
+    yield if result.complete then ExitCode.Success else ExitCode(1)
+
   /** The school written out for FET, which solves this size in minutes. */
   private def writeFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =
     for
+      written <- IO.pure(FetExport(snapshot, rooms))
       _ <- IO.blocking(java.nio.file.Files.writeString(
-             java.nio.file.Path.of(path), FetExport(snapshot, rooms)))
-      _ <- IO.println(s"zapisano $path")
+             java.nio.file.Path.of(path), written.xml))
+      _ <- IO.println(s"zapisano $path (${written.means.size} zajęć do odczytania z powrotem)")
     yield ExitCode.Success
 
   private def solveIt(snapshot: SchoolSnapshot, problem: TimetableProblem): IO[ExitCode] =

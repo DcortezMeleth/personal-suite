@@ -29,7 +29,20 @@ import java.util.UUID
  */
 object FetExport:
 
+  /**
+   * The file, and what each activity in it stands for.
+   *
+   * FET numbers activities with integers and hands those integers back in its
+   * result, so without this the answer is a thousand placements of things we
+   * can no longer name. Keeping the mapping is what makes the round trip a
+   * round trip rather than a one-way export.
+   */
+  case class Written(xml: String, means: Map[Int, SolverInput.LessonRef])
+
   private val Days = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek")
+
+  /** The day names this file will use, which is how FET answers back. */
+  def dayNames(teachingDays: Int): List[String] = Days.take(teachingDays)
 
   /** An activity, after names have been resolved and blocks split out. */
   private case class Act(
@@ -41,15 +54,18 @@ object FetExport:
     groupId: Int,
     optional: Boolean,
     /** Activities that must begin at the same hour as this one. */
-    sameTimeAs: Option[Int]
+    sameTimeAs: Option[Int],
+    /** What this activity is, in our own terms. */
+    means: Option[SolverInput.LessonRef]
   )
 
-  def apply(snapshot: SchoolSnapshot, rooms: List[Room]): String =
+  def apply(snapshot: SchoolSnapshot, rooms: List[Room]): Written =
     val subjects = snapshot.subjects.map(s => s.id -> s.name).toMap
     val teachers = snapshot.teachers.map(t => t.id -> s"${t.lastName} ${t.firstName} (${t.code})").toMap
     val classes = snapshot.classes.map(c => c.id -> c.name).toMap
 
     val acts = activities(snapshot, subjects, teachers, classes)
+    val means = acts.flatMap(a => a.means.map(a.id -> _)).toMap
     val b = StringBuilder()
 
     b ++= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -199,7 +215,7 @@ object FetExport:
     b ++= constraint("ConstraintBasicCompulsorySpace", Nil)
     b ++= "</Space_Constraints_List>\n\n"
     b ++= "</fet>\n"
-    b.result()
+    Written(b.result(), means)
 
   /** Every block of every lesson line, and every class's share of every unit. */
   private def activities(snapshot: SchoolSnapshot, subjects: Map[UUID, String],
@@ -220,10 +236,11 @@ object FetExport:
       val subject = subjects.getOrElse(line.subjectId, "?")
       val mine = group
       group += 1
-      for length <- line.blocks do
+      for (length, block) <- line.blocks.zipWithIndex do
         out += Act(next, staff, subject, List(who), length, mine,
           optional = snapshot.subjects.find(_.id == line.subjectId).exists(_.optional),
-          sameTimeAs = None)
+          sameTimeAs = None,
+          means = Some(SolverInput.LessonRef.Line(line.id, block)))
         next += 1
 
     // A cross-class block is two different things at once and has to be said
@@ -245,13 +262,17 @@ object FetExport:
       val subject = subjects.getOrElse(unit.subjectId, "?")
       val optional = snapshot.subjects.find(_.id == unit.subjectId).exists(_.optional)
 
+      // The occupancy activity stands for every participating class at once,
+      // so it has no single lesson to name; the classes learn their hour from
+      // the group activities, which do.
       out += Act(anchor, Nil, subject, unit.classIds.toList.flatMap(classes.get).distinct.sorted,
-        length, mine, optional, sameTimeAs = None)
+        length, mine, optional, sameTimeAs = None, means = None)
       next += 1
 
       for g <- unit.groups do
         out += Act(next, g.teacherId.toList.flatMap(teachers.get), subject, Nil, length, mine,
-          optional = false, sameTimeAs = Some(anchor))
+          optional = false, sameTimeAs = Some(anchor),
+          means = Some(SolverInput.LessonRef.CrossClassGroupRef(unit.id, g.id, block)))
         next += 1
 
     out.result()
