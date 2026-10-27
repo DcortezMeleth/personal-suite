@@ -8,6 +8,32 @@ sized to be individually committable.
 
 ---
 
+## Open work
+
+Everything through Phase 4 is built and running; a complete twenty-five-class
+week generates, passes all fifteen rules, and can be read four ways in the
+app. What is left, roughly in the order it is worth doing:
+
+| | What | Why it matters |
+|---|---|---|
+| **3.4** | Generate from the app | Generation is `SolveCli` only. The planner can read a plan but cannot make one without a terminal, which is the gap between "it works" and "someone can use it". |
+| **3.3** | Soft constraints | The current week has **331 teacher window-hours** and nothing anywhere *prefers* fewer. With FET generating, these are FET's weighted constraints, not ADR 0002's — see the note in Phase 3. |
+| **5.1** | Move and swap — UC-41 … UC-43 | What the rule checker was built for: tell the planner immediately what a hand edit breaks. |
+| **4.5** | Plan list and history in the UI | `/plans` and "mark current" are served but nothing calls them; the app only ever shows the current plan. |
+| **4.6** | Week-segment view | Where the active assignment set changes, so a planner can see where a plan would have to change. |
+| **2.3** | Re-import with a diff — UC-26 | Import previews and applies; it does not yet diff against what is already there. |
+
+Also open, and deliberately parked:
+
+- **The `--all-days` cut-transfer contradiction.** Reproduction and current
+  understanding are in `SOLVER_EVALUATION.md`. Now low-priority: our own
+  solver is off the critical path under ADR 0004, so this blocks nothing.
+- **3.5 — infeasibility explanation.** Designed around CP-SAT's unsat core.
+  FET reports failure differently, so the design needs revisiting before the
+  work is worth starting.
+
+---
+
 ## Phase 0 — Foundations and the risky spike
 
 **0.1 Backend skeleton**
@@ -70,6 +96,10 @@ amd64 host at deploy time. Until then the risk this check covers — reflection-
 based domain access inside a sealed image — stays open, though the same code
 path is exercised under `bazel test`, which is itself a sealed sandbox.
 
+> **Later overtaken.** The spike passed, but Timefold lost the engine
+> comparison that followed (ADR 0001) and the engine is now FET (ADR 0004).
+> Kept as the record of a risk that was worth retiring in week one.
+
 **Why first:** Timefold is the one load-bearing technology choice that could
 fail outright under this repo's build constraints. If it cannot be made to
 work, the solver strategy changes, and that is worth discovering in week one
@@ -82,17 +112,17 @@ is ordinary CRUD-and-UI work with known patterns in the repo.
 
 Each subphase is a migration + repository + routes + a page.
 
-- **1.1** School configuration and bell schedule — UC-01, UC-02, UC-03
-- **1.2** Subjects, room kinds, rooms — UC-05, UC-06, UC-07
-- **1.3** Teachers: subjects, home room, unavailability, limits — UC-08 … UC-11
-- **1.4** Classes and wychowawca — UC-12, UC-13
-- **1.5** Lesson lines, including extension hours, splits and support
+- ✅ **1.1** School configuration and bell schedule — UC-01, UC-02, UC-03
+- ✅ **1.2** Subjects, room kinds, rooms — UC-05, UC-06, UC-07
+- ✅ **1.3** Teachers: subjects, home room, unavailability, limits — UC-08 … UC-11
+- ✅ **1.4** Classes and wychowawca — UC-12, UC-13
+- ✅ **1.5** Lesson lines, including extension hours, splits and support
   teachers — UC-16 … UC-20
-- **1.6** PE units and groups — UC-21, UC-22
-- **1.7** Specialisation templates — UC-14, UC-15
-- **1.8** Validity windows on assignments, and the derived week segmentation
+- ✅ **1.6** PE units and groups — UC-21, UC-22
+- ✅ **1.7** Specialisation templates — UC-14, UC-15
+- ✅ **1.8** Validity windows on assignments, and the derived week segmentation
   — see REQUIREMENTS §4.1
-- **1.8** Validation engine and load figures — UC-23, VAL-01 … VAL-07
+- ✅ **1.8** Validation engine and load figures — UC-23, VAL-01 … VAL-07
 
 > 1.5 and 1.6 carry the model decisions that everything downstream depends on
 > (lesson lines; PE units). Worth reviewing against the requirements before
@@ -109,46 +139,57 @@ Each subphase is a migration + repository + routes + a page.
 > where it shows, while it is still cheap to change and before the solver is
 > built on top of it.
 
-- **2.1** Parse and map the XML to the Phase 1 model
-- **2.2** Import preview and unmapped-entity resolution — UC-24, UC-25
+- ✅ **2.1** Parse and map the XML to the Phase 1 model
+- ✅ **2.2** Import preview and unmapped-entity resolution — UC-24, UC-25
 - **2.3** Re-import with a diff against current data — UC-26, UC-27
 
 ---
 
 ## Phase 3 — Solver
 
-> The engine is **OR-Tools CP-SAT**, not Timefold — see
-> [ADR 0001](decisions/0001-timetable-solver-engine.md) for why and what it
-> costs, and [ADR 0002](decisions/0002-soft-constraints-as-weighted-penalties.md)
-> for how 3.3's weights have to be shaped. The POC in `../solver-poc/` already
-> expresses all of 3.2's constraints against the real rules; 3.1 is the work of
-> putting the school's own data through them instead of a generated instance.
+> **The engine is FET**, an established AGPL timetabling program, driven as a
+> subprocess — see [ADR 0004](decisions/0004-generate-with-fet-verify-with-our-own-rules.md).
+> It solves the whole school in one to two seconds, where our own solver
+> reached twenty-five classes only with time the school does not have.
+> [ADR 0001](decisions/0001-timetable-solver-engine.md) (CP-SAT over Timefold)
+> and [ADR 0003](decisions/0003-plan-days-then-place-and-learn-from-what-fails.md)
+> (plan the days, place one, learn from it) record how that was arrived at;
+> `SOLVER_EVALUATION.md` carries the measurements and the mistakes.
+>
+> Our own rules did not retire with our solver. They now **verify** whatever
+> FET returns, and they are needed again for 5.1, where a planner moves a
+> lesson by hand and wants to be told what it breaks.
+>
+> [ADR 0002](decisions/0002-soft-constraints-as-weighted-penalties.md) shaped
+> 3.3's weights for CP-SAT and is **stale**: FET expresses preferences its own
+> way. Revisit it before starting 3.3.
 
-- **3.1** Planning domain and CP-SAT wiring, built on the solver POC. The
-  solver takes **one interval** and the assignments active in it (§4.1); the
-  constraints themselves are not time-aware
-- **3.2** Hard constraints — CT-01 … CT-17, and CT-21 as the regression guard
-- **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04
-- **3.4** Async job: start, progress, early stop, configurable timeout and
-  worker count, persistence — UC-28 … UC-31, UC-34
-- **3.5** Infeasibility explanation and run comparison — UC-32, UC-33
+- ✅ **3.1** The school's own data through the solver, via FET export and
+  import — one interval and the assignments active in it (§4.1)
+- ✅ **3.2** Hard constraints — fifteen rules, checked against a finished
+  timetable whoever produced it, including CT-21 as the regression guard
+- **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04.
+  **Open**, and the largest remaining quality gap: 331 teacher window-hours
+- **3.4** Start a run from the app: progress, early stop, configurable
+  timeout, persistence — UC-28 … UC-31, UC-34. **Open**; generation is
+  `SolveCli` only. Marking a plan current (UC-34) is already served
+- **3.5** Infeasibility explanation and run comparison — UC-32, UC-33.
+  **Needs redesign**: it was shaped around CP-SAT's unsat core
 
-> 3.5 is not polish. The school's instance is assumed solvable, so an
-> infeasible run means a mistake somewhere in ~500 assignment rows — and a bare
-> "no solution" would leave the user with nothing to act on. It is also the one
-> place the chosen engine is behind the one it replaced: CP-SAT offers an unsat
-> core where Timefold offers score explanation, so 3.5 wants a spike before its
-> design is fixed.
+> 3.5 is not polish. The school's instance is solvable — FET proves it — so
+> an infeasible run means a mistake somewhere in ~500 assignment rows, and a
+> bare "no solution" leaves the planner nothing to act on.
 
 ---
 
 ## Phase 4 — Plan views
 
-- **4.1** Per class, including split rendering — UC-35, UC-39
-- **4.2** Per teacher — UC-36
-- **4.3** Per room — UC-37
-- **4.4** Whole-school grid — UC-38
-- **4.5** PE rendering, plan list and history — UC-40
+- ✅ **4.1** Per class, including split rendering — UC-35, UC-39
+- ✅ **4.2** Per teacher — UC-36
+- ✅ **4.3** Per room — UC-37
+- ✅ **4.4** Whole-school grid — UC-38
+- ◐ **4.5** PE rendering, plan list and history — UC-40. Rendering is
+  done; the list and history are served but have no screen
 - **4.6** Week-segment view: where the active assignment set changes, so the
   planner can choose an interval and see where a plan would have to change
 
@@ -180,8 +221,10 @@ corrected, generate a plan, show it four ways, and let it be nudged by hand.
 
 ## Sequencing notes
 
-- **0.5 gates everything.** Do not build Phases 1–2 on the assumption that
-  Timefold works under Bazel.
+- **0.5 gated everything, and is settled.** The risk it covered — a
+  load-bearing engine that might not build here — was retired before any data
+  modelling, which is exactly what it was for, even though the engine then
+  changed twice.
 - **Phase 2 runs early**, straight after 1.6, for the reason given above: it is
   the cheapest way to find out whether the domain model survives contact with
   real data. 1.7 and 1.8 follow it.
@@ -189,13 +232,14 @@ corrected, generate a plan, show it four ways, and let it be nudged by hand.
   data entry and only its shape can be judged; from 1.8 the app starts telling
   the planner something they did not already know. Phase 4 is the first point
   at which an actual timetable can be looked at.
-- **Phase 3 needs realistic data.** The instance is assumed solvable, so the
+- **Phase 3 needed realistic data**, and got it. The instance is solvable, so the
   open question is not *whether* a plan exists but how long it takes to find
   one and whether the default weights produce a plan the planner actually
   likes. Toy fixtures verify the constraints; only a real year's worth of
   assignments will settle runtime and weighting. Getting one real dataset into
   `testdata/` early is worth more than any amount of synthetic testing.
-- **The solver module is Java.** Constraint tests (`CT-*`) are therefore Java
-  tests against the `ConstraintProvider`, not Scala tests — they are the
-  cheapest and most valuable tests in the project, so keep them close to the
-  engine.
+- **The rules are Scala, not Java.** The Java planning domain went with
+  Timefold. `CT-*` are Scala tests against `PlanCheck`, which is where they
+  belong: the checker is now an independent verifier of someone else's
+  output, so it is the cheapest and most valuable code in the project. Keep
+  the tests close to it.
