@@ -41,7 +41,13 @@ object PlanView:
     classes: List[String],
     teachers: List[String],
     rooms: List[String],
-    entries: List[Entry]
+    entries: List[Entry],
+    /**
+     * Placements naming a lesson the school no longer has — normally zero.
+     * Shown rather than dropped, so that a plan missing hours cannot look
+     * like a plan that is simply shorter.
+     */
+    unresolved: Int
   )
 
   /**
@@ -109,7 +115,7 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
             case Some((s, allRooms)) =>
               for
                 placements <- plans.placements(plan.id)
-                body = gapsOf(PlanLayout.of(s, placements, allRooms))
+                body = gapsOf(PlanLayout.of(s, placements, allRooms).lessons)
                 response <- Ok(body.asJson)
               yield response
           }
@@ -135,7 +141,8 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
       case Some((s, allRooms)) =>
         for
           placements <- plans.placements(plan.id)
-          entries = PlanLayout.of(s, placements, allRooms)
+          read = PlanLayout.of(s, placements, allRooms)
+          entries = read.lessons
           response <- Ok(PlanView.Timetable(
             planId = plan.id,
             name = plan.name,
@@ -148,7 +155,8 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
             classes = s.classes.map(_.name).sorted,
             teachers = entries.flatMap(_.teachers).distinct.sorted,
             rooms = entries.flatMap(_.room).distinct.sorted,
-            entries = entries
+            entries = entries,
+            unresolved = read.unresolved
           ).asJson)
         yield response
     }

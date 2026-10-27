@@ -44,11 +44,25 @@ object PlanLayout:
   def shortName(t: Teacher): String = t.code
 
   /**
+   * A plan as far as it could be read.
+   *
+   * `unresolved` is placements naming a lesson line, a cross-class group or
+   * an hour of tuition that the school no longer has. It is not normally
+   * anything but zero, and the number matters precisely because of when it
+   * is not: a plan laid out before an arkusz was re-imported refers to
+   * lessons that may since have been replaced, and the alternative to
+   * counting them is a timetable that is quietly missing hours and says it
+   * is complete.
+   */
+  case class Resolved(lessons: List[Lesson], unresolved: Int):
+    def complete: Boolean = unresolved == 0
+
+  /**
    * @param naming how to write a teacher, which is all the two readers of a
    *     plan differ about
    */
   def of(s: SchoolSnapshot, placements: List[Placement], rooms: List[Room],
-         naming: Teacher => String = fullName): List[Lesson] =
+         naming: Teacher => String = fullName): Resolved =
     val subjectNames = s.subjects.map(x => x.id -> x.name).toMap
     val teacherNames = s.teachers.map(t => t.id -> naming(t)).toMap
     val classNames = s.classes.map(c => c.id -> c.name).toMap
@@ -57,7 +71,7 @@ object PlanLayout:
     val byGroup = s.crossClassUnits.flatMap(u => u.groups.map(g => g.id -> (u, g))).toMap
     val byTuition = s.individualPlans.flatMap(p => p.lessons.map(l => l.id -> (p, l))).toMap
 
-    placements.flatMap { p =>
+    val resolved = placements.map { p =>
       val room = p.roomId.flatMap(roomNames.get)
 
       p.lessonLineId.flatMap(byLine.get).map { line =>
@@ -101,3 +115,5 @@ object PlanLayout:
         }
       }
     }
+
+    Resolved(resolved.flatten, resolved.count(_.isEmpty))

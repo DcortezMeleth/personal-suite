@@ -63,7 +63,8 @@ class PlanLayoutSpec extends AnyFunSuite:
     Placement(None, None, Some(tuition.id), 0, 5, 8, None))
 
   private val rooms = List(room12, gym)
-  private val lessons = PlanLayout.of(school, placements, rooms)
+  private val read = PlanLayout.of(school, placements, rooms)
+  private val lessons = read.lessons
 
   private def at(day: Int, hour: Int) =
     lessons.find(l => l.day == day && l.position == hour).get
@@ -94,14 +95,32 @@ class PlanLayoutSpec extends AnyFunSuite:
     assert(ind.teachers === List("Kowalska Jan (AN)"))
 
   test("how a teacher is written is the only thing the two readers differ on"):
-    val short = PlanLayout.of(school, placements, rooms, PlanLayout.shortName)
+    val short = PlanLayout.of(school, placements, rooms, PlanLayout.shortName).lessons
     assert(short.flatMap(_.teachers).toSet === Set("AN", "PI"))
     // Everything else is identical, which is the point of sharing it.
     assert(short.map(_.copy(teachers = Nil)) === lessons.map(_.copy(teachers = Nil)))
 
-  test("a placement whose lesson no longer exists resolves to nothing"):
+  test("a week whose lessons all still exist reads as complete"):
+    assert(read.complete)
+    assert(read.unresolved === 0)
+
+  /**
+   * A plan outlives the assignments it was built from — re-importing an
+   * arkusz is exactly how a saved week comes to name lessons that are gone.
+   * Dropping those quietly leaves a timetable that is missing hours and
+   * looks merely shorter, so they are counted.
+   */
+  test("a placement whose lesson no longer exists is counted, not dropped"):
     val orphan = Placement(Some(UUID.randomUUID), None, None, 0, 1, 1, None)
-    assert(PlanLayout.of(school, List(orphan), rooms).isEmpty)
+    val partial = PlanLayout.of(school, placements :+ orphan, rooms)
+    assert(partial.lessons.size === lessons.size)
+    assert(partial.unresolved === 1)
+    assert(!partial.complete)
+
+  test("the printed sheet says so too"):
+    val orphan = Placement(Some(UUID.randomUUID), None, None, 0, 1, 1, None)
+    assert(PlanSheet(school, plan, placements :+ orphan, rooms).contains("Uwaga:"))
+    assert(!sheet.contains("Uwaga:"))
 
   // ── The sheet, which must say the same things ──────────────────────────
 

@@ -102,6 +102,13 @@ export function PlanPage() {
     <div className="space-y-4">
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
+      {plan.unresolved > 0 && (
+        <AlertBanner
+          level="warning"
+          message={`${plan.unresolved} zajęć z tego planu odnosi się do przydziałów, których już nie ma — nie widać ich poniżej. Ułóż plan ponownie.`}
+        />
+      )}
+
       <DataCard title={plan.name}>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
           <span>{plan.entries.length} zajęć</span>

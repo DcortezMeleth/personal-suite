@@ -32,8 +32,8 @@ object PlanSheet:
             rooms: List[Room]): String =
     // The same resolving the screens do, asking only for shorter teacher
     // names: a grid cell has no room for "Kowalski Jan (AN)".
-    val lessons = PlanLayout.of(s, placements, rooms, PlanLayout.shortName)
-    val (byClass, byTeacher) = grouped(lessons)
+    val read = PlanLayout.of(s, placements, rooms, PlanLayout.shortName)
+    val (byClass, byTeacher) = grouped(read.lessons)
 
     val b = StringBuilder()
     b ++= s"""<!doctype html><html lang="pl"><head><meta charset="utf-8">
@@ -56,6 +56,12 @@ object PlanSheet:
 <h1>${esc(plan.name)}</h1>
 <p class="summary">${placements.size} zajęć &middot; ${plan.madeBy} &middot;
   reguły: ${plan.rulesKept.getOrElse(0)}/${plan.rulesTotal.getOrElse(0)}</p>
+"""
+
+    // Worth saying loudly on a sheet somebody is about to read as a week.
+    if !read.complete then
+      b ++= s"""<p class="summary"><strong>Uwaga:</strong> ${read.unresolved} zajęć
+        odnosi się do przydziałów, których już nie ma — nie ma ich na planie.</p>
 """
 
     b ++= "<nav><strong>Oddziały:</strong> "

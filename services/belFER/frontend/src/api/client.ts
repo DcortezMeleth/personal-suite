@@ -284,6 +284,12 @@ export interface Timetable {
   teachers: string[];
   rooms: string[];
   entries: PlanEntry[];
+  /**
+   * Lessons in the saved plan that no longer match anything in the school —
+   * normally 0. Anything else means the plan predates a change to the
+   * assignments and is missing hours.
+   */
+  unresolved: number;
 }
 
 /** A teacher's idle hours in the finished week, for the ones who have any. */
