@@ -1307,3 +1307,55 @@ would call to finish each day exactly, the rule set and its model are shared,
 the validation is shared, and the loop's diagnostics — which rule a quarrel is
 about, what the quarrel is made of — stay useful whatever fills them. What is
 being retired is the planner's claim to decide the week by counting.
+
+# Timefold, asked again with the model it needed
+
+The first comparison set Timefold aside because every move broke a split pair,
+and said at the time that the ceiling was the model's and not the engine's. The
+reason for not fixing it — that CP-SAT did not need the work — has since
+expired. So it was asked again.
+
+**The model was fixed, and it worked.** An hour is chosen once for a whole
+split or a whole cross-class block, so the two rules the old model spent its
+whole effort failing cannot be expressed, let alone broken. Both now hold. One
+subtlety was worth finding: the halves of a class do not take the same subject
+at once — one sits angielski while the other sits niemiecki, then they swap —
+so which lesson pairs with which is a choice, and pairing them in the order
+they were asked for reproduces the arrangement the school runs.
+
+**And it still does not scale.**
+
+| | three classes | fifteen classes |
+|---|---|---|
+| rules satisfied | 13 of 16 | 7 of 16 |
+| hard score | −3 | −34 |
+| after | one minute | five minutes |
+
+Against which the CP-SAT decomposition produces a complete, verified week for
+fifteen classes, and for twenty.
+
+The obvious suspicion — that the rules were written the slow way, every pair of
+hours against every other — was checked rather than assumed. Rewritten as
+indexed counts, three classes improved fivefold and **fifteen classes did not
+move at all**: seven rules against eight, thirty-four hard against thirty-five.
+Whatever stops it is not the cost of scoring.
+
+## What this does and does not say
+
+It does not say Timefold is bad, and it does not say metaheuristics are the
+wrong family. It says that *this* metaheuristic, in its default configuration,
+with generic moves, does not solve this school — and that the conclusion drawn
+two days ago from FET's existence was too broad.
+
+The distinction matters. FET does not run a generic local search. It runs one
+specific algorithm — place the hardest lesson first, and when nothing fits,
+evict what is in the way and re-place it recursively — which is purpose-built
+for exactly this problem. Timefold's defaults are a construction heuristic and
+a late-acceptance walk over generic moves, which is a different thing wearing
+the same family name.
+
+So the lesson to carry is narrower than "use a heuristic". It is: **the
+algorithm is the thing, not the engine.** Recursive swapping remains untested
+and remains the approach with the strongest outside evidence. What has been
+tested is that swapping engines does not by itself buy anything, and that the
+best timetable this project has produced is still CP-SAT's.

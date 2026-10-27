@@ -95,3 +95,19 @@ java_binary(
     ],
 )
 
+
+# ── Timefold ─────────────────────────────────────────────────────────────────
+# Restored from the original comparison, where it was set aside because moving
+# one half of a split always broke the pair — a gap in the model rather than in
+# Timefold, as that write-up said at the time. The reason for not fixing it was
+# that CP-SAT did not need the work; CP-SAT has since failed to produce a
+# timetable for the whole school by any route, so the reason is gone.
+java_binary(
+    name = "timefold",
+    srcs = glob(["src/main/java/poc/timefold/*.java"]),
+    main_class = "poc.timefold.TfMain",
+    deps = [
+        ":model",
+        "@maven//:ai_timefold_solver_timefold_solver_core",
+    ],
+)
