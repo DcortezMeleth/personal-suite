@@ -64,3 +64,71 @@ object FetImport:
     // normally return a half-finished timetable, but "it said no" and "it said
     // nothing about this one" are different answers and worth telling apart.
     Result(placed, means.size - placed.size)
+
+  /**
+   * The placements, expanded into what the rules need to know about them.
+   *
+   * A placement says only "this lesson, that hour". Who it occupies, who
+   * teaches it and whether it may sit in the middle of a day all live in the
+   * school rather than in the answer, so they are looked up here.
+   */
+  def expand(s: SchoolSnapshot, placed: List[Placed]): List[PlanCheck.Scheduled] =
+    val lines = s.lessonLines.map(l => l.id -> l).toMap
+    val units = s.crossClassUnits.map(u => u.id -> u).toMap
+    val optional = s.subjects.filter(_.optional).map(_.id).toSet
+
+    val ordinary = placed.collect {
+      case Placed(SolverInput.LessonRef.Line(lineId, block), day, from, _)
+        if lines.contains(lineId) =>
+        val l = lines(lineId)
+        PlanCheck.Scheduled(
+          classIds = Set(l.classId),
+          audience = l.audience,
+          subjectId = l.subjectId,
+          teacherIds = (l.teacherId.toList ++ l.supportTeacherId.toList).toSet,
+          day = day, from = from,
+          length = l.blocks.lift(block).getOrElse(1),
+          optional = optional.contains(l.subjectId))
+    }
+
+    // A cross-class block is one hour for the classes and several lessons for
+    // the teachers, and the two have to be counted apart. Letting each group
+    // claim its classes makes a class whose students are spread over three
+    // groups look booked three times over — which is the same mistake the
+    // export made, and is why the check is written separately from it.
+    val crossPlacements = placed.collect {
+      case p @ Placed(ref: SolverInput.LessonRef.CrossClassGroupRef, _, _, _) => (ref, p)
+    }
+
+    val teaching = crossPlacements.flatMap { (ref, p) =>
+      for
+        unit <- units.get(ref.unitId)
+        group <- unit.groups.find(_.id == ref.groupId)
+      yield PlanCheck.Scheduled(
+        classIds = Set.empty,
+        audience = LessonAudience.WHOLE_CLASS,
+        subjectId = unit.subjectId,
+        teacherIds = group.teacherId.toSet,
+        day = p.day, from = p.position,
+        length = unit.blocks.lift(ref.block).getOrElse(1),
+        optional = optional.contains(unit.subjectId))
+    }
+
+    val occupancy = crossPlacements
+      .groupBy((ref, _) => (ref.unitId, ref.block))
+      .toList.flatMap { case ((unitId, block), group) =>
+        val (_, first) = group.head
+        units.get(unitId).map { unit =>
+          PlanCheck.Scheduled(
+            classIds = unit.classIds.toSet,
+            audience = LessonAudience.WHOLE_CLASS,
+            subjectId = unit.subjectId,
+            teacherIds = Set.empty,
+            day = first.day, from = first.position,
+            length = unit.blocks.lift(block).getOrElse(1),
+            optional = optional.contains(unit.subjectId),
+            derived = true)
+        }
+      }
+
+    ordinary ++ teaching ++ occupancy

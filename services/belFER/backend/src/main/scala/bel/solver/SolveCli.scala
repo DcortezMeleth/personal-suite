@@ -70,6 +70,8 @@ object SolveCli extends IOApp:
         val fet = rest.collectFirst { case s if s.startsWith("--fet=") => s.drop(6) }
         // --read=<plik> takes FET's answer back, by re-deriving what we sent.
         val readBack = rest.collectFirst { case s if s.startsWith("--read=") => s.drop(7) }
+        // --generate lays the week out with FET and keeps it, if it holds up.
+        val generate = rest.contains("--generate")
         // --slack=N lets a day run N hours either side of its shape.
         val slack = rest.collectFirst { case s if s.startsWith("--slack=") => s.drop(8).toInt }
           .getOrElse(0)
@@ -87,7 +89,7 @@ object SolveCli extends IOApp:
         val seconds = plain.headOption.flatMap(_.toLongOption).getOrElse(300L)
         val workers = plain.drop(1).headOption.flatMap(_.toIntOption).getOrElse(0)
         solve(UUID.fromString(schoolId), seconds, workers, diagnose, limit, doubles, warm, apart,
-          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack)
+          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack, generate)
 
   private def solve(schoolId: UUID, seconds: Long, workers: Int, diagnose: Boolean,
                     limit: Option[Int], doubles: Boolean, warm: Option[Int],
@@ -95,7 +97,8 @@ object SolveCli extends IOApp:
                     onlyDay: Option[Int], week: Boolean, slack: Int,
                     spread: Boolean, relaxed: Set[TimetableProblem.Rule],
                     rounds: Int, oneDay: Boolean, literal: Boolean,
-                    fet: Option[String], readBack: Option[String]): IO[ExitCode] =
+                    fet: Option[String], readBack: Option[String],
+                    generate: Boolean): IO[ExitCode] =
     val config = ConfigFactory.load()
     Database.transactor(config).use { xa =>
       val loader = SnapshotLoader(
@@ -113,11 +116,12 @@ object SolveCli extends IOApp:
           case Some(full) =>
             val narrowed = limit.fold(full)(n => narrow(full, n))
             val s = if doubles then pairUpHours(narrowed) else narrowed
-            if diagnose then explain(s, rooms, seconds, workers)
+            if generate then generateWithFet(xa, schoolId, s, rooms)
+            else if diagnose then explain(s, rooms, seconds, workers)
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate)
       yield code
     }
 
@@ -138,7 +142,8 @@ object SolveCli extends IOApp:
     oneDay: Boolean = false,
     literal: Boolean = false,
     fet: Option[String] = None,
-    readBack: Option[String] = None
+    readBack: Option[String] = None,
+    generate: Boolean = false
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -622,6 +627,43 @@ object SolveCli extends IOApp:
 
     if useSpread then byPlan(Nil, 1) else fill(0, Nil)
 
+  /**
+   * The whole thing: lay the week out, check it, keep it if it holds.
+   *
+   * A timetable that breaks a rule is not saved. It is reported, with the
+   * rules it broke, and the planner decides what to do — but it does not
+   * quietly become the school's week.
+   */
+  private def generateWithFet(xa: doobie.Transactor[IO], schoolId: UUID,
+                              snapshot: SchoolSnapshot, rooms: List[Room]): IO[ExitCode] =
+    for
+      outcome <- FetRunner(snapshot, rooms, FetRunner.Config.container)
+      _ <- IO.println(f"ułożone w ${outcome.millis / 1000.0}%.1f s, " +
+             f"${outcome.result.placed.size} zajęć")
+      _ <- outcome.report.rules.traverse_(r =>
+             IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
+      code <- keepIfSound(xa, schoolId, snapshot, outcome)
+    yield code
+
+  /** A week that breaks a rule is reported, never quietly made the school's. */
+  private def keepIfSound(xa: doobie.Transactor[IO], schoolId: UUID,
+                          snapshot: SchoolSnapshot, outcome: FetRunner.Outcome): IO[ExitCode] =
+    if !outcome.report.sound || !outcome.result.complete then
+      IO.println("plan łamie reguły — nie zapisuję").as(ExitCode(1))
+    else
+      val plans = PlanRepository(xa)
+      for
+        saved <- plans.save(schoolId, NewPlan(
+                   name = s"FET ${java.time.LocalDate.now}",
+                   madeBy = "fet",
+                   tookMillis = Some(outcome.millis.toInt),
+                   rulesKept = Some(outcome.report.kept),
+                   rulesTotal = Some(outcome.report.rules.size),
+                   placements = FetRunner.placements(outcome.result, snapshot)))
+        _ <- plans.makeCurrent(schoolId, saved.id)
+        _ <- IO.println(s"zapisano plan ${saved.id} i ustawiono jako bieżący")
+      yield ExitCode.Success
+
   /** FET's answer, read back and counted. */
   private def readFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =
     for
@@ -630,12 +672,13 @@ object SolveCli extends IOApp:
       result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
       _ <- IO.println(f"odczytano ${result.placed.size} zajęć, " +
              f"${result.unplaced} bez godziny")
-      byKind = result.placed.groupBy(_.what.getClass.getSimpleName).view
-                 .mapValues(_.size).toList.sorted
-      _ <- byKind.traverse_((kind, n) => IO.println(f"  $kind%-22s $n"))
-      days = result.placed.groupBy(_.day).view.mapValues(_.size).toList.sorted
-      _ <- days.traverse_((d, n) => IO.println(f"  dzień ${d + 1}: $n zajęć"))
-    yield if result.complete then ExitCode.Success else ExitCode(1)
+      report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed))
+      _ <- IO.println(f"%nreguły: ${report.kept} z ${report.rules.size} sprawdzanych spełnionych" +
+             f" (${PlanCheck.notChecked.size} reguł nie da się tu sprawdzić)")
+      _ <- report.rules.traverse_(r =>
+             IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
+      _ <- PlanCheck.notChecked.traverse_((code, why) => IO.println(f"  --  $code%-4s $why"))
+    yield if result.complete && report.sound then ExitCode.Success else ExitCode(1)
 
   /** The school written out for FET, which solves this size in minutes. */
   private def writeFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =

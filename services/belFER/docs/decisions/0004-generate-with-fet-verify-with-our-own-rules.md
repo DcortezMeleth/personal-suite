@@ -1,6 +1,6 @@
 # 0004 — Generate with FET, verify with our own rules
 
-**Status:** Proposed (2026-10-22)
+**Status:** Accepted (2026-10-22)
 
 ## Context
 

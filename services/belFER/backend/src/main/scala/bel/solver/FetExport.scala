@@ -226,6 +226,8 @@ object FetExport:
     // One group per unit rather than per block, so that two blocks of a unit
     // land on different days the way two blocks of a subject do.
     val unitGroups = scala.collection.mutable.Map.empty[UUID, Int]
+    val lineGroups =
+      scala.collection.mutable.Map.empty[(UUID, UUID, LessonAudience), Int]
 
     for line <- snapshot.lessonLines do
       val who = line.audience match
@@ -234,8 +236,14 @@ object FetExport:
         case LessonAudience.GROUP_2     => classes.getOrElse(line.classId, "?") + "/2"
       val staff = (line.teacherId.toList ++ line.supportTeacherId.toList).flatMap(teachers.get)
       val subject = subjects.getOrElse(line.subjectId, "?")
-      val mine = group
-      group += 1
+      // Spreading is per subject and audience, not per line. A class's
+      // standard and extended hours are two lines of one subject, and the rule
+      // is that a class sees that subject once a day — so they share a group
+      // and get spread together. Grouping by line lets a base block and an
+      // extension block land on the same day, which our own checker caught in
+      // sixty-three places.
+      val key = (line.classId, line.subjectId, line.audience)
+      val mine = lineGroups.getOrElseUpdate(key, { group += 1; group })
       for (length, block) <- line.blocks.zipWithIndex do
         out += Act(next, staff, subject, List(who), length, mine,
           optional = snapshot.subjects.find(_.id == line.subjectId).exists(_.optional),
