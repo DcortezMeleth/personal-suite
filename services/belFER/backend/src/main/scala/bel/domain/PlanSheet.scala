@@ -1,83 +1,39 @@
 package bel.domain
 
-import java.util.UUID
-
 /**
  * A saved plan, written out as a page somebody can read.
  *
- * Phase 4 builds these views properly, in the application, where they can be
- * clicked through and edited. This is the version that exists before that: one
- * file, no server, openable from a file manager — enough for the planner to
- * look at a generated week and say whether it resembles a timetable.
+ * The application shows plans properly now, so this is no longer the only way
+ * to look at one. What it still is, is the way to look at one without a
+ * server or a database: `--sheet=` on a solver run writes a file that opens
+ * from a file manager, which is what you want when the question is whether
+ * the week that just came back resembles a timetable at all.
  *
- * Deliberately plain. It is a thing to check a plan with, not a thing to hand
- * to a school, and the moment it starts growing features it should be replaced
- * by the real views instead.
+ * Deliberately plain, and deliberately not its own idea of what a plan is: it
+ * renders the same PlanLayout the screens do, asking only for shorter teacher
+ * names. It used to resolve placements itself, which is how it came to differ
+ * from the screens about what a class is told about tuition.
  */
 object PlanSheet:
 
-  private val Days = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek")
-
-  /** One lesson in one cell. */
-  private case class Entry(
-    day: Int, position: Int, length: Int,
-    subject: String, teacher: String, room: String,
-    /** Which half, when a lesson is only for one of them. */
-    half: Option[Int]
-  )
+  /**
+   * Who a lesson belongs to, for the two sets of sheets this prints.
+   *
+   * A cross-class block belongs to every class sending students to it;
+   * tuition belongs to no class, because the student is not in one while it
+   * happens — only to the teacher, which is the whole reason for carrying it.
+   */
+  private def grouped(lessons: List[PlanLayout.Lesson]) =
+    val byClass = lessons.flatMap(l => l.classes.map(_ -> l)).groupMap(_._1)(_._2)
+    val byTeacher = lessons.flatMap(l => l.teachers.map(_ -> l)).groupMap(_._1)(_._2)
+    (byClass, byTeacher)
 
   def apply(s: SchoolSnapshot, plan: Plan, placements: List[Placement],
             rooms: List[Room]): String =
-    val subjects = s.subjects.map(x => x.id -> x.name).toMap
-    val teachers = s.teachers.map(t => t.id -> t.code).toMap
-    val classes = s.classes.map(c => c.id -> c.name).toMap
-    val roomNames = rooms.map(r => r.id -> r.number).toMap
-    val lines = s.lessonLines.map(l => l.id -> l).toMap
-    val groups = s.crossClassUnits.flatMap(u => u.groups.map(g => g.id -> (u, g))).toMap
-    val tuition = s.individualPlans.flatMap(p => p.lessons.map(l => l.id -> (p, l))).toMap
-
-    // Every placement, told who it belongs to. A cross-class block belongs to
-    // every class sending students to it; tuition belongs to the class the
-    // student is in, though the class itself is not busy.
-    val byClass = scala.collection.mutable.Map.empty[UUID, List[Entry]].withDefaultValue(Nil)
-    val byTeacher = scala.collection.mutable.Map.empty[String, List[Entry]].withDefaultValue(Nil)
-
-    def add(classIds: List[UUID], who: Option[String], e: Entry): Unit =
-      for id <- classIds do byClass(id) = e :: byClass(id)
-      for code <- who do byTeacher(code) = e :: byTeacher(code)
-
-    for p <- placements do
-      val room = p.roomId.flatMap(roomNames.get).getOrElse("")
-      p.lessonLineId.flatMap(lines.get) match
-        case Some(line) =>
-          val staff = (line.teacherId.toList ++ line.supportTeacherId.toList).flatMap(teachers.get)
-          val e = Entry(p.dayOfWeek - 1, p.position - 1,
-            line.blocks.lift(p.blockIndex).getOrElse(1),
-            subjects.getOrElse(line.subjectId, "?"), staff.mkString(", "), room,
-            line.audience match
-              case LessonAudience.GROUP_1 => Some(1)
-              case LessonAudience.GROUP_2 => Some(2)
-              case _                      => None)
-          add(List(line.classId), staff.headOption, e)
-          for extra <- staff.drop(1) do byTeacher(extra) = e :: byTeacher(extra)
-        case None =>
-          p.crossClassGroupId.flatMap(groups.get) match
-            case Some((unit, group)) =>
-              val who = group.teacherId.flatMap(teachers.get)
-              val e = Entry(p.dayOfWeek - 1, p.position - 1,
-                unit.blocks.lift(p.blockIndex).getOrElse(1),
-                subjects.getOrElse(unit.subjectId, "?"), who.getOrElse(""), room, None)
-              add(group.classIds, who, e)
-            case None =>
-              for (ip, lesson) <- p.individualLessonId.flatMap(tuition.get) do
-                val who = lesson.teacherId.flatMap(teachers.get)
-                val e = Entry(p.dayOfWeek - 1, p.position - 1,
-                  lesson.blocks.lift(p.blockIndex).getOrElse(1),
-                  subjects.getOrElse(lesson.subjectId, "?") + " (ind.)",
-                  who.getOrElse(""), room, None)
-                // The class is not busy, so this appears on the teacher's
-                // sheet and is listed against the class only for reference.
-                for code <- who do byTeacher(code) = e :: byTeacher(code)
+    // The same resolving the screens do, asking only for shorter teacher
+    // names: a grid cell has no room for "Kowalski Jan (AN)".
+    val lessons = PlanLayout.of(s, placements, rooms, PlanLayout.shortName)
+    val (byClass, byTeacher) = grouped(lessons)
 
     val b = StringBuilder()
     b ++= s"""<!doctype html><html lang="pl"><head><meta charset="utf-8">
@@ -110,7 +66,8 @@ object PlanSheet:
     b ++= "<h2>Plany oddziałów</h2>\n"
     for cls <- s.classes.sortBy(_.name) do
       b ++= s"""<h3 id="c-${esc(cls.name)}">${esc(cls.name)}</h3>\n"""
-      b ++= grid(byClass(cls.id), s.slotsPerDay, s.teachingDays, showTeacher = true)
+      b ++= grid(byClass.getOrElse(cls.name, Nil), s.slotsPerDay, s.teachingDays,
+        showTeacher = true)
 
     b ++= "<h2>Plany nauczycieli</h2>\n"
     for code <- byTeacher.keys.toList.sorted do
@@ -121,11 +78,12 @@ object PlanSheet:
     b.result()
 
   /** One week as a table: hours down the side, days across. */
-  private def grid(entries: List[Entry], slots: Int, days: Int, showTeacher: Boolean): String =
-    val at = entries.groupBy(e => (e.day, e.position))
+  private def grid(lessons: List[PlanLayout.Lesson], slots: Int, days: Int,
+                   showTeacher: Boolean): String =
+    val at = lessons.groupBy(e => (e.day, e.position))
     val b = StringBuilder()
     b ++= "<table><tr><th></th>"
-    for d <- 0 until days do b ++= s"<th>${Days(d)}</th>"
+    for d <- 0 until days do b ++= s"<th>${PlanLayout.DayNames(d)}</th>"
     b ++= "</tr>\n"
     for p <- 0 until slots do
       b ++= s"""<tr><td class="hour">${p + 1}</td>"""
@@ -138,9 +96,10 @@ object PlanSheet:
         b ++= s"<td$klass>"
         for e <- here do
           val half = e.half.fold("")(h => s"/$h")
-          val meta = List(if showTeacher then e.teacher else "", e.room)
-            .filter(_.nonEmpty).mkString(" &middot; ")
-          b ++= s"""<div><span class="sub">${esc(e.subject)}$half</span>"""
+          val name = if e.individual then s"${e.subject} (ind.)" else e.subject
+          val meta = List(if showTeacher then e.teachers.mkString(", ") else "",
+            e.room.getOrElse("")).filter(_.nonEmpty).mkString(" &middot; ")
+          b ++= s"""<div><span class="sub">${esc(name)}$half</span>"""
           if meta.nonEmpty then b ++= s"""<br><span class="meta">$meta</span>"""
           b ++= "</div>"
         b ++= "</td>"

@@ -20,24 +20,14 @@ import java.util.UUID
  * by class, by teacher, by room, the whole school at once — are the same
  * lessons grouped four ways. Sending them once, with everything already named,
  * lets the screen do nothing but group and draw.
+ *
+ * The resolving itself is PlanLayout's, in the domain, because the sheet the
+ * solver prints needs exactly the same thing and used to do it again.
  */
 object PlanView:
 
   /** One lesson, at one hour, with everyone it concerns. */
-  case class Entry(
-    day: Int,
-    position: Int,
-    length: Int,
-    subject: String,
-    teachers: List[String],
-    room: Option[String],
-    /** Classes this occupies. Empty for individual tuition. */
-    classes: List[String],
-    /** 1 or 2 when only one half of a class is in it. */
-    half: Option[Int],
-    /** One student taught alone, shown on the teacher's plan only. */
-    individual: Boolean
-  )
+  type Entry = PlanLayout.Lesson
 
   case class Timetable(
     planId: UUID,
@@ -86,8 +76,6 @@ object PlanView:
   given Encoder[Summary]     = deriveEncoder
   given Encoder[TeacherGaps] = deriveEncoder
 
-  val DayNames = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela")
-
 class PlanRoutes(
   plans: PlanRepository,
   rooms: RoomRepository,
@@ -135,7 +123,7 @@ class PlanRoutes(
               for
                 placements <- plans.placements(plan.id)
                 allRooms <- rooms.findRooms(schoolId)
-                body = gapsOf(resolve(s, placements, allRooms))
+                body = gapsOf(PlanLayout.of(s, placements, allRooms))
                 response <- Ok(body.asJson)
               yield response
           }
@@ -162,7 +150,7 @@ class PlanRoutes(
         for
           placements <- plans.placements(plan.id)
           allRooms <- rooms.findRooms(schoolId)
-          entries = resolve(s, placements, allRooms)
+          entries = PlanLayout.of(s, placements, allRooms)
           response <- Ok(PlanView.Timetable(
             planId = plan.id,
             name = plan.name,
@@ -170,7 +158,7 @@ class PlanRoutes(
             createdAt = plan.createdAt.toString,
             rulesKept = plan.rulesKept,
             rulesTotal = plan.rulesTotal,
-            days = PlanView.DayNames.take(s.teachingDays),
+            days = PlanLayout.DayNames.take(s.teachingDays),
             slotsPerDay = s.slotsPerDay,
             classes = s.classes.map(_.name).sorted,
             teachers = entries.flatMap(_.teachers).distinct.sorted,
@@ -181,7 +169,7 @@ class PlanRoutes(
     }
 
   /** Idle hours per teacher, counted a day at a time, zeroes dropped. */
-  private def gapsOf(entries: List[PlanView.Entry]): List[PlanView.TeacherGaps] =
+  private def gapsOf(entries: List[PlanLayout.Lesson]): List[PlanView.TeacherGaps] =
     val busy = entries
       .flatMap(e => e.teachers.map(t => (t, e.day) -> (e.position until e.position + e.length)))
       .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
@@ -211,59 +199,3 @@ class PlanRoutes(
         else (total + 1, run + 1, math.max(worst, run + 1))
       } match
         case (total, _, worst) => (total, worst)
-
-  /** Placements, with every id turned into the name it stands for. */
-  private def resolve(s: SchoolSnapshot, placements: List[Placement],
-                      allRooms: List[Room]): List[PlanView.Entry] =
-    val subjectNames = s.subjects.map(x => x.id -> x.name).toMap
-    val teacherNames = s.teachers.map(t => t.id -> s"${t.lastName} ${t.firstName} (${t.code})").toMap
-    val classNames = s.classes.map(c => c.id -> c.name).toMap
-    val roomNames = allRooms.map(r => r.id -> r.number).toMap
-    val byLine = s.lessonLines.map(l => l.id -> l).toMap
-    val byGroup = s.crossClassUnits.flatMap(u => u.groups.map(g => g.id -> (u, g))).toMap
-    val byTuition = s.individualPlans.flatMap(p => p.lessons.map(l => l.id -> (p, l))).toMap
-
-    placements.flatMap { p =>
-      val room = p.roomId.flatMap(roomNames.get)
-
-      p.lessonLineId.flatMap(byLine.get).map { line =>
-        PlanView.Entry(
-          day = p.dayOfWeek - 1, position = p.position - 1,
-          length = line.blocks.lift(p.blockIndex).getOrElse(1),
-          subject = subjectNames.getOrElse(line.subjectId, "?"),
-          teachers = (line.teacherId.toList ++ line.supportTeacherId.toList).flatMap(teacherNames.get),
-          room = room,
-          classes = classNames.get(line.classId).toList,
-          half = line.audience match
-            case LessonAudience.GROUP_1 => Some(1)
-            case LessonAudience.GROUP_2 => Some(2)
-            case _                      => None,
-          individual = false)
-      }.orElse {
-        p.crossClassGroupId.flatMap(byGroup.get).map { (unit, group) =>
-          PlanView.Entry(
-            day = p.dayOfWeek - 1, position = p.position - 1,
-            length = unit.blocks.lift(p.blockIndex).getOrElse(1),
-            subject = subjectNames.getOrElse(unit.subjectId, "?"),
-            teachers = group.teacherId.toList.flatMap(teacherNames.get),
-            room = room,
-            classes = group.classIds.flatMap(classNames.get).sorted,
-            half = None,
-            individual = false)
-        }
-      }.orElse {
-        p.individualLessonId.flatMap(byTuition.get).map { (plan, lesson) =>
-          PlanView.Entry(
-            day = p.dayOfWeek - 1, position = p.position - 1,
-            length = lesson.blocks.lift(p.blockIndex).getOrElse(1),
-            subject = subjectNames.getOrElse(lesson.subjectId, "?"),
-            teachers = lesson.teacherId.toList.flatMap(teacherNames.get),
-            room = room,
-            // The class is not in school for this, so it names no class: one
-            // student is, and which student is not ours to say.
-            classes = Nil,
-            half = None,
-            individual = true)
-        }
-      }
-    }
