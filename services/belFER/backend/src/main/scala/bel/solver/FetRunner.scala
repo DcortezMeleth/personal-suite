@@ -124,8 +124,10 @@ object FetRunner:
       val room = p.room.flatMap(byName.get)
       p.what match
         case SolverInput.LessonRef.Line(lineId, block) =>
-          Some(Placement(Some(lineId), None, block, p.day + 1, p.position + 1, room))
+          Some(Placement(Some(lineId), None, None, block, p.day + 1, p.position + 1, room))
         case SolverInput.LessonRef.CrossClassGroupRef(_, groupId, block) =>
-          Some(Placement(None, Some(groupId), block, p.day + 1, p.position + 1, room))
+          Some(Placement(None, Some(groupId), None, block, p.day + 1, p.position + 1, room))
+        case SolverInput.LessonRef.Individual(lessonId, block) =>
+          Some(Placement(None, None, Some(lessonId), block, p.day + 1, p.position + 1, room))
         case _ => None
     }

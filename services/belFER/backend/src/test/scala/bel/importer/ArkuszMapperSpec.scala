@@ -78,14 +78,38 @@ class ArkuszMapperSpec extends AnyFunSuite:
     assert(mixed.nonEmpty, "expected units joining an in-class half to a merged one")
   }
 
-  // Two warnings stand, and both should. The arkusz changes some allocations
-  // part-way through the semester, which a single plan cannot express; and it
+  // Three warnings stand, and each should. The arkusz changes some allocations
+  // part-way through the semester, which a single plan cannot express; it
   // gives a good many splits one teacher for both halves, which means the rest
-  // of the class is not in school for them.
+  // of the class is not in school for them; and it states more hours of a
+  // subject than there are days to put them on, so some have to be paired.
   test("the warnings left are the ones the file genuinely raises") {
-    assert(plan.warnings.sizeIs == 2, plan.warnings.map(_.message).mkString("; "))
+    assert(plan.warnings.sizeIs == 3, plan.warnings.map(_.message).mkString("; "))
     assert(plan.warnings.exists(_.message.contains("liczba godzin zmienia się")))
     assert(plan.warnings.exists(_.message.contains("ta sama osoba")))
+    assert(plan.warnings.exists(_.message.contains("bloki dwugodzinne")))
+  }
+
+  // Over the whole year the file writes one ethics group twice under one
+  // teacher — a group that must run at the same hour as itself. Over a single
+  // semester it does not, which is one more reason a plan is scoped to one.
+  test("one teacher is never given two groups of a unit that run together") {
+    val wholeYear = ArkuszMapper.map(document, ArkuszMapper.WeekRange(1, 38))
+    assert(wholeYear.warnings.exists(_.message.contains("połączono je w jedną")))
+    val doubled = wholeYear.crossClassUnits.filter(u =>
+      u.groups.flatMap(_.teacherCode).distinct.size < u.groups.count(_.teacherCode.isDefined))
+    assert(doubled.isEmpty, doubled.map(_.name).mkString("; "))
+  }
+
+  // A class sees a subject once a day, so six hours of maths cannot be six
+  // separate lessons in a five-day week. The importer pairs just enough of
+  // them, and no more: the school decides where it wants its doubles.
+  test("no subject asks for more days than the week has") {
+    val overfull = plan.lessonLines
+      .groupBy(l => (l.classCode, l.subjectCode, l.audience))
+      .filter((_, group) => group.map(_.blocks.size).sum > 5)
+    assert(overfull.isEmpty,
+      overfull.keys.map((c, s, a) => s"$c $s $a").mkString("; "))
   }
 
   // The school calls this rare and unwanted; its own arkusz is full of it, so

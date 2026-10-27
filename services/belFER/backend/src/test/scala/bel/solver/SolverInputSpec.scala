@@ -35,7 +35,7 @@ class SolverInputSpec extends AnyFunSuite:
   private def snapshotOf(classes: List[SchoolClass], teachers: List[Teacher],
                          lines: List[LessonLine], units: List[CrossClassUnit]) =
     SchoolSnapshot(settings, slotsPerDay = 8, teachingDays = 5, classes, teachers,
-      List(maths, wf, religia), lines, units, Map.empty, Map.empty, totalRooms = 8)
+      List(maths, wf, religia), lines, units, Nil, Map.empty, Map.empty, totalRooms = 8)
 
   private def rooms(n: Int) =
     (1 to n).map(i => Room(UUID.randomUUID, i.toString, None, true, Nil)).toList

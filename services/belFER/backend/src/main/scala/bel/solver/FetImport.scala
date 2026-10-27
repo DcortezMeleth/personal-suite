@@ -77,9 +77,31 @@ object FetImport:
   def expand(s: SchoolSnapshot, placed: List[Placed],
              rooms: List[Room] = Nil): List[PlanCheck.Scheduled] =
     val byNumber = rooms.map(r => r.number -> r.id).toMap
+    val tuitionKind = rooms.flatMap(_.kinds)
+      .find(_.name.equalsIgnoreCase(IndividualTuition.RoomKindName)).map(_.id)
     val lines = s.lessonLines.map(l => l.id -> l).toMap
     val units = s.crossClassUnits.map(u => u.id -> u).toMap
     val optional = s.subjects.filter(_.optional).map(_.id).toSet
+
+    val tuition = s.individualPlans.flatMap(_.lessons).map(l => l.id -> l).toMap
+
+    val individual = placed.collect {
+      case Placed(SolverInput.LessonRef.Individual(lessonId, block), day, from, _, where)
+        if tuition.contains(lessonId) =>
+        val lesson = tuition(lessonId)
+        PlanCheck.Scheduled(
+          // The student is taught alone and is not in the class while it
+          // happens, so no class is busy. The teacher is, which is the point.
+          classIds = Set.empty,
+          audience = LessonAudience.WHOLE_CLASS,
+          subjectId = lesson.subjectId,
+          teacherIds = lesson.teacherId.toSet,
+          day = day, from = from,
+          length = lesson.blocks.lift(block).getOrElse(1),
+          optional = false,
+          roomId = where.flatMap(byNumber.get),
+          needsKind = tuitionKind)
+    }
 
     val ordinary = placed.collect {
       case Placed(SolverInput.LessonRef.Line(lineId, block), day, from, _, where)
@@ -140,4 +162,4 @@ object FetImport:
         }
       }
 
-    ordinary ++ teaching ++ occupancy
+    ordinary ++ individual ++ teaching ++ occupancy

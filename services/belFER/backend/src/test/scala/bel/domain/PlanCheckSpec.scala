@@ -39,7 +39,7 @@ class PlanCheckSpec extends AnyFunSuite:
       subjects = List(
         Subject(maths, "mat", "Matematyka", false, None, false),
         Subject(religia, "rel", "Religia", true, None, false)),
-      lines, Nil, Map.empty, Map.empty, totalRooms = 50)
+      lines, Nil, Nil, Map.empty, Map.empty, totalRooms = 50)
 
   private def line(classId: UUID, subject: UUID = maths, blocks: List[Int] = List(1),
                    teacherId: Option[UUID] = Some(anna),

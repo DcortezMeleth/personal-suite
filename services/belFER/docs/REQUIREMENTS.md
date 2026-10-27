@@ -195,11 +195,10 @@ Rooms are a genuine scheduling resource.
   this school's PE wants 138 room-hours a week and six spaces offer 240, where
   three would offer 120 and make the week impossible before anyone scheduled
   it.
-- ⚠ **The six individual-tuition rooms are assumed to be outside the class
-  timetable.** Nauczanie indywidualne is arranged per student rather than per
-  class, so those rooms are not offered to ordinary lessons. If some of them
-  are in fact used for classes, that is three more rooms of ordinary capacity
-  and the week has more room to move than we are giving it. **To confirm.**
+- **The six individual-tuition rooms are outside the class timetable**, which
+  matches the import: `ArkuszMapper` skips nauczanie indywidualne entirely and
+  says so, so no lesson that would want one of those rooms ever reaches the
+  solver. See §16.3(a) for what that costs.
 - Rooms and their kinds are
   **configurable**, so this is data, not code.
 - **Several PE teachers can teach at the same time.**
@@ -637,6 +636,19 @@ such records, all with `LiczbaUczniow="0"` and no
 wychowawca. **The MVP ignores them**; support comes later. Missing class
 letters (no 1B) and uneven year sizes are simply normal — §3's "same number of
 classes per year, A…X" is wrong and should be dropped.
+
+> ⚠ **Ignoring them is not free, and the cost is on the teachers.** Those
+> hours are taught by the same people who teach the classes, so a teacher with
+> five hours of nauczanie indywidualne has five fewer hours for everything
+> else — and the timetable does not know it. In the reduced fixture that is
+> seven hours across three teachers, one of whom carries five of them; the
+> real arkusz has twenty-one such records rather than three, so the real
+> figure is larger. Until they are imported, a generated week can commit a
+> teacher to a full load on top of tuition they also owe.
+>
+> The six individual-tuition rooms (NI, NI2, nowa_port, 57z, 58z, 59z) are
+> left out of the timetable for the same reason and are consistent with it:
+> no lesson needs them because no such lesson is imported.
 
 > ⚠ **These records are the reason the fixture needed a second anonymisation
 > pass.** Their `Name` carried students' full names next to their provision —

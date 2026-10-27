@@ -72,6 +72,15 @@ object SolveCli extends IOApp:
         val readBack = rest.collectFirst { case s if s.startsWith("--read=") => s.drop(7) }
         // --generate lays the week out with FET and keeps it, if it holds up.
         val generate = rest.contains("--generate")
+        // --import=<plik> wczytuje arkusz od nowa, bez stawiania serwera.
+        val reimport = rest.collectFirst { case s if s.startsWith("--import=") => s.drop(9) }
+        // --weeks=od-do zawęża import do jednego semestru, jak robi to UI.
+        val weeks = rest.collectFirst { case s if s.startsWith("--weeks=") => s.drop(8) }
+          .flatMap(_.split("-") match
+            case Array(a, b) => for x <- a.toIntOption; y <- b.toIntOption
+                                yield bel.importer.ArkuszMapper.WeekRange(x, y)
+            case _ => None)
+          .getOrElse(bel.importer.ArkuszMapper.WeekRange(1, 19))
         // --slack=N lets a day run N hours either side of its shape.
         val slack = rest.collectFirst { case s if s.startsWith("--slack=") => s.drop(8).toInt }
           .getOrElse(0)
@@ -89,7 +98,8 @@ object SolveCli extends IOApp:
         val seconds = plain.headOption.flatMap(_.toLongOption).getOrElse(300L)
         val workers = plain.drop(1).headOption.flatMap(_.toIntOption).getOrElse(0)
         solve(UUID.fromString(schoolId), seconds, workers, diagnose, limit, doubles, warm, apart,
-          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack, generate)
+          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack, generate,
+          reimport, weeks)
 
   private def solve(schoolId: UUID, seconds: Long, workers: Int, diagnose: Boolean,
                     limit: Option[Int], doubles: Boolean, warm: Option[Int],
@@ -98,13 +108,14 @@ object SolveCli extends IOApp:
                     spread: Boolean, relaxed: Set[TimetableProblem.Rule],
                     rounds: Int, oneDay: Boolean, literal: Boolean,
                     fet: Option[String], readBack: Option[String],
-                    generate: Boolean): IO[ExitCode] =
+                    generate: Boolean, reimport: Option[String],
+                    weeks: bel.importer.ArkuszMapper.WeekRange): IO[ExitCode] =
     val config = ConfigFactory.load()
     Database.transactor(config).use { xa =>
       val loader = SnapshotLoader(
         SchoolRepository(xa), SchoolClassRepository(xa), TeacherRepository(xa),
         SubjectRepository(xa), LessonLineRepository(xa), CrossClassUnitRepository(xa),
-        RoomRepository(xa))
+        RoomRepository(xa), IndividualPlanRepository(xa))
 
       for
         snapshot <- loader.load(schoolId)
@@ -116,12 +127,13 @@ object SolveCli extends IOApp:
           case Some(full) =>
             val narrowed = limit.fold(full)(n => narrow(full, n))
             val s = if doubles then pairUpHours(narrowed) else narrowed
-            if generate then generateWithFet(xa, schoolId, s, rooms)
+            if reimport.isDefined then readArkusz(xa, schoolId, reimport.get, weeks)
+            else if generate then generateWithFet(xa, schoolId, s, rooms)
             else if diagnose then explain(s, rooms, seconds, workers)
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate, reimport = reimport, weeks = weeks)
       yield code
     }
 
@@ -143,7 +155,9 @@ object SolveCli extends IOApp:
     literal: Boolean = false,
     fet: Option[String] = None,
     readBack: Option[String] = None,
-    generate: Boolean = false
+    generate: Boolean = false,
+    reimport: Option[String] = None,
+    weeks: bel.importer.ArkuszMapper.WeekRange = bel.importer.ArkuszMapper.WeekRange(1, 19)
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -643,6 +657,31 @@ object SolveCli extends IOApp:
       _ <- outcome.report.rules.traverse_(r =>
              IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
       code <- keepIfSound(xa, schoolId, rooms, outcome)
+    yield code
+
+  /**
+   * The arkusz, read again.
+   *
+   * The same path the upload takes, without a server in the way — which is how
+   * an import can be exercised from a terminal and how a change to the mapper
+   * gets tried against the real file in one step.
+   */
+  private def readArkusz(xa: doobie.Transactor[IO], schoolId: UUID, path: String,
+                         weeks: bel.importer.ArkuszMapper.WeekRange): IO[ExitCode] =
+    for
+      bytes <- IO.blocking(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(path)))
+      parsed = bel.importer.ArkuszParser.parse(bytes)
+      code <- parsed match
+        case Left(why) => IO.println(s"nie da się wczytać: $why").as(ExitCode(1))
+        case Right(doc) =>
+          val plan = bel.importer.ArkuszMapper.map(doc, weeks)
+          for
+            _ <- plan.notes.traverse_(n => IO.println(s"  ${n.level}: ${n.message}"))
+            applied <- bel.repository.ImportRepository(xa).apply(schoolId, plan)
+            _ <- IO.println(s"wczytano: ${applied.classes} oddziałów, " +
+                   s"${applied.lessonLines} linii, ${applied.crossClassUnits} zespołów, " +
+                   s"${applied.individualLessons} godz. nauczania indywidualnego")
+          yield ExitCode.Success
     yield code
 
   /** A week that breaks a rule is reported, never quietly made the school's. */

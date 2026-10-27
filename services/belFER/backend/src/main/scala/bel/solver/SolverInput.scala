@@ -158,6 +158,8 @@ object SolverInput:
     case CrossClass(unitId: UUID, groupId: UUID, classId: UUID, block: Int)
     /** The taught group, as distinct from the classes it draws from. */
     case CrossClassGroupRef(unitId: UUID, groupId: UUID, block: Int)
+    /** One student taught alone: books a teacher and a room, and no class. */
+    case Individual(lessonId: UUID, block: Int)
 
   object LessonRef:
     def parse(id: String): Option[LessonRef] =

@@ -4,6 +4,7 @@ import bel.domain.{LessonAudience, LessonKind}
 import bel.importer.*
 import bel.repository.DoobieMeta.given
 import cats.effect.IO
+import cats.syntax.applicative.*
 import cats.syntax.apply.*
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
@@ -26,7 +27,8 @@ class ImportRepository(xa: Transactor[IO]):
     subjects: Int,
     classes: Int,
     lessonLines: Int,
-    crossClassUnits: Int
+    crossClassUnits: Int,
+    individualLessons: Int
   )
 
   /** What the import would overwrite, so the user can be asked first. */
@@ -37,7 +39,10 @@ class ImportRepository(xa: Transactor[IO]):
       classes  <- sql"SELECT count(*) FROM school_class WHERE school_id = $schoolId".query[Int].unique
       lines    <- sql"SELECT count(*) FROM lesson_line WHERE school_id = $schoolId".query[Int].unique
       units    <- sql"SELECT count(*) FROM cross_class_unit WHERE school_id = $schoolId".query[Int].unique
-    yield Applied(teachers, subjects, classes, lines, units)).transact(xa)
+      tuition  <- sql"""SELECT count(*) FROM individual_lesson l
+                          JOIN individual_plan p ON p.id = l.plan_id
+                        WHERE p.school_id = $schoolId""".query[Int].unique
+    yield Applied(teachers, subjects, classes, lines, units, tuition)).transact(xa)
 
   def apply(schoolId: UUID, plan: ImportPlan): IO[Applied] =
     val program =
@@ -48,9 +53,42 @@ class ImportRepository(xa: Transactor[IO]):
         classes  <- insertClasses(schoolId, plan.classes, teachers)
         lines    <- insertLessonLines(schoolId, plan.lessonLines, classes, subjects, teachers)
         units    <- insertUnits(schoolId, plan.crossClassUnits, classes, subjects, teachers)
+        tuition  <- insertIndividual(schoolId, plan.individualPlans, classes, subjects, teachers)
         _        <- deriveTeacherSubjects(schoolId, plan, classes, subjects, teachers)
-      yield Applied(teachers.size, subjects.size, classes.size, lines, units)
+      yield Applied(teachers.size, subjects.size, classes.size, lines, units, tuition)
     program.transact(xa)
+
+  /**
+   * One student's tuition, without the student.
+   *
+   * The class is kept because the hours belong to it and the planner has to
+   * find them; the initials in the arkusz code are not, so a plan is numbered
+   * within its class.
+   */
+  private def insertIndividual(schoolId: UUID, plans: List[PlannedIndividualPlan],
+                               classes: Map[String, UUID], subjects: Map[String, UUID],
+                               teachers: Map[String, UUID]): ConnectionIO[Int] =
+    plans.flatTraverse { plan =>
+      classes.get(plan.classCode) match
+        case None => List.empty[Int].pure[ConnectionIO]
+        case Some(classId) =>
+          for
+            id <- sql"""
+                    INSERT INTO individual_plan (school_id, class_id, ordinal)
+                    VALUES ($schoolId, $classId, ${plan.ordinal})
+                  """.update.withUniqueGeneratedKeys[UUID]("id")
+            written <- plan.lessons.flatTraverse { lesson =>
+              subjects.get(lesson.subjectCode) match
+                case None => List.empty[Int].pure[ConnectionIO]
+                case Some(subjectId) =>
+                  sql"""
+                    INSERT INTO individual_lesson (plan_id, subject_id, teacher_id, blocks)
+                    VALUES ($id, $subjectId,
+                            ${lesson.teacherCode.flatMap(teachers.get)}, ${lesson.blocks})
+                  """.update.run.map(List(_))
+            }
+          yield written
+    }.map(_.sum)
 
   /**
    * Rooms and room kinds are deliberately left alone: the arkusz does not

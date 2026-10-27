@@ -31,7 +31,20 @@ object ArkuszMapper:
   // individual-teaching plan, identified by their initials.
   private val RealClass = """^(\d)([A-ZĄĆĘŁŃÓŚŹŻ])$""".r
 
+  /**
+   * A pseudo-class: a real class's code with a student's initials after it.
+   * Only the class part is kept — the initials identify a child.
+   */
+  private val IndividualClass = """^(\d[A-ZĄĆĘŁŃÓŚŹŻ])[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+$""".r
+
   private val OptionalSubjectHints = Set("religia", "etyka")
+
+  /**
+   * Days a week a class is in school. The arkusz does not say, and the school
+   * setting is not available here, so five is assumed — which it is for every
+   * Polish liceum and is the number the rest of belFER defaults to.
+   */
+  private val TeachingDays = 5
 
   def map(doc: ArkuszDocument, weeks: WeekRange): ImportPlan =
     map(doc, Options(weeks))
@@ -44,9 +57,6 @@ object ArkuszMapper:
 
     // ── Classes ───────────────────────────────────────────────────────────────
     val (realClasses, individual) = doc.classes.partition(c => RealClass.matches(c.code))
-    if individual.nonEmpty then
-      info(s"Pominięto ${individual.size} planów nauczania indywidualnego — " +
-        "belFER nie obsługuje ich jeszcze")
 
     val classes = realClasses.map { c =>
       val RealClass(year, letter) = c.code: @unchecked
@@ -170,7 +180,44 @@ object ArkuszMapper:
     // schedulable, by putting the lesson at an end of the day, but it is not
     // what the school wants and it is better said at import than discovered
     // when the plan comes out with half a class arriving late.
-    val sharedHalves = collapsedLines
+    // ── Hours that will not fit as singles ────────────────────────────────
+    //
+    // The arkusz states a count and never a shape, and singles are the honest
+    // default — but a class sees a subject at most once a day, so six hours of
+    // maths cannot be six separate lessons in a five-day week. Where that
+    // happens the double is forced rather than preferred, and pairing just
+    // enough of them is the smallest change that makes the week possible.
+    //
+    // Left alone otherwise: the school decides where it wants doubles, and
+    // guessing on its behalf is how a timetable stops looking like the one
+    // they asked for.
+    val fitted =
+      collapsedLines
+        .groupBy(l => (l.classCode, l.subjectCode, l.audience))
+        .toList
+        .sortBy((key, _) => (key._1, key._2, key._3.toString))
+        .map { case (key, group) =>
+          var blocks = group.map(_.blocks)
+          def total = blocks.map(_.size).sum
+          val before = total
+          while total > TeachingDays && blocks.exists(_.count(_ == 1) >= 2) do
+            val index = blocks.indices.maxBy(i => blocks(i).count(_ == 1))
+            val singles = blocks(index).count(_ == 1)
+            blocks = blocks.updated(index,
+              (blocks(index).filter(_ != 1) ++ List.fill(singles / 2)(2)
+                ++ List.fill(singles % 2)(1)).sorted)
+          (key, before > total, group.zip(blocks).map((line, shape) => line.copy(blocks = shape)))
+        }
+
+    val fittedLines = fitted.flatMap(_._3)
+    val reshaped = fitted.filter(_._2).map(_._1)
+    if reshaped.nonEmpty then
+      warn(s"W ${reshaped.size} przedmiotach godziny nie zmieściłyby się w tygodniu jako " +
+        "pojedyncze lekcje — połączono część w bloki dwugodzinne: " +
+        reshaped.take(6).map((cls, subject, _) => s"$cls ${subjectLabel(doc, subject)}")
+          .mkString(", ") + (if reshaped.sizeIs > 6 then ", …" else ""))
+
+    val sharedHalves = fittedLines
       .filter(_.audience != LessonAudience.WHOLE_CLASS)
       .groupBy(l => (l.classCode, l.subjectCode))
       .count { (_, group) =>
@@ -183,7 +230,7 @@ object ArkuszMapper:
         "odbywać się jednocześnie, więc zostaną zaplanowane na początku lub końcu dnia, " +
         "a druga połowa klasy przyjdzie później albo wyjdzie wcześniej")
 
-    val multiTeacher = collapsedLines
+    val multiTeacher = fittedLines
       .groupBy(l => (l.classCode, l.subjectCode))
       .count((_, group) => group.map(_.teacherCode).distinct.sizeIs > 1)
     if multiTeacher > 0 then
@@ -205,13 +252,50 @@ object ArkuszMapper:
     // ── Cross-class lessons ───────────────────────────────────────────────────
     val crossClassUnits = buildUnits(doc, inRange, independent, knownClasses, baseOf, warn)
 
+    // ── Nauczanie indywidualne ────────────────────────────────────────────
+    //
+    // One student taught alone, carried in the arkusz as a pseudo-class whose
+    // code is that student's class followed by their initials. Neither the
+    // initials nor the name comes across — a named minor beside their
+    // provision is the most sensitive thing in the file — but the hours do,
+    // because they are taught by the people who teach the classes and a plan
+    // that does not know about them will commit somebody twice over.
+    val individualPlans =
+      individual.flatMap { pseudo =>
+        IndividualClass.unapplySeq(pseudo.code).map(parts => parts.head -> pseudo)
+      }
+      .filter((classCode, _) => knownClasses.contains(classCode))
+      .groupBy((classCode, _) => classCode)
+      .toList.sortBy(_._1)
+      .flatMap { (classCode, pseudos) =>
+        // Numbered after the empty ones are dropped, so a class with one plan
+        // calls it the first rather than the second.
+        pseudos
+          .map((_, pseudo) => doc.assignments
+            .filter(a => a.classCode.contains(pseudo.code))
+            .flatMap(a => Option.when(a.hours > 0)(
+              PlannedIndividualLesson(a.subjectCode, a.teacherCode, List.fill(a.hours)(1)))))
+          .filter(_.nonEmpty)
+          .zipWithIndex
+          .map((lessons, index) => PlannedIndividualPlan(classCode, index + 1, lessons))
+      }
+
+    val skipped = individual.size - individualPlans.size
+    if individualPlans.nonEmpty then
+      info(s"Wczytano ${individualPlans.size} planów nauczania indywidualnego " +
+        s"(${individualPlans.map(_.lessons.map(_.blocks.sum).sum).sum} godz.) — " +
+        "bez danych ucznia, zapisany jest tylko oddział i liczba godzin")
+    if skipped > 0 then
+      info(s"Pominięto $skipped planów nauczania indywidualnego bez przydzielonych godzin")
+
     ImportPlan(
       schoolName = doc.school.name,
       teachers = doc.teachers.map(t => PlannedTeacher(t.code, t.firstName, t.lastName, t.pensum)),
       subjects = subjects,
       classes = classes,
-      lessonLines = collapsedLines,
+      lessonLines = fittedLines,
       crossClassUnits = crossClassUnits,
+      individualPlans = individualPlans,
       notes = notes.result()
     )
 
@@ -335,12 +419,32 @@ object ArkuszMapper:
           s"(${hours.sorted.mkString(", ")}), a odbywają się jednocześnie")
 
       val classes = component.flatMap(_.classCodes).distinct.sorted
+
+      // Every group of a unit runs at the same hour, so one person cannot have
+      // two of them. Where the arkusz lists two under one teacher it is
+      // describing one group twice — the same ethics class written once for
+      // the second years and once again with a fourth year added — so they
+      // are folded together rather than taken at face value, which would make
+      // the unit impossible before anyone scheduled it.
+      val folded = component
+        .groupBy(_.teacherCode)
+        .toList.sortBy(_._1.getOrElse(""))
+        .flatMap { (teacher, sharing) =>
+          if teacher.isEmpty || sharing.sizeIs == 1 then
+            sharing.map(c => PlannedCrossClassGroup(c.label, c.teacherCode, c.classCodes))
+          else
+            warn(s"${component.head.label}: ${sharing.size} grup tego zespołu prowadzi " +
+              s"ta sama osoba, a odbywają się jednocześnie — połączono je w jedną")
+            List(PlannedCrossClassGroup(
+              sharing.map(_.label).min, teacher,
+              sharing.flatMap(_.classCodes).distinct.sorted))
+        }
+
       PlannedCrossClassUnit(
         subjectCode = component.head.subject,
         name = s"${subjectLabel(doc, component.head.subject)} — ${classes.mkString(", ")}",
         blocks = List.fill(hours.min.max(1))(1),
-        groups = component.map(c =>
-          PlannedCrossClassGroup(c.label, c.teacherCode, c.classCodes))
+        groups = folded
       )
     }
 

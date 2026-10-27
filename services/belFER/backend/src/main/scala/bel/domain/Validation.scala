@@ -42,6 +42,8 @@ case class SchoolSnapshot(
   subjects: List[Subject],
   lessonLines: List[LessonLine],
   crossClassUnits: List[CrossClassUnit],
+  /** One student taught alone — hours that book a teacher like any other. */
+  individualPlans: List[IndividualPlan] = Nil,
   teacherSubjects: Map[UUID, Set[UUID]],
   roomsOfKind: Map[UUID, Int],
   totalRooms: Int,

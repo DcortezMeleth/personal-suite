@@ -19,7 +19,8 @@ class SnapshotLoader(
   subjects: SubjectRepository,
   lines: LessonLineRepository,
   crossClass: CrossClassUnitRepository,
-  rooms: RoomRepository
+  rooms: RoomRepository,
+  individual: IndividualPlanRepository
 ):
 
   def load(schoolId: UUID): IO[Option[SchoolSnapshot]] =
@@ -33,6 +34,7 @@ class SnapshotLoader(
           allSubjects <- subjects.findAll(schoolId)
           allLines    <- lines.findForSchool(schoolId)
           units       <- crossClass.findAll(schoolId)
+          plans       <- individual.findAll(schoolId)
           allRooms    <- rooms.findRooms(schoolId)
           kinds       <- rooms.findKinds(schoolId)
           counts      <- kinds.traverse(kind => rooms.roomsOfKind(kind.id).map(count => kind.id -> count))
@@ -45,6 +47,7 @@ class SnapshotLoader(
           subjects = allSubjects,
           lessonLines = allLines,
           crossClassUnits = units,
+          individualPlans = plans,
           teacherSubjects = allTeachers.map(t => t.id -> t.subjectIds.toSet).toMap,
           roomsOfKind = counts.toMap,
           totalRooms = allRooms.size

@@ -31,6 +31,7 @@ case class Plan(
 case class Placement(
   lessonLineId: Option[UUID],
   crossClassGroupId: Option[UUID],
+  individualLessonId: Option[UUID],
   blockIndex: Int,
   /** One-based, as the bell schedule is. */
   dayOfWeek: Int,

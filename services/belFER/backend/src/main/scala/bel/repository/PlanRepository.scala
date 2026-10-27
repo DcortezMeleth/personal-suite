@@ -23,7 +23,7 @@ class PlanRepository(xa: Transactor[IO]):
 
   def placements(planId: UUID): IO[List[Placement]] =
     sql"""
-      SELECT lesson_line_id, cross_class_group_id, block_index,
+      SELECT lesson_line_id, cross_class_group_id, individual_lesson_id, block_index,
              day_of_week, position, room_id
       FROM plan_placement WHERE plan_id = $planId
       ORDER BY day_of_week, position
@@ -47,9 +47,9 @@ class PlanRepository(xa: Transactor[IO]):
       id <- insert
       _  <- Update[(UUID, Placement)](
               """INSERT INTO plan_placement
-                   (plan_id, lesson_line_id, cross_class_group_id, block_index,
-                    day_of_week, position, room_id)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"""
+                   (plan_id, lesson_line_id, cross_class_group_id, individual_lesson_id,
+                    block_index, day_of_week, position, room_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
             ).updateMany(plan.placements.map(id -> _))
       saved <- (fr"SELECT" ++ columns ++ fr"FROM plan WHERE id = $id").query[Plan].unique
     yield saved

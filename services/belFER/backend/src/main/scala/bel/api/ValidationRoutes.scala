@@ -37,11 +37,12 @@ class ValidationRoutes(
   subjects: SubjectRepository,
   lines: LessonLineRepository,
   crossClass: CrossClassUnitRepository,
-  rooms: RoomRepository
+  rooms: RoomRepository,
+  individual: IndividualPlanRepository
 ):
 
   private val loader =
-    SnapshotLoader(schools, classes, teachers, subjects, lines, crossClass, rooms)
+    SnapshotLoader(schools, classes, teachers, subjects, lines, crossClass, rooms, individual)
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 

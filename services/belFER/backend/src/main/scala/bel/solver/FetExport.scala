@@ -64,11 +64,12 @@ object FetExport:
   )
 
   def apply(snapshot: SchoolSnapshot, rooms: List[Room]): Written =
+    val kindNames = rooms.flatMap(_.kinds).map(k => k.id -> k.name).toMap
     val subjects = snapshot.subjects.map(s => s.id -> s.name).toMap
     val teachers = snapshot.teachers.map(t => t.id -> s"${t.lastName} ${t.firstName} (${t.code})").toMap
     val classes = snapshot.classes.map(c => c.id -> c.name).toMap
 
-    val acts = activities(snapshot, subjects, teachers, classes)
+    val acts = activities(snapshot, subjects, teachers, classes, kindNames)
     val means = acts.flatMap(a => a.means.map(a.id -> _)).toMap
     val b = StringBuilder()
 
@@ -276,7 +277,8 @@ object FetExport:
 
   /** Every block of every lesson line, and every class's share of every unit. */
   private def activities(snapshot: SchoolSnapshot, subjects: Map[UUID, String],
-                         teachers: Map[UUID, String], classes: Map[UUID, String]): List[Act] =
+                         teachers: Map[UUID, String], classes: Map[UUID, String],
+                         kindNames: Map[UUID, String]): List[Act] =
     var next = 1
     var group = 1
     val out = List.newBuilder[Act]
@@ -346,6 +348,28 @@ object FetExport:
           // A cross-class group is part of a class, never a whole one.
           wholeClass = false)
         next += 1
+
+    // ── Nauczanie indywidualne ────────────────────────────────────────────
+    //
+    // One student, so no student set: the class is not busy, because the
+    // student is not in it. What it does book is the teacher — which is the
+    // whole reason for carrying these at all — and one of the rooms the school
+    // keeps for it.
+    val individualKind = snapshot.roomsOfKind.keys.find(id =>
+      kindNames.get(id).exists(_.equalsIgnoreCase(IndividualTuition.RoomKindName)))
+    for
+      plan <- snapshot.individualPlans
+      lesson <- plan.lessons
+      (length, block) <- lesson.blocks.zipWithIndex
+    do
+      val mine = group
+      group += 1
+      out += Act(next, lesson.teacherId.toList.flatMap(teachers.get),
+        subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
+        optional = false, sameTimeAs = None,
+        means = Some(SolverInput.LessonRef.Individual(lesson.id, block)),
+        roomKind = individualKind, wholeClass = false)
+      next += 1
 
     out.result()
 

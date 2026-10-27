@@ -48,7 +48,7 @@ class ValidationSpec extends AnyFunSuite:
       Subject(mathsId, "matematyka", "Matematyka", false, None, false),
       Subject(homeroomId, "zaj. z wych.", "Zajęcia z wychowawcą", false, None, false)
     ),
-    lines, units, teacherSubjects, rooms,
+    lines, units, Nil, teacherSubjects, rooms,
     // Enough that rooms are never the thing under test here; the room bound
     // has its own case below.
     totalRooms = 100)

@@ -77,7 +77,8 @@ object PlanCheck:
 
     // ── Everything that has to happen, happening once ────────────────────
     val wanted = s.lessonLines.map(_.blocks.size).sum +
-      s.crossClassUnits.map(u => u.blocks.size * u.groups.size).sum
+      s.crossClassUnits.map(u => u.blocks.size * u.groups.size).sum +
+      s.individualPlans.flatMap(_.lessons).map(_.blocks.size).sum
     val taught = plan.count(!_.derived)
     rules += Rule("R7", "każdy blok ułożony dokładnie raz", taught == wanted,
       if taught == wanted then "" else s"$taught z $wanted")
@@ -184,8 +185,11 @@ object PlanCheck:
       val byId = rooms.map(r => r.id -> r).toMap
       val taught = plan.filterNot(_.derived)
 
+      // Only of a lesson that has a class in it. One student taught alone
+      // fits anywhere, which is the whole point of the small rooms the school
+      // keeps for it.
       val tooSmall = taught.count(x =>
-        x.audience == LessonAudience.WHOLE_CLASS &&
+        x.classIds.nonEmpty && x.audience == LessonAudience.WHOLE_CLASS &&
           x.roomId.flatMap(byId.get).exists(!_.fitsWholeClass))
       rule("R3b", "cała klasa mieści się w sali, którą dostała", tooSmall, "lekcji")
 

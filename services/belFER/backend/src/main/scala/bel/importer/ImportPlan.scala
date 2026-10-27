@@ -48,6 +48,25 @@ enum NoteLevel:
 
 case class ImportNote(level: NoteLevel, message: String)
 
+/**
+ * One student's individual tuition, as the arkusz describes it.
+ *
+ * The pseudo-class code carries the student's initials and the name carries
+ * their full name beside their provision, so neither comes across: what the
+ * timetable needs is the class it belongs to and the hours it costs.
+ */
+case class PlannedIndividualPlan(
+  classCode: String,
+  ordinal: Int,
+  lessons: List[PlannedIndividualLesson]
+)
+
+case class PlannedIndividualLesson(
+  subjectCode: String,
+  teacherCode: Option[String],
+  blocks: List[Int]
+)
+
 case class ImportPlan(
   schoolName: String,
   teachers: List[PlannedTeacher],
@@ -55,6 +74,7 @@ case class ImportPlan(
   classes: List[PlannedClass],
   lessonLines: List[PlannedLessonLine],
   crossClassUnits: List[PlannedCrossClassUnit],
+  individualPlans: List[PlannedIndividualPlan],
   notes: List[ImportNote]
 ):
   def warnings: List[ImportNote] = notes.filter(_.level == NoteLevel.Warning)
