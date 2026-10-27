@@ -56,7 +56,11 @@ object FetExport:
     /** Activities that must begin at the same hour as this one. */
     sameTimeAs: Option[Int],
     /** What this activity is, in our own terms. */
-    means: Option[SolverInput.LessonRef]
+    means: Option[SolverInput.LessonRef],
+    /** The kind of room it needs, when it needs a particular one. */
+    roomKind: Option[UUID],
+    /** Whether a whole class has to fit in the room. */
+    wholeClass: Boolean
   )
 
   def apply(snapshot: SchoolSnapshot, rooms: List[Room]): Written =
@@ -133,8 +137,17 @@ object FetExport:
     b ++= "<Buildings_List>\n</Buildings_List>\n\n"
     b ++= "<Rooms_List>\n"
     for room <- rooms do
-      b ++= s"\t<Room>\n\t\t<Name>${esc(room.name.getOrElse(room.number))}</Name>\n"
-      b ++= "\t\t<Building></Building>\n\t\t<Capacity>30</Capacity>\n"
+      b ++= s"\t<Room>\n\t\t<Name>${esc(roomName(room))}</Name>\n"
+      // A capacity that never binds, because we do not have capacities. The
+      // model keeps a "fits a whole class" flag and nothing numeric, so any
+      // number here would be invented — and inventing thirty is how the first
+      // attempt at room constraints came to be refused outright: a lesson
+      // standing for seven classes at once counts as two hundred students,
+      // and no room holds two hundred. Those students are in seven rooms, and
+      // the lesson that says so is bookkeeping rather than a place anybody
+      // sits. Until rooms carry a real size, the honest thing is to say that
+      // size is not something we know.
+      b ++= "\t\t<Building></Building>\n\t\t<Capacity>10000</Capacity>\n"
       b ++= "\t\t<Virtual>false</Virtual>\n\t\t<Comments></Comments>\n\t</Room>\n"
     b ++= "</Rooms_List>\n\n"
 
@@ -213,6 +226,50 @@ object FetExport:
     b ++= "</Time_Constraints_List>\n\n"
     b ++= "<Space_Constraints_List>\n"
     b ++= constraint("ConstraintBasicCompulsorySpace", Nil)
+
+    // Which rooms a subject may use.
+    //
+    // Without this nothing in the file says a lesson needs a room at all, so
+    // FET assigns none and has no reason to keep two lessons out of the same
+    // one — which is how the first week we generated came to put thirty-six
+    // lessons into one hour in a building with thirty-two rooms. The rooms
+    // were listed; nobody had said they were needed.
+    //
+    // Stated per subject rather than per lesson: a dozen constraints instead
+    // of eleven hundred, saying the same thing. A subject wanting a particular
+    // kind of room gets the rooms of that kind; everything else gets whatever
+    // the school has.
+    // Said of the lesson rather than of the subject, because the lessons
+    // standing for a class's share of a cross-class block are bookkeeping and
+    // need no room at all — the groups being taught have the rooms. Stating it
+    // per subject catches those too, and a week where the same hour is wanted
+    // by five activities and three of them are fictional is a week FET refuses
+    // before it starts.
+    // An ordinary room is one that carries no speciality: offering the sports
+    // hall to a maths lesson is how sixty-odd ordinary lessons came to be
+    // timetabled in the gym, and it takes the hall away from the PE that
+    // needs it.
+    val ordinary = rooms.filter(_.kinds.isEmpty)
+    for a <- acts if a.means.isDefined do
+      val allowed = a.roomKind match
+        case Some(kind) =>
+          val fitting = rooms.filter(_.kinds.exists(_.id == kind)).map(roomName)
+          // A requirement no room satisfies is a data fault. Saying "nowhere"
+          // here turns it into an unsolvable week with no explanation;
+          // validation is the place to complain about it.
+          if fitting.nonEmpty then fitting else ordinary.map(roomName)
+        case None =>
+          // A whole class does not fit in a room meant for half of one. The
+          // school keeps three such rooms and they are worth having, but only
+          // for the lessons a split puts in them.
+          val fitting = if a.wholeClass then ordinary.filter(_.fitsWholeClass) else ordinary
+          fitting.map(roomName)
+      if allowed.nonEmpty then
+        b ++= constraint("ConstraintActivityPreferredRooms",
+          ("Activity_Id" -> a.id.toString)
+            :: ("Number_of_Preferred_Rooms" -> allowed.size.toString)
+            :: allowed.map("Preferred_Room" -> _))
+
     b ++= "</Space_Constraints_List>\n\n"
     b ++= "</fet>\n"
     Written(b.result(), means)
@@ -248,7 +305,10 @@ object FetExport:
         out += Act(next, staff, subject, List(who), length, mine,
           optional = snapshot.subjects.find(_.id == line.subjectId).exists(_.optional),
           sameTimeAs = None,
-          means = Some(SolverInput.LessonRef.Line(line.id, block)))
+          means = Some(SolverInput.LessonRef.Line(line.id, block)),
+          roomKind = snapshot.subjects.find(_.id == line.subjectId)
+            .flatMap(_.requiredRoomKind).map(_.id),
+          wholeClass = line.audience == LessonAudience.WHOLE_CLASS)
         next += 1
 
     // A cross-class block is two different things at once and has to be said
@@ -274,13 +334,17 @@ object FetExport:
       // so it has no single lesson to name; the classes learn their hour from
       // the group activities, which do.
       out += Act(anchor, Nil, subject, unit.classIds.toList.flatMap(classes.get).distinct.sorted,
-        length, mine, optional, sameTimeAs = None, means = None)
+        length, mine, optional, sameTimeAs = None, means = None, roomKind = None,
+        wholeClass = false)
       next += 1
 
       for g <- unit.groups do
         out += Act(next, g.teacherId.toList.flatMap(teachers.get), subject, Nil, length, mine,
           optional = false, sameTimeAs = Some(anchor),
-          means = Some(SolverInput.LessonRef.CrossClassGroupRef(unit.id, g.id, block)))
+          means = Some(SolverInput.LessonRef.CrossClassGroupRef(unit.id, g.id, block)),
+          roomKind = unit.requiredRoomKindId,
+          // A cross-class group is part of a class, never a whole one.
+          wholeClass = false)
         next += 1
 
     out.result()
@@ -292,6 +356,9 @@ object FetExport:
     b ++= "\t\t<Active>true</Active>\n\t\t<Comments></Comments>\n"
     b ++= s"\t</$name>\n"
     b.result()
+
+  /** How a room is named in the file. The number, because it is unique. */
+  private def roomName(room: Room): String = room.number
 
   private def esc(s: String): String =
     s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

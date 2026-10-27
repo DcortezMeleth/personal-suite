@@ -76,7 +76,10 @@ mistake somewhere in ~500 assignment rows.
 | …working fewer than 5 days a week | ≈ 15 |
 | Slots per day | 8 (Mon–Fri ⇒ 40 slots per week) |
 | Weekly hours **per student** | 27 minimum, 38 maximum (estimates) |
-| PE-capable rooms | ≈ 6 (3 sports-hall sections + extras), configurable |
+| PE-capable rooms | **6**: Hala 1–3, bilard, fitness, gimn |
+| Rooms holding a whole class | **25**: 22–25, 28–30, 33–37, 39–41, 44–49, 56–59 |
+| Rooms holding half a class | **3**: 20, 28z, 55 |
+| Individual-tuition rooms | 6: NI, NI2, nowa_port, 57z, 58z, 59z — ⚠ **not in the timetable**, see §2.4 |
 
 ---
 
@@ -187,8 +190,17 @@ Rooms are a genuine scheduling resource.
   which case an ordinary room must be usable. This is a **per-subject flag**:
   normally required, but overridable when the school knows demand exceeds
   supply.
-- The **sports hall splits into 3 sections**, and there are additional PE
-  rooms — roughly 6 PE-capable spaces in total. Rooms and their kinds are
+- The **sports hall splits into 3 sections**, and there are three further PE
+  spaces — bilard, fitness and gimn — six in all. That number is not slack:
+  this school's PE wants 138 room-hours a week and six spaces offer 240, where
+  three would offer 120 and make the week impossible before anyone scheduled
+  it.
+- ⚠ **The six individual-tuition rooms are assumed to be outside the class
+  timetable.** Nauczanie indywidualne is arranged per student rather than per
+  class, so those rooms are not offered to ordinary lessons. If some of them
+  are in fact used for classes, that is three more rooms of ordinary capacity
+  and the week has more room to move than we are giving it. **To confirm.**
+- Rooms and their kinds are
   **configurable**, so this is data, not code.
 - **Several PE teachers can teach at the same time.**
 - Specialist rooms are sometimes too small for a whole class — which is *why*

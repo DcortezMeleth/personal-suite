@@ -642,12 +642,12 @@ object SolveCli extends IOApp:
              f"${outcome.result.placed.size} zajęć")
       _ <- outcome.report.rules.traverse_(r =>
              IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
-      code <- keepIfSound(xa, schoolId, snapshot, outcome)
+      code <- keepIfSound(xa, schoolId, rooms, outcome)
     yield code
 
   /** A week that breaks a rule is reported, never quietly made the school's. */
   private def keepIfSound(xa: doobie.Transactor[IO], schoolId: UUID,
-                          snapshot: SchoolSnapshot, outcome: FetRunner.Outcome): IO[ExitCode] =
+                          rooms: List[Room], outcome: FetRunner.Outcome): IO[ExitCode] =
     if !outcome.report.sound || !outcome.result.complete then
       IO.println("plan łamie reguły — nie zapisuję").as(ExitCode(1))
     else
@@ -659,7 +659,7 @@ object SolveCli extends IOApp:
                    tookMillis = Some(outcome.millis.toInt),
                    rulesKept = Some(outcome.report.kept),
                    rulesTotal = Some(outcome.report.rules.size),
-                   placements = FetRunner.placements(outcome.result, snapshot)))
+                   placements = FetRunner.placements(outcome.result, rooms)))
         _ <- plans.makeCurrent(schoolId, saved.id)
         _ <- IO.println(s"zapisano plan ${saved.id} i ustawiono jako bieżący")
       yield ExitCode.Success
@@ -672,7 +672,7 @@ object SolveCli extends IOApp:
       result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
       _ <- IO.println(f"odczytano ${result.placed.size} zajęć, " +
              f"${result.unplaced} bez godziny")
-      report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed))
+      report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed, rooms), rooms)
       _ <- IO.println(f"%nreguły: ${report.kept} z ${report.rules.size} sprawdzanych spełnionych" +
              f" (${PlanCheck.notChecked.size} reguł nie da się tu sprawdzić)")
       _ <- report.rules.traverse_(r =>

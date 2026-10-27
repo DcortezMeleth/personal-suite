@@ -24,7 +24,9 @@ import scala.jdk.CollectionConverters.*
 object FetImport:
 
   /** Where one lesson ended up. */
-  case class Placed(what: SolverInput.LessonRef, day: Int, position: Int, length: Int)
+  case class Placed(what: SolverInput.LessonRef, day: Int, position: Int, length: Int,
+                    /** The room FET put it in, by the name we gave the room. */
+                    room: Option[String])
 
   case class Result(placed: List[Placed], unplaced: Int):
     def complete: Boolean = unplaced == 0
@@ -57,7 +59,7 @@ object FetImport:
         what <- means.get(id)
         day  <- child(e, "Day").flatMap(byName.get)
         hour <- child(e, "Hour").flatMap(_.toIntOption)
-      yield Placed(what, day, hour - 1, 1)
+      yield Placed(what, day, hour - 1, 1, child(e, "Room").filter(_.nonEmpty))
     }
 
     // Anything we asked about and did not get an hour for. FET will not
@@ -72,13 +74,15 @@ object FetImport:
    * teaches it and whether it may sit in the middle of a day all live in the
    * school rather than in the answer, so they are looked up here.
    */
-  def expand(s: SchoolSnapshot, placed: List[Placed]): List[PlanCheck.Scheduled] =
+  def expand(s: SchoolSnapshot, placed: List[Placed],
+             rooms: List[Room] = Nil): List[PlanCheck.Scheduled] =
+    val byNumber = rooms.map(r => r.number -> r.id).toMap
     val lines = s.lessonLines.map(l => l.id -> l).toMap
     val units = s.crossClassUnits.map(u => u.id -> u).toMap
     val optional = s.subjects.filter(_.optional).map(_.id).toSet
 
     val ordinary = placed.collect {
-      case Placed(SolverInput.LessonRef.Line(lineId, block), day, from, _)
+      case Placed(SolverInput.LessonRef.Line(lineId, block), day, from, _, where)
         if lines.contains(lineId) =>
         val l = lines(lineId)
         PlanCheck.Scheduled(
@@ -88,7 +92,10 @@ object FetImport:
           teacherIds = (l.teacherId.toList ++ l.supportTeacherId.toList).toSet,
           day = day, from = from,
           length = l.blocks.lift(block).getOrElse(1),
-          optional = optional.contains(l.subjectId))
+          optional = optional.contains(l.subjectId),
+          roomId = where.flatMap(byNumber.get),
+          needsKind = s.subjects.find(_.id == l.subjectId)
+            .flatMap(_.requiredRoomKind).map(_.id))
     }
 
     // A cross-class block is one hour for the classes and several lessons for
@@ -97,10 +104,10 @@ object FetImport:
     // groups look booked three times over — which is the same mistake the
     // export made, and is why the check is written separately from it.
     val crossPlacements = placed.collect {
-      case p @ Placed(ref: SolverInput.LessonRef.CrossClassGroupRef, _, _, _) => (ref, p)
+      case q @ Placed(ref: SolverInput.LessonRef.CrossClassGroupRef, _, _, _, _) => (ref, q)
     }
 
-    val teaching = crossPlacements.flatMap { (ref, p) =>
+    val teaching = crossPlacements.flatMap { (ref, q) =>
       for
         unit <- units.get(ref.unitId)
         group <- unit.groups.find(_.id == ref.groupId)
@@ -109,9 +116,11 @@ object FetImport:
         audience = LessonAudience.WHOLE_CLASS,
         subjectId = unit.subjectId,
         teacherIds = group.teacherId.toSet,
-        day = p.day, from = p.position,
+        day = q.day, from = q.position,
         length = unit.blocks.lift(ref.block).getOrElse(1),
-        optional = optional.contains(unit.subjectId))
+        optional = optional.contains(unit.subjectId),
+        roomId = q.room.flatMap(byNumber.get),
+        needsKind = unit.requiredRoomKindId)
     }
 
     val occupancy = crossPlacements

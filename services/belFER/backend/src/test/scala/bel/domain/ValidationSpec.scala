@@ -341,3 +341,32 @@ class ValidationSpec extends AnyFunSuite:
       s"expected group 2 to be flagged, got: ${found.map(_.message).mkString("; ")}")
     assert(!blocking.exists(_.message.contains("grupa 1 ma")),
       s"group 1 fits in the week; got: ${blocking.map(_.message).mkString(" | ")}")
+
+  test("a specialist room that cannot hold the hours asked of it is blocking"):
+    // Three gym sections give three lessons an hour and a hundred and twenty
+    // in a week. Nine classes taking five hours of PE in three groups want a
+    // hundred and thirty-five, and no arrangement of the week gets there.
+    //
+    // Each unit on its own fits — three groups into three sections — so the
+    // existing per-hour check has nothing to say. This is the one that counts
+    // the week.
+    val gym = RoomKind(UUID.randomUUID, "Sala gimnastyczna")
+    val pe = UUID.randomUUID
+    val classes = (0 until 9).map(i => cls(s"1${('A' + i).toChar}")).toList
+    val units = classes.map { c =>
+      CrossClassUnit(UUID.randomUUID, pe, s"WF ${c.name}", Some(gym.id), List(1, 1, 1, 1, 1),
+        List(CrossClassGroup(UUID.randomUUID, "g1", None, List(c.id)),
+             CrossClassGroup(UUID.randomUUID, "g2", None, List(c.id)),
+             CrossClassGroup(UUID.randomUUID, "g3", None, List(c.id))))
+    }
+    val s = snapshot(classes = classes, units = units, rooms = Map(gym.id -> 3))
+      .copy(subjects = List(
+        Subject(pe, "wf", "Wychowanie fizyczne", false, Some(gym), true)))
+    val found = Validation.run(s).filter(_.severity == Severity.Blocking)
+    assert(found.exists(_.message.contains("najwyżej 120")),
+      s"expected the gym to be flagged for the week, got: ${found.map(_.message).mkString("; ")}")
+
+  test("a specialist room nobody asks for is not complained about"):
+    val lab = RoomKind(UUID.randomUUID, "Pracownia chemiczna")
+    val s = snapshot(rooms = Map(lab.id -> 0))
+    assert(!Validation.run(s).exists(_.subject == lab.name))

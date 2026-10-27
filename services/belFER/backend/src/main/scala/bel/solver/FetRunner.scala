@@ -69,7 +69,7 @@ object FetRunner:
         xml <- readAnswer(dir)
         done <- IO.monotonic
         result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
-        report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed))
+        report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed, rooms), rooms)
       yield Outcome(result, report, (done - started).toMillis)
     }
 
@@ -111,13 +111,21 @@ object FetRunner:
       Files.readString(found.get)
     }
 
-  /** The placements, in the shape the database keeps them. */
-  def placements(result: FetImport.Result, snapshot: SchoolSnapshot): List[Placement] =
+  /**
+   * The placements, in the shape the database keeps them.
+   *
+   * FET answers with the room's name, which is the number we gave it, so the
+   * rooms are looked back up here rather than thrown away — a plan without
+   * them is a plan nobody can hang in a corridor.
+   */
+  def placements(result: FetImport.Result, rooms: List[Room]): List[Placement] =
+    val byName = rooms.map(r => r.number -> r.id).toMap
     result.placed.flatMap { p =>
+      val room = p.room.flatMap(byName.get)
       p.what match
         case SolverInput.LessonRef.Line(lineId, block) =>
-          Some(Placement(Some(lineId), None, block, p.day + 1, p.position + 1, None))
+          Some(Placement(Some(lineId), None, block, p.day + 1, p.position + 1, room))
         case SolverInput.LessonRef.CrossClassGroupRef(_, groupId, block) =>
-          Some(Placement(None, Some(groupId), block, p.day + 1, p.position + 1, None))
+          Some(Placement(None, Some(groupId), block, p.day + 1, p.position + 1, room))
         case _ => None
     }

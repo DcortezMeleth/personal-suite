@@ -63,6 +63,7 @@ object Validation:
     classCapacity(s, capacity) ++
       halfCapacity(s, capacity) ++
       roomCapacity(s, capacity) ++
+      specialistRooms(s, capacity) ++
       blocksAcrossDays(s) ++
       groupBalance(s) ++
       sharedTeacherSplits(s) ++
@@ -154,6 +155,41 @@ object Validation:
    * hours of maths arrives as seven blocks wanting seven days, while no single
    * line looks wrong. That is the shape this check exists to catch.
    */
+  /**
+   * A specialist room is only so many hours of the week.
+   *
+   * The sports hall has three sections, so it offers three lessons an hour and
+   * a hundred and twenty in a week however cleverly they are arranged. Asking
+   * for a hundred and thirty-eight is not a hard scheduling problem, it is an
+   * impossible one, and counting says so before anything is searched.
+   *
+   * This went unnoticed because nothing required the hall at all: the room
+   * kind existed, the three sections carried it, and no subject asked for it —
+   * so PE was timetabled into ordinary classrooms and the arithmetic never
+   * came up. A requirement nobody states cannot be broken.
+   */
+  private def specialistRooms(s: SchoolSnapshot, capacity: Int): List[Finding] =
+    val kinds = s.subjects.flatMap(x => x.requiredRoomKind.map(_ -> x)).groupBy(_._1)
+    kinds.toList.sortBy(_._1.name).flatMap { (kind, subjects) =>
+      val wanted = subjects.map(_._2.id).toSet
+      val lineHours = s.lessonLines.filter(l => wanted.contains(l.subjectId)).map(_.hours).sum
+      // Every group of a unit needs a room of its own, at the same hour.
+      val unitHours = s.crossClassUnits.filter(u => wanted.contains(u.subjectId))
+        .map(u => u.hours * u.groups.size).sum
+      val needed = lineHours + unitHours
+      val have = s.roomsOfKind.getOrElse(kind.id, 0)
+      val offered = have * capacity
+
+      if have == 0 && needed > 0 then
+        Some(Finding(Severity.Blocking, kind.name,
+          s"$needed godz. wymaga tej pracowni, a nie ma ani jednej takiej sali"))
+      else if needed > offered then
+        Some(Finding(Severity.Blocking, kind.name,
+          s"$needed godz. wymaga tej pracowni, a $have sal daje najwyżej $offered godz. " +
+            "tygodniowo — nie da się ułożyć"))
+      else None
+    }
+
   private def blocksAcrossDays(s: SchoolSnapshot): List[Finding] =
     val names = s.subjects.map(x => x.id -> x.name).toMap
     val classNames = s.classes.map(c => c.id -> c.name).toMap

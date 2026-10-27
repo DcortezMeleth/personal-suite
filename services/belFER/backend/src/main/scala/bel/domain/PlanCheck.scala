@@ -39,7 +39,11 @@ object PlanCheck:
      * it is written as its own entry so that a class split over three groups
      * is busy once, and that entry is not a thing anybody teaches.
      */
-    derived: Boolean = false
+    derived: Boolean = false,
+    /** The room it was put in, once one has been chosen. */
+    roomId: Option[UUID] = None,
+    /** The kind of room it needs, when it needs a particular one. */
+    needsKind: Option[UUID] = None
   ):
     def positions: Range = from until (from + length)
     /** Which halves of a class this occupies — a whole-class lesson takes both. */
@@ -56,7 +60,6 @@ object PlanCheck:
    * to think sixteen were asked about.
    */
   val notChecked: List[(String, String)] = List(
-    "R3"  -> "sale — nie są jeszcze przydzielane",
     "R6"  -> "blok wielogodzinny jest ciągły — wynika z zapisu, nie da się złamać",
     "R10" -> "obie grupy zajęte naraz — potwierdzone, że to nie jest twarda reguła")
 
@@ -65,7 +68,7 @@ object PlanCheck:
     def broken: List[Rule] = rules.filterNot(_.ok)
     def sound: Boolean = broken.isEmpty
 
-  def apply(s: SchoolSnapshot, plan: List[Scheduled]): Report =
+  def apply(s: SchoolSnapshot, plan: List[Scheduled], rooms: List[Room] = Nil): Report =
     val capacity = s.slotsPerDay
     val subjects = s.subjects.map(x => x.id -> x).toMap
     val rules = List.newBuilder[Rule]
@@ -151,7 +154,57 @@ object PlanCheck:
     }
     rule("R10", "przedmiot nieobowiązkowy jest pierwszy albo ostatni", midDay, "zajęć")
 
-    // ── Cross-class blocks run as one ────────────────────────────────────
+    // ── Somewhere to actually be ─────────────────────────────────────────
+    //
+    // Every lesson being taught needs a room, and the school has as many as it
+    // has. Nothing in the plan says which room, and that is a separate job —
+    // but whether enough of them exist at a given hour is arithmetic, and
+    // arithmetic that was quietly wrong: the first week we generated put
+    // thirty-six lessons into the same hour in a building with thirty-two
+    // rooms, and this check did not exist to say so.
+    val atOnce = plan.filterNot(_.derived)
+      .flatMap(x => x.positions.map(p => (x.day, p)))
+      .groupBy(identity).view.mapValues(_.size)
+    val overcrowded = atOnce.count((_, used) => used > s.totalRooms)
+    val worst = atOnce.values.maxOption.getOrElse(0)
+    rules += Rule("R3",
+      s"nigdy nie potrzeba więcej sal, niż szkoła ma (${s.totalRooms})",
+      overcrowded == 0,
+      if overcrowded == 0 then "" else s"$overcrowded godzin, najwięcej $worst naraz")
+
+    // ── The right room, not just a room ──────────────────────────────────
+    //
+    // Counting that enough rooms exist says nothing about whether a class fits
+    // in the one it was given, or whether a maths lesson has been put in the
+    // sports hall. Both happened the first time rooms were assigned: fifty-five
+    // whole-class lessons in rooms that hold half a class, and sixty-odd
+    // ordinary lessons in the gym, because the file offered every room to
+    // every lesson.
+    if rooms.nonEmpty then
+      val byId = rooms.map(r => r.id -> r).toMap
+      val taught = plan.filterNot(_.derived)
+
+      val tooSmall = taught.count(x =>
+        x.audience == LessonAudience.WHOLE_CLASS &&
+          x.roomId.flatMap(byId.get).exists(!_.fitsWholeClass))
+      rule("R3b", "cała klasa mieści się w sali, którą dostała", tooSmall, "lekcji")
+
+      val wrongKind = taught.count { x =>
+        x.roomId.flatMap(byId.get) match
+          case Some(room) => x.needsKind match
+            // A lesson that needs a particular kind of room has to have one.
+            case Some(kind) => !room.kinds.exists(_.id == kind)
+            // And one that needs nothing in particular should not be taking up
+            // a specialist room that something else needs.
+            case None => room.kinds.nonEmpty
+          case None => false
+      }
+      rule("R3c", "sala specjalistyczna służy temu, do czego jest", wrongKind, "lekcji")
+
+      val double = taught.flatMap(x => x.roomId.toList.flatMap(r => x.positions.map((r, x.day, _))))
+        .groupBy(identity).count(_._2.size > 1)
+      rule("R3d", "dwie lekcje nigdy nie dzielą sali", double, "kolizji")
+
     Report(rules.result())
 
   /** How many (thing, hour) pairs are claimed by more than one lesson. */
