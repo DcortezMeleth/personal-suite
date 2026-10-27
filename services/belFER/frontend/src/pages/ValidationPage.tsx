@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type School, type ValidationReport } from "../api/client";
+import { api, type School, type TeacherGaps, type ValidationReport } from "../api/client";
 
 export function ValidationPage() {
   const [report, setReport] = useState<ValidationReport | null>(null);
+  // Windows only exist once a week has been laid out, so this is empty until
+  // there is a plan — which is an ordinary state rather than a failure.
+  const [gaps, setGaps] = useState<TeacherGaps[]>([]);
   const [school, setSchool] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +17,13 @@ export function ValidationPage() {
       const current = (await api.listSchools())[0] ?? null;
       setSchool(current);
       setReport(current ? await api.validate(current.id) : null);
+      if (current) {
+        try {
+          setGaps(await api.teacherGaps(current.id));
+        } catch {
+          setGaps([]);
+        }
+      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -101,6 +111,42 @@ export function ValidationPage() {
           się raz, zajęcia międzyoddziałowe są wliczone.
         </p>
       </DataCard>
+
+      {gaps.length > 0 && (
+        <DataCard title={`Okienka nauczycieli (${gaps.length})`}>
+          <p className="mb-3 text-sm text-neutral-600">
+            Wolne godziny w środku dnia, w ułożonym planie. Nauczyciele bez okienek nie są tu
+            wymienieni.
+          </p>
+          <table className="w-full text-left text-sm">
+            <thead className="text-neutral-500">
+              <tr>
+                <th className="pb-2">Nauczyciel</th>
+                <th className="pb-2">Okienka</th>
+                <th className="pb-2">Najdłuższe</th>
+                <th className="pb-2">Dni z okienkami</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gaps.map((t) => (
+                <tr key={t.teacher} className="border-t border-neutral-200">
+                  <td className="py-1 text-neutral-700">{t.teacher}</td>
+                  <td className="py-1">{t.gaps}</td>
+                  {/* The rule bounds the longest run, not the total, so that
+                      is the column worth colouring. */}
+                  <td className={`py-1 ${t.longestRun > 2 ? "text-warning-600" : ""}`}>
+                    {t.longestRun}
+                  </td>
+                  <td className="py-1 text-neutral-500">{t.days}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-sm text-neutral-500">
+            Razem {gaps.reduce((sum, t) => sum + t.gaps, 0)} okienek w tygodniu.
+          </p>
+        </DataCard>
+      )}
 
       <DataCard title="Obciążenie nauczycieli">
         <table className="w-full text-left text-sm">

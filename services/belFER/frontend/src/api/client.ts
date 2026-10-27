@@ -286,6 +286,14 @@ export interface Timetable {
   entries: PlanEntry[];
 }
 
+/** A teacher's idle hours in the finished week, for the ones who have any. */
+export interface TeacherGaps {
+  teacher: string;
+  gaps: number;
+  longestRun: number;
+  days: number;
+}
+
 export interface PlanSummary {
   id: string;
   name: string;
@@ -379,6 +387,8 @@ export const api = {
   currentPlan: (schoolId: string) => send<Timetable>("GET", `/schools/${schoolId}/plans/current`),
   plan: (schoolId: string, planId: string) =>
     send<Timetable>("GET", `/schools/${schoolId}/plans/${planId}`),
+  teacherGaps: (schoolId: string) =>
+    send<TeacherGaps[]>("GET", `/schools/${schoolId}/plans/current/gaps`),
   makePlanCurrent: (schoolId: string, planId: string) =>
     sendNoContent("POST", `/schools/${schoolId}/plans/${planId}/current`),
 };

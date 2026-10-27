@@ -54,6 +54,23 @@ object PlanView:
     entries: List[Entry]
   )
 
+  /**
+   * A teacher's idle hours in the finished week.
+   *
+   * An okienko is an hour with nothing in it between two that have something,
+   * on one day. Hours before the first lesson and after the last are not
+   * windows — the teacher is simply not in yet, or has gone.
+   */
+  case class TeacherGaps(
+    teacher: String,
+    /** Idle hours across the week. */
+    gaps: Int,
+    /** The longest unbroken run of them, which is what the rule bounds. */
+    longestRun: Int,
+    /** Days that have at least one. */
+    days: Int
+  )
+
   case class Summary(
     id: UUID,
     name: String,
@@ -66,7 +83,8 @@ object PlanView:
 
   given Encoder[Entry]     = deriveEncoder
   given Encoder[Timetable] = deriveEncoder
-  given Encoder[Summary]   = deriveEncoder
+  given Encoder[Summary]     = deriveEncoder
+  given Encoder[TeacherGaps] = deriveEncoder
 
   val DayNames = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela")
 
@@ -103,6 +121,24 @@ class PlanRoutes(
       plans.current(schoolId).flatMap {
         case None       => NotFound(ApiError.body("Nie ma jeszcze żadnego planu"))
         case Some(plan) => timetable(schoolId, plan)
+      }
+
+    // Only the teachers who have any: a list of sixty names, fifty of them
+    // zero, hides the three that are worth looking at.
+    case GET -> Root / "schools" / UUIDVar(schoolId) / "plans" / "current" / "gaps" =>
+      plans.current(schoolId).flatMap {
+        case None => NotFound(ApiError.body("Nie ma jeszcze żadnego planu"))
+        case Some(plan) =>
+          loader.load(schoolId).flatMap {
+            case None => NotFound(ApiError.body("Nie ma takiej szkoły"))
+            case Some(s) =>
+              for
+                placements <- plans.placements(plan.id)
+                allRooms <- rooms.findRooms(schoolId)
+                body = gapsOf(resolve(s, placements, allRooms))
+                response <- Ok(body.asJson)
+              yield response
+          }
       }
 
     case GET -> Root / "schools" / UUIDVar(schoolId) / "plans" / UUIDVar(planId) =>
@@ -143,6 +179,38 @@ class PlanRoutes(
           ).asJson)
         yield response
     }
+
+  /** Idle hours per teacher, counted a day at a time, zeroes dropped. */
+  private def gapsOf(entries: List[PlanView.Entry]): List[PlanView.TeacherGaps] =
+    val busy = entries
+      .flatMap(e => e.teachers.map(t => (t, e.day) -> (e.position until e.position + e.length)))
+      .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
+
+    busy.toList
+      .groupBy((key, _) => key._1)
+      .toList
+      .map { (teacher, days) =>
+        val perDay = days.map((_, hours) => holes(hours))
+        PlanView.TeacherGaps(
+          teacher = teacher,
+          gaps = perDay.map(_._1).sum,
+          longestRun = perDay.map(_._2).maxOption.getOrElse(0),
+          days = perDay.count(_._1 > 0))
+      }
+      .filter(_.gaps > 0)
+      // Worst first: the point of the list is to be read from the top.
+      .sortBy(x => (-x.longestRun, -x.gaps, x.teacher))
+
+  /** Idle hours between the first and last lesson of a day, and the longest run. */
+  private def holes(hours: Set[Int]): (Int, Int) =
+    if hours.isEmpty then (0, 0)
+    else
+      val (lo, hi) = (hours.min, hours.max)
+      (lo to hi).foldLeft((0, 0, 0)) { case ((total, run, worst), p) =>
+        if hours.contains(p) then (total, 0, worst)
+        else (total + 1, run + 1, math.max(worst, run + 1))
+      } match
+        case (total, _, worst) => (total, worst)
 
   /** Placements, with every id turned into the name it stands for. */
   private def resolve(s: SchoolSnapshot, placements: List[Placement],
