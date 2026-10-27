@@ -26,6 +26,21 @@ const HALF_EDGE: Record<number, string> = {
   2: "border-l-4 border-l-violet-400",
 };
 
+/**
+ * One hour of one lesson, and how far into it we are.
+ *
+ * A double block fills two rows and has to appear in both, or the second hour
+ * looks free. Printing it twice identically is what it used to do, and that
+ * makes a double indistinguishable from two single lessons back to back —
+ * which matters, because they are different things: a subject may be taught
+ * once a day per group, and a double is that one time.
+ */
+interface Hour {
+  entry: PlanEntry;
+  /** 0 for the hour the lesson starts, 1 for the next, and so on. */
+  into: number;
+}
+
 export function TimetableGrid({
   days,
   slotsPerDay,
@@ -33,14 +48,13 @@ export function TimetableGrid({
   caption,
   isHighlighted,
 }: TimetableGridProps) {
-  const at = new Map<string, PlanEntry[]>();
+  const at = new Map<string, Hour[]>();
   for (const entry of entries) {
-    // A two-hour block fills both of its rows, so it is listed in each.
-    for (let k = 0; k < Math.max(1, entry.length); k += 1) {
-      const key = `${entry.day}:${entry.position + k}`;
+    for (let into = 0; into < Math.max(1, entry.length); into += 1) {
+      const key = `${entry.day}:${entry.position + into}`;
       const cell = at.get(key);
-      if (cell) cell.push(entry);
-      else at.set(key, [entry]);
+      if (cell) cell.push({ entry, into });
+      else at.set(key, [{ entry, into }]);
     }
   }
 
@@ -75,7 +89,7 @@ export function TimetableGrid({
                     key={day}
                     className="h-12 border border-neutral-200 p-0 align-top"
                   >
-                    {here.map((entry, i) => (
+                    {here.map(({ entry, into }, i) => (
                       <div
                         key={`${entry.subject}-${i}`}
                         className={[
@@ -83,17 +97,28 @@ export function TimetableGrid({
                           entry.half ? HALF_EDGE[entry.half] : "",
                           isHighlighted?.(entry) ? "bg-amber-50" : "",
                           entry.individual ? "italic text-neutral-600" : "",
+                          // A continued hour is drawn as the tail of the one
+                          // above rather than as a lesson of its own.
+                          into > 0 ? "border-t border-dashed border-neutral-200" : "",
                         ]
                           .filter(Boolean)
                           .join(" ")}
                       >
-                        <div className="font-medium leading-tight text-neutral-900">
+                        <div
+                          className={
+                            into > 0
+                              ? "leading-tight text-neutral-400"
+                              : "font-medium leading-tight text-neutral-900"
+                          }
+                        >
                           {entry.subject}
                           {entry.half ? (
                             <span className="text-neutral-500">/{entry.half}</span>
                           ) : null}
                         </div>
-                        {caption(entry) && (
+                        {/* The room and the names belong to the block, not to
+                            each of its hours, so they are said once. */}
+                        {into === 0 && caption(entry) && (
                           <div className="text-xs leading-tight text-neutral-500">
                             {caption(entry)}
                           </div>
