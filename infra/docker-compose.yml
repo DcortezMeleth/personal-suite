@@ -39,5 +39,36 @@ services:
     depends_on:
       - backend
 
+  # ── belFER ─────────────────────────────────────────────────────────────────
+  #
+  # The second service in the suite: the school timetable planner. It shares
+  # the Postgres instance and lives in its own `belfer` schema, so there is
+  # nothing to create — Flyway does it on first start.
+  #
+  # Also built by Bazel rather than by compose:
+  #   bazel run //services/belFER/backend:server_image_load
+  #   bazel run //services/belFER/frontend:frontend_image_load
+  belfer-backend:
+    image: belfer-backend:local
+    environment:
+      # Prefixed, because delFIN reads the unprefixed DATABASE_* and pointing
+      # one service at another database must not move both.
+      BELFER_DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-delfin}
+      BELFER_DATABASE_USER: ${POSTGRES_USER:-delfin}
+      BELFER_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/.env — copy infra/.env.example}
+      BELFER_SERVER_PORT: "8081"
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  belfer-frontend:
+    image: belfer-frontend:local
+    ports:
+      - "3001:80"
+    depends_on:
+      - belfer-backend
+
 volumes:
   postgres_data:

@@ -164,10 +164,25 @@ oci.pull(
     platforms = ["linux/amd64"],
 )
 
+# Both architectures, unlike the JRE below. The services ship linux/amd64 for
+# Proxmox, but the frontend image is nginx and static files with no native code
+# in it, so it can also be built for an arm64 laptop — which is the only way to
+# start the app on a machine whose host node and node_modules disagree about
+# their architecture.
 oci.pull(
     name = "nginx_base",
     image = "nginx",
     tag = "1.27-alpine",
-    platforms = ["linux/amd64"],
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
 )
-use_repo(oci, "temurin_jre", "temurin_jre_linux_amd64", "nginx_base", "nginx_base_linux_amd64")
+use_repo(
+    oci,
+    "temurin_jre",
+    "temurin_jre_linux_amd64",
+    "nginx_base",
+    "nginx_base_linux_amd64",
+    "nginx_base_linux_arm64_v8",
+)

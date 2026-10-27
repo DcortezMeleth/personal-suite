@@ -1,1 +1,4 @@
-exports_files(["default.conf"], visibility = ["//visibility:public"])
+exports_files(
+    ["default.conf", "belfer.conf.template"],
+    visibility = ["//visibility:public"],
+)

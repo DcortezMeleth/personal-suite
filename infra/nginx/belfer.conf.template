@@ -1,0 +1,32 @@
+# A template rather than a finished config: nginx's entrypoint substitutes
+# ${BELFER_BACKEND} at start-up, so the same image serves a compose stack
+# (http://belfer-backend:8081) and a laptop whose backend is on the host
+# (http://host.docker.internal:8081).
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # belFER's backend mounts /api itself, so the prefix is passed through
+    # rather than stripped. delFIN's config does the opposite — its backend
+    # serves the routes at the root — which is why the two cannot share a file.
+    location /api/ {
+        proxy_pass ${BELFER_BACKEND};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # /health sits at the root so a readiness probe does not depend on the API
+    # routes being wired up, which means it needs saying here separately.
+    location /health {
+        proxy_pass ${BELFER_BACKEND};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Anything else is the application: a path like /plan is a route inside it
+    # rather than a file, so it gets index.html and React decides.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

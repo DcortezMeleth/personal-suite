@@ -1,5 +1,7 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@npm//services/belFER/frontend:vite/package_json.bzl", vite_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
@@ -83,3 +85,69 @@ vite_bin.vite(
 # No container image yet, unlike delFIN's frontend. nginx needs a config naming
 # the backend host and port, and there is nothing to deploy until Phase 1 puts
 # real screens here — so packaging waits until it buys something.
+
+# ── The app, in a container ───────────────────────────────────────────────────
+#
+# A built bundle behind nginx, the same shape delFIN uses. It exists for two
+# reasons beyond deployment: it is what the home lab will run, and it is the
+# only way to start the app on a machine whose node and node_modules disagree
+# about their architecture — inside the image they match by construction.
+#
+# nginx needs no runtime of its own here: Vite has already turned the sources
+# into files, and serving files is all that is left.
+pkg_tar(
+    name = "dist_layer",
+    srcs = [":build"],
+    strip_prefix = "dist",
+    package_dir = "/usr/share/nginx/html",
+)
+
+# belFER's own nginx config rather than delFIN's: its backend mounts /api
+# itself and answers /health at the root, so the two proxy differently.
+# Into /etc/nginx/templates rather than conf.d: the nginx image's entrypoint
+# runs envsubst over anything it finds there and writes the result to conf.d,
+# which is how the backend's address becomes a run-time choice.
+pkg_tar(
+    name = "nginx_conf_layer",
+    srcs = ["//infra/nginx:belfer.conf.template"],
+    package_dir = "/etc/nginx/templates",
+    remap_paths = {"/belfer.conf.template": "/default.conf.template"},
+)
+
+oci_image(
+    name = "frontend_image",
+    base = "@nginx_base",
+    tars = [
+        ":dist_layer",
+        ":nginx_conf_layer",
+    ],
+    exposed_ports = ["80"],
+    env = {"BELFER_BACKEND": "http://belfer-backend:8081"},
+)
+
+oci_load(
+    name = "frontend_image_load",
+    image = ":frontend_image",
+    repo_tags = ["belfer-frontend:local"],
+)
+
+# The same bundle on an arm64 nginx, so the app can be started on an Apple
+# laptop. No platform transition: a transition would rebuild the whole graph
+# for Linux, Vite included, and Vite is a host tool. Only the base differs,
+# and nothing in a bundle of HTML and JavaScript cares what it runs on.
+oci_image(
+    name = "frontend_image_arm64",
+    base = "@nginx_base_linux_arm64_v8",
+    tars = [
+        ":dist_layer",
+        ":nginx_conf_layer",
+    ],
+    exposed_ports = ["80"],
+    env = {"BELFER_BACKEND": "http://belfer-backend:8081"},
+)
+
+oci_load(
+    name = "frontend_image_load_arm64",
+    image = ":frontend_image_arm64",
+    repo_tags = ["belfer-frontend:local-arm64"],
+)
