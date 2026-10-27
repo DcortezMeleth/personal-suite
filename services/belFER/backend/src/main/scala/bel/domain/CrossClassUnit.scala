@@ -3,6 +3,7 @@ package bel.domain
 import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import java.util.UUID
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * One PE teaching group. It names the classes it draws students from, not the
@@ -82,6 +83,10 @@ object CrossClassUnitValidation:
       Left("Każda grupa musi obejmować co najmniej jeden oddział")
     else if input.groups.exists(g => g.classIds.distinct.size != g.classIds.size) then
       Left("Oddział nie może powtarzać się w jednej grupie")
+    // The groups run simultaneously, so one teacher cannot hold two of them.
+    else if input.groups.flatMap(_.teacherId).pipe(ts => ts.distinct.size != ts.size) then
+      Left("Nauczyciel nie może prowadzić dwóch grup tego samego zespołu — " +
+        "odbywają się jednocześnie")
     else
       roomsOfKind
         .filter(_ < input.groups.size)

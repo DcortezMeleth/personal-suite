@@ -174,3 +174,79 @@ class ValidationSpec extends AnyFunSuite:
     val found = Validation.run(snapshot(classes = List(c), units = List(unit), rooms = Map(kind -> 3)))
     assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("sal tego typu")))
   }
+
+  // ── Regressions found reviewing the checks themselves ─────────────────────
+
+  // Two blocks on the same day that overlap describe fewer blocked slots than
+  // their lengths add up to. Summing them invented a shortage: a teacher with
+  // Monday 1-4 and Monday 3-6 looked unavailable for eight slots out of forty
+  // rather than six, and a full timetable then read as impossible.
+  test("overlapping unavailability is counted once, not twice") {
+    val t1 = teacher(blocked = List(
+      UnavailabilityBlock(1, 1, 8), UnavailabilityBlock(1, 1, 8),
+      UnavailabilityBlock(2, 1, 8), UnavailabilityBlock(2, 1, 8),
+      UnavailabilityBlock(3, 1, 8), UnavailabilityBlock(3, 1, 8)))
+    val c = cls("1A")
+    // 24 real blocked slots out of 40 leaves 16, and the limits allow 40.
+    val found = Validation.run(snapshot(
+      classes = List(c), teachers = List(t1),
+      lines = List.fill(16)(line(c.id, List(1), Some(t1.id)))))
+    assert(!found.exists(_.severity == Severity.Blocking), found.map(_.message).toString)
+  }
+
+  // Every group of a unit runs at the same time, so a teacher holding two of
+  // them would have to be in two rooms at once. Nothing downstream noticed.
+  test("one teacher leading two groups of the same unit cannot work") {
+    val shared = UUID.randomUUID
+    val c = cls("1A")
+    val unit = CrossClassUnit(UUID.randomUUID, mathsId, "WF", None, List(1),
+      List(
+        CrossClassGroup(UUID.randomUUID, "dziewczęta", Some(shared), List(c.id)),
+        CrossClassGroup(UUID.randomUUID, "chłopcy", Some(shared), List(c.id))))
+    val found = Validation.run(snapshot(
+      classes = List(c), teachers = List(teacher(shared)), units = List(unit)))
+    assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("jednocześnie")),
+      found.map(_.message).toString)
+  }
+
+  // The same unit's hours were added once per group its teacher led, so being
+  // double-booked also made the teacher look twice as loaded as they were.
+  test("a unit's hours count once for its teacher however many groups they hold") {
+    val id = UUID.randomUUID
+    val c = cls("1A")
+    val unit = CrossClassUnit(UUID.randomUUID, mathsId, "WF", None, List(1, 1),
+      List(
+        CrossClassGroup(UUID.randomUUID, "a", Some(id), List(c.id)),
+        CrossClassGroup(UUID.randomUUID, "b", Some(id), List(c.id))))
+    val found = Validation.run(snapshot(
+      classes = List(c), teachers = List(teacher(id, pensum = Some(3))), units = List(unit)))
+    assert(!found.exists(_.subject == "Nadgodziny"), found.map(_.message).toString)
+  }
+
+  // Supporting a lesson is time spent teaching it. The load ceiling already
+  // counted it; pensum did not, so a teacher could be over and not be listed.
+  test("hours spent supporting another teacher count towards pensum") {
+    val supporter = UUID.randomUUID
+    val c = cls("1A")
+    val supported = LessonLine(UUID.randomUUID, c.id, mathsId, LessonAudience.WHOLE_CLASS,
+      LessonKind.BASE, Some(UUID.randomUUID), Some(supporter), List(1, 1, 1))
+    val found = Validation.run(snapshot(
+      classes = List(c), teachers = List(teacher(supporter, pensum = Some(2))),
+      lines = List(supported)))
+    assert(found.exists(_.subject == "Nadgodziny"), found.map(_.message).toString)
+  }
+
+  // Two mis-assigned hours of godzina wychowawcza are one problem, not two.
+  test("a class says once that someone else takes its godzina wychowawcza") {
+    val wychowawca = UUID.randomUUID
+    val someoneElse = UUID.randomUUID
+    val c = cls("1A", Some(wychowawca))
+    val found = Validation.run(snapshot(
+      classes = List(c), teachers = List(teacher(wychowawca), teacher(someoneElse)),
+      lines = List(
+        line(c.id, List(1), Some(someoneElse), subject = homeroomId),
+        line(c.id, List(1), Some(someoneElse), subject = homeroomId))))
+    assert(found.count(_.message.contains("prowadzi ktoś inny")) == 1,
+      found.map(_.message).toString)
+  }
+

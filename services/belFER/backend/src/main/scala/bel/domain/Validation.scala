@@ -114,16 +114,34 @@ object Validation:
 
   // ── Teachers ──────────────────────────────────────────────────────────────
 
+  /**
+   * A unit's hours count once for a teacher however many of its groups they
+   * lead. Every group runs at the same time, so leading two is not twice the
+   * work — it is impossible, which `crossClassBalance` reports separately.
+   */
+  private def crossClassHours(s: SchoolSnapshot, teacherId: UUID): Int =
+    s.crossClassUnits.filter(_.groups.exists(_.teacherId.contains(teacherId))).map(_.hours).sum
+
+  /** Everything a teacher stands in front of a class for. */
+  private def teacherHours(s: SchoolSnapshot, teacherId: UUID): Int =
+    s.lessonLines.filter(_.teacherId.contains(teacherId)).map(_.hours).sum +
+      // Supporting a lesson is time spent teaching it, so it counts against
+      // pensum the same way the load ceiling already counts it.
+      s.lessonLines.filter(_.supportTeacherId.contains(teacherId)).map(_.hours).sum +
+      crossClassHours(s, teacherId)
+
   private def teacherLoad(s: SchoolSnapshot, capacity: Int): List[Finding] =
     s.teachers.flatMap { teacher =>
-      val own = s.lessonLines.filter(_.teacherId.contains(teacher.id)).map(_.hours).sum
-      val support = s.lessonLines.filter(_.supportTeacherId.contains(teacher.id)).map(_.hours).sum
-      val cross = s.crossClassUnits
-        .flatMap(u => u.groups.filter(_.teacherId.contains(teacher.id)).map(_ => u.hours)).sum
-      val total = own + support + cross
+      val total = teacherHours(s, teacher.id)
       val name = s"${teacher.lastName} ${teacher.firstName}"
 
-      val blocked = teacher.unavailability.map(b => b.toPosition - b.fromPosition + 1).sum
+      // Counted as distinct slots rather than summed lengths: two blocks that
+      // overlap — Monday 1-4 and Monday 3-6 — describe six blocked slots, not
+      // eight, and summing them invents a shortage that is not there.
+      val blocked = teacher.unavailability
+        .flatMap(b => (b.fromPosition to b.toPosition).map(b.dayOfWeek -> _))
+        .distinct
+        .size
       val available = capacity - blocked
       val maxDays = teacher.maxWorkingDays.getOrElse(s.settings.defaultTeacherMaxWorkingDays)
       val maxPerDay = teacher.maxLessonsPerDay.getOrElse(s.settings.defaultTeacherMaxLessonsPerDay)
@@ -148,10 +166,8 @@ object Validation:
    */
   private def pensumSummary(s: SchoolSnapshot): List[Finding] =
     val over = s.teachers.flatMap { teacher =>
-      val own = s.lessonLines.filter(_.teacherId.contains(teacher.id)).map(_.hours).sum
-      val cross = s.crossClassUnits
-        .flatMap(u => u.groups.filter(_.teacherId.contains(teacher.id)).map(_ => u.hours)).sum
-      teacher.pensum.filter(p => p > 0 && own + cross > p).map(p => own + cross - p)
+      val taught = teacherHours(s, teacher.id)
+      teacher.pensum.filter(p => p > 0 && taught > p).map(p => taught - p)
     }
     if over.isEmpty then Nil
     else
@@ -188,11 +204,15 @@ object Validation:
       // taking it means one of the two is wrong.
       val wrongTeacher = (homeroomSubject, cls.homeroomTeacherId) match
         case (Some(subject), Some(wychowawca)) =>
-          s.lessonLines
-            .filter(l => l.classId == cls.id && l.subjectId == subject.id)
-            .filter(l => l.teacherId.exists(_ != wychowawca))
-            .map(_ => Finding(Severity.Warning, cls.name,
+          // One line per class however many of its hours are mis-assigned:
+          // the same sentence twice says nothing the first did not.
+          if s.lessonLines.exists(l =>
+               l.classId == cls.id && l.subjectId == subject.id &&
+                 l.teacherId.exists(_ != wychowawca))
+          then
+            List(Finding(Severity.Warning, cls.name,
               s"${subject.name} prowadzi ktoś inny niż wychowawca", Some(cls.id)))
+          else Nil
         case _ => Nil
 
       missing ++ wrongTeacher
@@ -209,11 +229,26 @@ object Validation:
           s"${unit.groups.size} grup, a sal tego typu ${available} — " +
             "wszystkie odbywają się jednocześnie", Some(unit.id)))
 
+      // Every group of a unit runs at once, so one teacher cannot hold two of
+      // them. Nothing downstream would notice: the solver would place the unit
+      // happily and the teacher would be in two rooms at the same time.
+      val doubleBooked = unit.groups
+        .flatMap(_.teacherId)
+        .groupBy(identity)
+        .collect { case (teacherId, repeats) if repeats.sizeIs > 1 => teacherId }
+        .toList
+      val sameTeacherTwice =
+        if doubleBooked.nonEmpty then
+          Some(Finding(Severity.Blocking, unit.name,
+            s"${doubleBooked.size} nauczycieli prowadzi po kilka grup tego zespołu, " +
+              "a wszystkie odbywają się jednocześnie", Some(unit.id)))
+        else None
+
       val unassigned = unit.groups.count(_.teacherId.isEmpty)
       val noTeacher =
         if unassigned > 0 then
           Some(Finding(Severity.Warning, unit.name, s"$unassigned grup bez nauczyciela", Some(unit.id)))
         else None
 
-      tooManyGroups.toList ++ noTeacher.toList
+      tooManyGroups.toList ++ sameTeacherTwice.toList ++ noTeacher.toList
     }
