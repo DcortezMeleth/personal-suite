@@ -1258,3 +1258,52 @@ over, in six hundred and eighty-seven different ways.
 So the next thing to measure is not the search. It is whether the planner's
 arithmetic for a day agrees with what the placement then finds, class by class,
 on a day it has just proposed. Where they disagree is where the next rule is.
+
+# The number that settles the argument
+
+The planner has used a timetabling program that solved this school — all
+twenty-five classes, with every rule in this document including optional
+subjects at the edges of shared days — in **under ten minutes**. On cloud
+hardware, likely stronger than this laptop.
+
+Call the hardware worth five times. It does not matter. We do not produce a
+timetable for twenty-five classes slowly; we do not produce one at all, after
+six hundred and eighty-seven attempts and three and a half thousand learned
+rules. The gap between ten minutes and never is not a hardware gap, and no
+amount of tuning closes it.
+
+So the conclusion that has been available since the literature was read, and
+has been dodged twice since, has to be taken: **the approach is wrong for this
+problem.** Not the model, not the decomposition, not the cut machinery — all of
+those are sound now and none of them is the thing standing between us and a
+timetable.
+
+## What the working programs actually do
+
+Every program that solves real schools at this size — FET, which is open source
+and documented, and by every indication the commercial ones too — builds a
+timetable by **construction and repair**, not by search over a declarative
+model. Sort the lessons hardest-first. Place each one somewhere legal. When
+nothing is legal, take out whatever is in the way, put this lesson there, and
+re-place what was displaced, recursively. Restart with different randomness
+when that runs out of road. FET quotes five to twenty minutes for a difficult
+timetable and credits the hardest-first ordering with a tenfold speedup.
+
+Against that, the measurements here say something encouraging. A day of this
+school is laid out, proved optimal, in **2.7 seconds**. Five of those is
+fourteen seconds. The placement is not slow and never was. What is missing is
+the thing a constructive heuristic does and a counting planner cannot: **choose
+which lessons go where, and change its mind locally when that fails.**
+
+Our loop changes its mind globally — it throws away the whole week and plans
+again — which is why six hundred and eighty-seven attempts teach it so little.
+Recursive swapping changes its mind about one lesson and the handful in its
+way, which is why it converges.
+
+## What this costs to find out
+
+Nothing already built is wasted. The day placement is the thing a heuristic
+would call to finish each day exactly, the rule set and its model are shared,
+the validation is shared, and the loop's diagnostics — which rule a quarrel is
+about, what the quarrel is made of — stay useful whatever fills them. What is
+being retired is the planner's claim to decide the week by counting.

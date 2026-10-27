@@ -361,7 +361,10 @@ room.
 13. A class never has a gap — its day is contiguous. Confirmed: no gaps for
     students. Teachers may have a one-lesson gap (see 16).
 14. A class has at most 8 lessons per day.
-15. Optional subjects are first or last in the day.
+15. Optional subjects are first or last in the day. **Confirmed, and it holds
+    even when the block is shared between classes** — so an ethics hour taken
+    by seven classes must be at the edge of all seven of their days at once.
+    This is the hardest single object in the school and it is not negotiable.
 16. A teacher never has more than 2 consecutive free periods. Confirmed as a
     rule; a single free period is acceptable. To be checked against the
     school's current timetable.
