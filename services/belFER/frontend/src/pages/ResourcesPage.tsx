@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
+import { NoSchool } from "../components/NoSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
   type Room,
   type RoomInput,
   type RoomKind,
-  type School,
   type Subject,
   type SubjectInput,
 } from "../api/client";
@@ -16,41 +17,25 @@ const primaryButton = "rounded bg-primary-500 px-3 py-1.5 text-sm text-white hov
 const plainButton = "rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50";
 
 export function ResourcesPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [kinds, setKinds] = useState<RoomKind[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [newKind, setNewKind] = useState("");
   const [confirmDialog, confirm] = useConfirm();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        const [k, r, s] = await Promise.all([
-          api.listRoomKinds(current.id),
-          api.listRooms(current.id),
-          api.listSubjects(current.id),
-        ]);
-        setKinds(k);
-        setRooms(r);
-        setSubjects(s);
-      }
-      setError(null);
-    } catch (err) {
-      report(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { school, error, setError, reload: load, gate } = useSchool({
+    title: "Przedmioty i sale",
+    load: async (school) => {
+      const [k, r, s] = await Promise.all([
+        api.listRoomKinds(school.id),
+        api.listRooms(school.id),
+        api.listSubjects(school.id),
+      ]);
+      setKinds(k);
+      setRooms(r);
+      setSubjects(s);
+    },
+  });
 
   function report(err: unknown) {
     setError(err instanceof Error ? err.message : String(err));
@@ -69,13 +54,8 @@ export function ResourcesPage() {
     }
   }
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Przedmioty i sale">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Przedmioty i sale" />;
 
   const toInput = (room: Room): RoomInput => ({
     number: room.number,

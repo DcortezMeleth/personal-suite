@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
 import {
   api,
   type School,
@@ -46,37 +47,26 @@ function typedNumber(value: string): number | null {
 }
 
 export function SchoolPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [slots, setSlots] = useState<TimeSlotInput[]>([]);
   // What the server last told us. Everything dirty is measured against this,
   // so one button can know whether there is anything to send — and send only
   // the half that actually changed.
   const [savedSchool, setSavedSchool] = useState<School | null>(null);
   const [savedSlots, setSavedSlots] = useState<TimeSlotInput[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      const currentSlots = current ? fromServer(await api.listTimeSlots(current.id)) : [];
-      setSchool(current);
+  // This page is the one that may legitimately find no school: it is where one
+  // is created. So it takes the hook's loading and error states and keeps its
+  // own answer to "there isn't one yet".
+  const { school, setSchool, error, setError, reload: load, gate } = useSchool({
+    title: "Szkoła",
+    load: async (current) => {
+      const currentSlots = fromServer(await api.listTimeSlots(current.id));
       setSavedSchool(current);
       setSlots(currentSlots);
       setSavedSlots(currentSlots);
-      setError(null);
-    } catch (err) {
-      report(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+    },
+  });
 
   function report(err: unknown) {
     setError(err instanceof Error ? err.message : String(err));
@@ -129,22 +119,19 @@ export function SchoolPage() {
   const patchSlot = (index: number, patch: Partial<TimeSlotInput>) =>
     setSlots((prev) => prev.map((slot, i) => (i === index ? { ...slot, ...patch } : slot)));
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
+  if (gate) return gate;
 
   if (!school) {
     return (
-      <div className="space-y-4">
-        {error && <AlertBanner level="danger" message={error} />}
-        <DataCard title="Szkoła">
-          <p className="mb-4 text-neutral-700">Nie skonfigurowano jeszcze żadnej szkoły.</p>
-          <button
-            onClick={createSchool}
-            className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
-          >
-            Utwórz szkołę
-          </button>
-        </DataCard>
-      </div>
+      <DataCard title="Szkoła">
+        <p className="mb-4 text-neutral-700">Nie skonfigurowano jeszcze żadnej szkoły.</p>
+        <button
+          onClick={createSchool}
+          className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
+        >
+          Utwórz szkołę
+        </button>
+      </DataCard>
     );
   }
 

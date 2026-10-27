@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
+import { NoSchool } from "../components/NoSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import {
   api,
@@ -8,7 +10,6 @@ import {
   type CrossClassUnitInput,
   type Room,
   type RoomKind,
-  type School,
   type SchoolClass,
   type Subject,
   type Teacher,
@@ -21,49 +22,33 @@ const parseBlocks = (text: string): number[] =>
   text.split(/[,\s]+/).map(Number).filter((n) => Number.isFinite(n) && n > 0);
 
 export function CrossClassPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [units, setUnits] = useState<CrossClassUnit[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [kinds, setKinds] = useState<RoomKind[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [confirmDialog, confirm] = useConfirm();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        const [u, c, s, t, k, r] = await Promise.all([
-          api.listCrossClassUnits(current.id),
-          api.listClasses(current.id),
-          api.listSubjects(current.id),
-          api.listTeachers(current.id),
-          api.listRoomKinds(current.id),
-          api.listRooms(current.id),
-        ]);
-        setUnits(u);
-        setClasses(c);
-        setSubjects(s);
-        setTeachers(t);
-        setKinds(k);
-        setRooms(r);
-      }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { school, error, setError, reload: load, gate } = useSchool({
+    title: "Zajęcia międzyoddziałowe",
+    load: async (school) => {
+      const [u, c, s, t, k, r] = await Promise.all([
+        api.listCrossClassUnits(school.id),
+        api.listClasses(school.id),
+        api.listSubjects(school.id),
+        api.listTeachers(school.id),
+        api.listRoomKinds(school.id),
+        api.listRooms(school.id),
+      ]);
+      setUnits(u);
+      setClasses(c);
+      setSubjects(s);
+      setTeachers(t);
+      setKinds(k);
+      setRooms(r);
+    },
+  });
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -75,13 +60,8 @@ export function CrossClassPage() {
     }
   }
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Zajęcia międzyoddziałowe">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Zajęcia międzyoddziałowe" />;
   if (classes.length === 0 || subjects.length === 0)
     return (
       <DataCard title="Zajęcia międzyoddziałowe">

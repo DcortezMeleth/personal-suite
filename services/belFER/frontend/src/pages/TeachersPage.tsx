@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import { useFindings } from "../hooks/useFindings";
 import { FindingMark } from "../components/FindingMark";
+import { NoSchool } from "../components/NoSchool";
 import {
   api,
   type Room,
@@ -52,46 +54,31 @@ function cellsToBlocks(cells: Set<string>, slotCount: number): UnavailabilityBlo
 }
 
 export function TeachersPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [slotCount, setSlotCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirmDialog, confirm] = useConfirm();
+
+  const { school, error, setError, reload: load, gate } = useSchool({
+    title: "Nauczyciele",
+    load: async (school) => {
+      const [t, s, r, slots] = await Promise.all([
+        api.listTeachers(school.id),
+        api.listSubjects(school.id),
+        api.listRooms(school.id),
+        api.listTimeSlots(school.id),
+      ]);
+      setTeachers(t);
+      setSubjects(s);
+      setRooms(r);
+      setSlotCount(slots.length);
+    },
+  });
+
   const { findingsFor, reloadFindings } = useFindings(school?.id);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        const [t, s, r, slots] = await Promise.all([
-          api.listTeachers(current.id),
-          api.listSubjects(current.id),
-          api.listRooms(current.id),
-          api.listTimeSlots(current.id),
-        ]);
-        setTeachers(t);
-        setSubjects(s);
-        setRooms(r);
-        setSlotCount(slots.length);
-      }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -112,13 +99,8 @@ export function TeachersPage() {
     );
   }, [teachers, filter]);
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Nauczyciele">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Nauczyciele" />;
 
   return (
     <div className="space-y-4">

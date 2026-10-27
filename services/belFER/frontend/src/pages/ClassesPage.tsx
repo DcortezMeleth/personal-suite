@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import { useFindings } from "../hooks/useFindings";
 import { FindingMark } from "../components/FindingMark";
+import { NoSchool } from "../components/NoSchool";
 import {
   api,
-  type School,
   type SchoolClass,
   type SchoolClassInput,
   type Finding,
@@ -16,37 +17,22 @@ const field = "w-full rounded border border-neutral-300 px-2 py-1";
 const plainButton = "rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50";
 
 export function ClassesPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [genYear, setGenYear] = useState(1);
   const [genLetters, setGenLetters] = useState("A, B, C, D");
   const [confirmDialog, confirm] = useConfirm();
+
+  const { school, error, setError, reload: load, gate } = useSchool({
+    title: "Oddziały",
+    load: async (school) => {
+      const [c, t] = await Promise.all([api.listClasses(school.id), api.listTeachers(school.id)]);
+      setClasses(c);
+      setTeachers(t);
+    },
+  });
+
   const { findingsFor, reloadFindings } = useFindings(school?.id);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        const [c, t] = await Promise.all([api.listClasses(current.id), api.listTeachers(current.id)]);
-        setClasses(c);
-        setTeachers(t);
-      }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -61,13 +47,8 @@ export function ClassesPage() {
     }
   }
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Oddziały">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Oddziały" />;
 
   const byYear = new Map<number, SchoolClass[]>();
   for (const cls of classes) {

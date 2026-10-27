@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type PlanEntry, type School, type Timetable } from "../api/client";
+import { api, type PlanEntry, type Timetable } from "../api/client";
+import { useSchool } from "../hooks/useSchool";
+import { NoSchool } from "../components/NoSchool";
 import { TimetableGrid } from "../components/TimetableGrid";
 
 /**
@@ -22,41 +24,25 @@ const VIEWS: { id: View; label: string }[] = [
 ];
 
 export function PlanPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [plan, setPlan] = useState<Timetable | null>(null);
   const [view, setView] = useState<View>("oddzial");
   const [who, setWho] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        try {
-          setPlan(await api.currentPlan(current.id));
-          setMissing(false);
-        } catch {
-          // No plan yet is an ordinary state, not a failure: the school has
-          // simply not generated one.
-          setPlan(null);
-          setMissing(true);
-        }
+  const { school, error, setError, gate } = useSchool({
+    title: "Plan lekcji",
+    load: async (school) => {
+      try {
+        setPlan(await api.currentPlan(school.id));
+        setMissing(false);
+      } catch {
+        // No plan yet is an ordinary state, not a failure: the school has
+        // simply not generated one.
+        setPlan(null);
+        setMissing(true);
       }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+    },
+  });
 
   // Whoever the view is about: a class, a teacher, a room. Kept valid as the
   // view changes, so switching never lands on an empty grid.
@@ -95,14 +81,8 @@ export function PlanPage() {
     [view],
   );
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-
-  if (!school)
-    return (
-      <DataCard title="Plan lekcji">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Plan lekcji" />;
 
   if (missing)
     return (

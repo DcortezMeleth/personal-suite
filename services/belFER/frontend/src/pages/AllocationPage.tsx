@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
+import { NoSchool } from "../components/NoSchool";
 import {
   api,
   type AllocationSummary,
@@ -8,7 +10,6 @@ import {
   type LessonKind,
   type LessonLine,
   type LessonLineInput,
-  type School,
   type SchoolClass,
   type Subject,
   type Teacher,
@@ -36,40 +37,28 @@ const parseBlocks = (text: string): number[] =>
 const formatBlocks = (blocks: number[]) => blocks.join(", ");
 
 export function AllocationPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [lines, setLines] = useState<LessonLine[]>([]);
   const [summary, setSummary] = useState<AllocationSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [confirmDialog, confirm] = useConfirm();
 
-  const loadBase = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      if (current) {
-        const [c, s, t] = await Promise.all([
-          api.listClasses(current.id),
-          api.listSubjects(current.id),
-          api.listTeachers(current.id),
-        ]);
-        setClasses(c);
-        setSubjects(s);
-        setTeachers(t);
-        setSelected((prev) => prev ?? c[0]?.id ?? null);
-      }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { school, error, setError, gate } = useSchool({
+    title: "Przydziały",
+    load: async (school) => {
+      const [c, s, t] = await Promise.all([
+        api.listClasses(school.id),
+        api.listSubjects(school.id),
+        api.listTeachers(school.id),
+      ]);
+      setClasses(c);
+      setSubjects(s);
+      setTeachers(t);
+      setSelected((prev) => prev ?? c[0]?.id ?? null);
+    },
+  });
 
   const loadLines = useCallback(async () => {
     if (!school || !selected) {
@@ -91,9 +80,6 @@ export function AllocationPage() {
   }, [school, selected]);
 
   useEffect(() => {
-    loadBase();
-  }, [loadBase]);
-  useEffect(() => {
     loadLines();
   }, [loadLines]);
 
@@ -107,13 +93,8 @@ export function AllocationPage() {
     }
   }
 
-  if (loading) return <p className="text-neutral-500">Wczytywanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Przydziały">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Przydziały" />;
   if (classes.length === 0 || subjects.length === 0)
     return (
       <DataCard title="Przydziały">

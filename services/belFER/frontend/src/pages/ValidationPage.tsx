@@ -1,48 +1,30 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type School, type TeacherGaps, type ValidationReport } from "../api/client";
+import { api, type TeacherGaps, type ValidationReport } from "../api/client";
+import { useSchool } from "../hooks/useSchool";
+import { NoSchool } from "../components/NoSchool";
 
 export function ValidationPage() {
   const [report, setReport] = useState<ValidationReport | null>(null);
   // Windows only exist once a week has been laid out, so this is empty until
   // there is a plan — which is an ordinary state rather than a failure.
   const [gaps, setGaps] = useState<TeacherGaps[]>([]);
-  const [school, setSchool] = useState<School | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const current = (await api.listSchools())[0] ?? null;
-      setSchool(current);
-      setReport(current ? await api.validate(current.id) : null);
-      if (current) {
-        try {
-          setGaps(await api.teacherGaps(current.id));
-        } catch {
-          setGaps([]);
-        }
+  const { school, error, setError, gate } = useSchool({
+    title: "Kontrola danych",
+    busy: "Sprawdzanie…",
+    load: async (school) => {
+      setReport(await api.validate(school.id));
+      try {
+        setGaps(await api.teacherGaps(school.id));
+      } catch {
+        setGaps([]);
       }
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  if (loading) return <p className="text-neutral-500">Sprawdzanie…</p>;
-  if (!school)
-    return (
-      <DataCard title="Kontrola danych">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Kontrola danych" />;
   if (!report) return null;
 
   const clean = report.blocking.length === 0 && report.warnings.length === 0;

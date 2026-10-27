@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
+import { useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
+import { NoSchool } from "../components/NoSchool";
 import {
   api,
   type ImportCounts,
   type ImportPreview,
-  type School,
   type WeekSegment,
 } from "../api/client";
 
@@ -20,18 +21,14 @@ const LABELS: { key: keyof ImportCounts; label: string }[] = [
 ];
 
 export function ImportPage() {
-  const [school, setSchool] = useState<School | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [range, setRange] = useState<{ from: number; to: number }>({ from: 1, to: 38 });
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [confirmDialog, confirm] = useConfirm();
 
-  useEffect(() => {
-    api.listSchools().then(s => setSchool(s[0] ?? null)).catch(report);
-  }, []);
+  const { school, error, setError, gate } = useSchool({ title: "Import arkusza" });
 
   function report(err: unknown) {
     setError(err instanceof Error ? err.message : String(err));
@@ -98,12 +95,8 @@ export function ImportPage() {
     }
   }
 
-  if (!school)
-    return (
-      <DataCard title="Import arkusza">
-        <p className="text-neutral-700">Najpierw skonfiguruj szkołę na zakładce „Szkoła”.</p>
-      </DataCard>
-    );
+  if (gate) return gate;
+  if (!school) return <NoSchool title="Import arkusza" />;
 
   const replaces = preview?.replaces;
   const replacingAnything =
