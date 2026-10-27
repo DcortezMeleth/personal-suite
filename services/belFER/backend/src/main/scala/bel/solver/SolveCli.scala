@@ -72,6 +72,8 @@ object SolveCli extends IOApp:
         val readBack = rest.collectFirst { case s if s.startsWith("--read=") => s.drop(7) }
         // --generate lays the week out with FET and keeps it, if it holds up.
         val generate = rest.contains("--generate")
+        // --sheet=<plik> zapisuje bieżący plan jako stronę do obejrzenia.
+        val sheet = rest.collectFirst { case s if s.startsWith("--sheet=") => s.drop(8) }
         // --import=<plik> wczytuje arkusz od nowa, bez stawiania serwera.
         val reimport = rest.collectFirst { case s if s.startsWith("--import=") => s.drop(9) }
         // --weeks=od-do zawęża import do jednego semestru, jak robi to UI.
@@ -99,7 +101,7 @@ object SolveCli extends IOApp:
         val workers = plain.drop(1).headOption.flatMap(_.toIntOption).getOrElse(0)
         solve(UUID.fromString(schoolId), seconds, workers, diagnose, limit, doubles, warm, apart,
           pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet, readBack, generate,
-          reimport, weeks)
+          reimport, weeks, sheet)
 
   private def solve(schoolId: UUID, seconds: Long, workers: Int, diagnose: Boolean,
                     limit: Option[Int], doubles: Boolean, warm: Option[Int],
@@ -109,7 +111,8 @@ object SolveCli extends IOApp:
                     rounds: Int, oneDay: Boolean, literal: Boolean,
                     fet: Option[String], readBack: Option[String],
                     generate: Boolean, reimport: Option[String],
-                    weeks: bel.importer.ArkuszMapper.WeekRange): IO[ExitCode] =
+                    weeks: bel.importer.ArkuszMapper.WeekRange,
+                    sheet: Option[String]): IO[ExitCode] =
     val config = ConfigFactory.load()
     Database.transactor(config).use { xa =>
       val loader = SnapshotLoader(
@@ -127,13 +130,14 @@ object SolveCli extends IOApp:
           case Some(full) =>
             val narrowed = limit.fold(full)(n => narrow(full, n))
             val s = if doubles then pairUpHours(narrowed) else narrowed
-            if reimport.isDefined then readArkusz(xa, schoolId, reimport.get, weeks)
+            if sheet.isDefined then writeSheet(xa, schoolId, s, rooms, sheet.get)
+            else if reimport.isDefined then readArkusz(xa, schoolId, reimport.get, weeks)
             else if generate then generateWithFet(xa, schoolId, s, rooms)
             else if diagnose then explain(s, rooms, seconds, workers)
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate, reimport = reimport, weeks = weeks)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate, reimport = reimport, weeks = weeks, sheet = sheet)
       yield code
     }
 
@@ -157,7 +161,8 @@ object SolveCli extends IOApp:
     readBack: Option[String] = None,
     generate: Boolean = false,
     reimport: Option[String] = None,
-    weeks: bel.importer.ArkuszMapper.WeekRange = bel.importer.ArkuszMapper.WeekRange(1, 19)
+    weeks: bel.importer.ArkuszMapper.WeekRange = bel.importer.ArkuszMapper.WeekRange(1, 19),
+    sheet: Option[String] = None
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -658,6 +663,27 @@ object SolveCli extends IOApp:
              IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
       code <- keepIfSound(xa, schoolId, rooms, outcome)
     yield code
+
+  /**
+   * The current plan, as a page to look at.
+   *
+   * Phase 4 builds these views in the application. Until then this is how a
+   * generated week gets read by a person, which is the only way to find out
+   * whether it resembles a timetable rather than merely satisfying the rules.
+   */
+  private def writeSheet(xa: doobie.Transactor[IO], schoolId: UUID, snapshot: SchoolSnapshot,
+                         rooms: List[Room], path: String): IO[ExitCode] =
+    val plans = PlanRepository(xa)
+    plans.current(schoolId).flatMap {
+      case None => IO.println("nie ma bieżącego planu — uruchom najpierw --generate").as(ExitCode(1))
+      case Some(plan) =>
+        for
+          placed <- plans.placements(plan.id)
+          html = PlanSheet(snapshot, plan, placed, rooms)
+          _ <- IO.blocking(java.nio.file.Files.writeString(java.nio.file.Path.of(path), html))
+          _ <- IO.println(s"zapisano $path (${placed.size} zajęć)")
+        yield ExitCode.Success
+    }
 
   /**
    * The arkusz, read again.

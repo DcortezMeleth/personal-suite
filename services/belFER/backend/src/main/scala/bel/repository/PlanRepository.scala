@@ -9,16 +9,18 @@ import java.util.UUID
 
 class PlanRepository(xa: Transactor[IO]):
 
+  // Qualified, because `current` joins two tables that both carry a school.
   private val columns =
-    fr"id, school_id, name, created_at, made_by, took_millis, rules_kept, rules_total"
+    fr"""plan.id, plan.school_id, plan.name, plan.created_at, plan.made_by,
+         plan.took_millis, plan.rules_kept, plan.rules_total"""
 
   def list(schoolId: UUID): IO[List[Plan]] =
     (fr"SELECT" ++ columns ++
-      fr"FROM plan WHERE school_id = $schoolId ORDER BY created_at DESC")
+      fr"FROM plan WHERE plan.school_id = $schoolId ORDER BY plan.created_at DESC")
       .query[Plan].to[List].transact(xa)
 
   def find(id: UUID): IO[Option[Plan]] =
-    (fr"SELECT" ++ columns ++ fr"FROM plan WHERE id = $id")
+    (fr"SELECT" ++ columns ++ fr"FROM plan WHERE plan.id = $id")
       .query[Plan].option.transact(xa)
 
   def placements(planId: UUID): IO[List[Placement]] =
@@ -51,7 +53,7 @@ class PlanRepository(xa: Transactor[IO]):
                     block_index, day_of_week, position, room_id)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
             ).updateMany(plan.placements.map(id -> _))
-      saved <- (fr"SELECT" ++ columns ++ fr"FROM plan WHERE id = $id").query[Plan].unique
+      saved <- (fr"SELECT" ++ columns ++ fr"FROM plan WHERE plan.id = $id").query[Plan].unique
     yield saved
     tx.transact(xa)
 

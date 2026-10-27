@@ -256,6 +256,46 @@ export interface TeacherLoad {
   pensum: number | null;
 }
 
+/** One lesson at one hour, with every name already resolved by the backend. */
+export interface PlanEntry {
+  day: number;
+  position: number;
+  length: number;
+  subject: string;
+  teachers: string[];
+  room: string | null;
+  classes: string[];
+  /** 1 or 2 when only one half of a class is in it. */
+  half: number | null;
+  /** One student taught alone: shown on the teacher's plan, not the class's. */
+  individual: boolean;
+}
+
+export interface Timetable {
+  planId: string;
+  name: string;
+  madeBy: string;
+  createdAt: string;
+  rulesKept: number | null;
+  rulesTotal: number | null;
+  days: string[];
+  slotsPerDay: number;
+  classes: string[];
+  teachers: string[];
+  rooms: string[];
+  entries: PlanEntry[];
+}
+
+export interface PlanSummary {
+  id: string;
+  name: string;
+  madeBy: string;
+  createdAt: string;
+  rulesKept: number | null;
+  rulesTotal: number | null;
+  current: boolean;
+}
+
 export interface ValidationReport {
   blocking: Finding[];
   warnings: Finding[];
@@ -334,4 +374,11 @@ export const api = {
     upload<Record<string, number>>(`/schools/${schoolId}/import/apply`, file, weekFrom, weekTo),
 
   validate: (schoolId: string) => send<ValidationReport>("GET", `/schools/${schoolId}/validation`),
+
+  listPlans: (schoolId: string) => send<PlanSummary[]>("GET", `/schools/${schoolId}/plans`),
+  currentPlan: (schoolId: string) => send<Timetable>("GET", `/schools/${schoolId}/plans/current`),
+  plan: (schoolId: string, planId: string) =>
+    send<Timetable>("GET", `/schools/${schoolId}/plans/${planId}`),
+  makePlanCurrent: (schoolId: string, planId: string) =>
+    sendNoContent("POST", `/schools/${schoolId}/plans/${planId}/current`),
 };
