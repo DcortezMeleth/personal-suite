@@ -117,18 +117,28 @@ Each subphase is a migration + repository + routes + a page.
 
 ## Phase 3 — Solver
 
-- **3.1** Planning domain and Timefold wiring, built on the 0.5 spike. The
+> The engine is **OR-Tools CP-SAT**, not Timefold — see
+> [ADR 0001](decisions/0001-timetable-solver-engine.md) for why and what it
+> costs, and [ADR 0002](decisions/0002-soft-constraints-as-weighted-penalties.md)
+> for how 3.3's weights have to be shaped. The POC in `../solver-poc/` already
+> expresses all of 3.2's constraints against the real rules; 3.1 is the work of
+> putting the school's own data through them instead of a generated instance.
+
+- **3.1** Planning domain and CP-SAT wiring, built on the solver POC. The
   solver takes **one interval** and the assignments active in it (§4.1); the
   constraints themselves are not time-aware
 - **3.2** Hard constraints — CT-01 … CT-17, and CT-21 as the regression guard
 - **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04
-- **3.4** Async job: start, progress, early stop, configurable timeout,
-  persistence — UC-28 … UC-31, UC-34
+- **3.4** Async job: start, progress, early stop, configurable timeout and
+  worker count, persistence — UC-28 … UC-31, UC-34
 - **3.5** Infeasibility explanation and run comparison — UC-32, UC-33
 
 > 3.5 is not polish. The school's instance is assumed solvable, so an
 > infeasible run means a mistake somewhere in ~500 assignment rows — and a bare
-> "no solution" would leave the user with nothing to act on.
+> "no solution" would leave the user with nothing to act on. It is also the one
+> place the chosen engine is behind the one it replaced: CP-SAT offers an unsat
+> core where Timefold offers score explanation, so 3.5 wants a spike before its
+> design is fixed.
 
 ---
 

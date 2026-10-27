@@ -9,3 +9,15 @@ platform(
     ],
     visibility = ["//visibility:public"],
 )
+
+# Only the solver POC targets this, so CP-SAT's native dependency can be
+# exercised inside a Linux container on an arm64 machine. The services still
+# ship linux/amd64.
+platform(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm64",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -17,6 +17,20 @@ class ValidationSpec extends AnyFunSuite:
                       blocked: List[UnavailabilityBlock] = Nil, days: Option[Int] = None) =
     Teacher(id, "XX", "Jan", "Kowalski", None, Nil, days, None, pensum, blocked)
 
+  /**
+   * Hours spread over as many subjects as it takes, since no subject may have
+   * more blocks than there are teaching days. Filling a week with forty hours
+   * of one subject is not a thing a school can do.
+   */
+  private def filler(classId: UUID, hours: Int, teacherId: Option[UUID] = None) =
+    (0 until hours).toList.map { i =>
+      line(classId, List(1), teacherId, subject = subjectFor(i / 5))
+    }
+
+  private val fillerSubjects = scala.collection.mutable.Map.empty[Int, UUID]
+  private def subjectFor(index: Int): UUID =
+    fillerSubjects.getOrElseUpdate(index, UUID.randomUUID)
+
   private def line(classId: UUID, blocks: List[Int], teacherId: Option[UUID] = None,
                    subject: UUID = mathsId, audience: LessonAudience = LessonAudience.WHOLE_CLASS) =
     LessonLine(UUID.randomUUID, classId, subject, audience, LessonKind.BASE, teacherId, None, blocks)
@@ -34,27 +48,30 @@ class ValidationSpec extends AnyFunSuite:
       Subject(mathsId, "matematyka", "Matematyka", false, None, false),
       Subject(homeroomId, "zaj. z wych.", "Zajęcia z wychowawcą", false, None, false)
     ),
-    lines, units, teacherSubjects, rooms)
+    lines, units, teacherSubjects, rooms,
+    // Enough that rooms are never the thing under test here; the room bound
+    // has its own case below.
+    totalRooms = 100)
 
   // ── Classes ───────────────────────────────────────────────────────────────
 
   test("a class needing more hours than the week holds cannot be scheduled") {
     val c = cls("1A")
-    val lines = List.fill(41)(line(c.id, List(1)))
+    val lines = filler(c.id, 41)
     val found = Validation.run(snapshot(classes = List(c), lines = lines))
     assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("nie da się")))
   }
 
   test("a class filling the week exactly is flagged, but not as blocking") {
     val c = cls("1A")
-    val found = Validation.run(snapshot(classes = List(c), lines = List.fill(40)(line(c.id, List(1)))))
+    val found = Validation.run(snapshot(classes = List(c), lines = filler(c.id, 40)))
     assert(found.exists(_.severity == Severity.Warning))
     assert(!found.exists(_.severity == Severity.Blocking))
   }
 
   test("a comfortable class raises nothing") {
     val c = cls("1A")
-    val staffed = List.fill(30)(line(c.id, List(1), Some(UUID.randomUUID)))
+    val staffed = filler(c.id, 30, Some(UUID.randomUUID))
     assert(Validation.run(snapshot(classes = List(c), lines = staffed)).isEmpty)
   }
 
@@ -72,7 +89,7 @@ class ValidationSpec extends AnyFunSuite:
     val c = cls("1A")
     val unit = CrossClassUnit(UUID.randomUUID, mathsId, "WF", None, List(1, 1),
       List(CrossClassGroup(UUID.randomUUID, "gr", None, List(c.id))))
-    val lines = List.fill(39)(line(c.id, List(1)))
+    val lines = filler(c.id, 39)
     val found = Validation.run(snapshot(classes = List(c), lines = lines, units = List(unit)))
     assert(found.exists(_.severity == Severity.Blocking))
   }
@@ -90,7 +107,7 @@ class ValidationSpec extends AnyFunSuite:
   test("a teacher allocated more than their blocked time leaves is blocking") {
     val t = teacher(blocked = List(UnavailabilityBlock(1, 1, 8), UnavailabilityBlock(2, 1, 8)))
     val c = cls("1A")
-    val lines = List.fill(25)(line(c.id, List(1), Some(t.id)))
+    val lines = filler(c.id, 25, Some(t.id))
     val found = Validation.run(snapshot(classes = List(c), teachers = List(t), lines = lines))
     assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("dostępność")))
   }
@@ -98,7 +115,7 @@ class ValidationSpec extends AnyFunSuite:
   test("a teacher's working-day limit bounds them as much as their availability") {
     val t = teacher(days = Some(2)) // 2 days x 8 lessons = 16
     val c = cls("1A")
-    val lines = List.fill(20)(line(c.id, List(1), Some(t.id)))
+    val lines = filler(c.id, 20, Some(t.id))
     val found = Validation.run(snapshot(classes = List(c), teachers = List(t), lines = lines))
     assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("limity")))
   }
@@ -108,7 +125,7 @@ class ValidationSpec extends AnyFunSuite:
   test("teachers over pensum are summarised once, not listed") {
     val c = cls("1A")
     val staff = List.fill(5)(teacher(pensum = Some(18)))
-    val lines = staff.flatMap(t => List.fill(20)(line(c.id, List(1), Some(t.id))))
+    val lines = staff.flatMap(t => filler(c.id, 20, Some(t.id)))
     val found = Validation.run(snapshot(classes = List(c), teachers = staff, lines = lines))
     val pensum = found.filter(_.subject == "Nadgodziny")
     assert(pensum.sizeIs == 1)
@@ -118,7 +135,7 @@ class ValidationSpec extends AnyFunSuite:
   test("a teacher within pensum raises nothing") {
     val t = teacher(pensum = Some(18))
     val c = cls("1A")
-    val lines = List.fill(18)(line(c.id, List(1), Some(t.id)))
+    val lines = filler(c.id, 18, Some(t.id))
     assert(Validation.run(snapshot(classes = List(c), teachers = List(t), lines = lines)).isEmpty)
   }
 
@@ -190,7 +207,7 @@ class ValidationSpec extends AnyFunSuite:
     // 24 real blocked slots out of 40 leaves 16, and the limits allow 40.
     val found = Validation.run(snapshot(
       classes = List(c), teachers = List(t1),
-      lines = List.fill(16)(line(c.id, List(1), Some(t1.id)))))
+      lines = filler(c.id, 16, Some(t1.id))))
     assert(!found.exists(_.severity == Severity.Blocking), found.map(_.message).toString)
   }
 
@@ -248,5 +265,64 @@ class ValidationSpec extends AnyFunSuite:
         line(c.id, List(1), Some(someoneElse), subject = homeroomId))))
     assert(found.count(_.message.contains("prowadzi ktoś inny")) == 1,
       found.map(_.message).toString)
+  }
+
+  // The arkusz carries no rooms, so an imported school has none until someone
+  // enters them — and every lesson needs one. Deciding that by counting takes
+  // no time; letting the solver discover it costs a run.
+  test("a school with no rooms cannot produce a plan") {
+    val c = cls("1A")
+    val found = Validation.run(snapshot(classes = List(c),
+      lines = List(line(c.id, List(1)))).copy(totalRooms = 0))
+    assert(found.exists(f => f.severity == Severity.Blocking && f.subject == "Sale"),
+      found.map(_.message).toString)
+  }
+
+  test("too few rooms for the hours that need one is decided by counting") {
+    val c = cls("1A")
+    // 40 hours of lessons against one room's 40 slots is exactly enough; 41 is
+    // not, and no arrangement can rescue it.
+    val found = Validation.run(snapshot(classes = List(c),
+      lines = filler(c.id, 41)).copy(totalRooms = 1))
+    assert(found.exists(f => f.severity == Severity.Blocking && f.subject == "Sale"),
+      found.map(_.message).toString)
+  }
+
+  test("enough rooms raises nothing about rooms") {
+    val c = cls("1A")
+    val found = Validation.run(snapshot(classes = List(c),
+      lines = filler(c.id, 20)).copy(totalRooms = 3))
+    assert(!found.exists(_.subject == "Sale"), found.map(_.message).toString)
+  }
+
+  // Both halves of a class are busy at once, so an hour one half spends on a
+  // split subject is an hour the other must spend on a different one. When the
+  // two halves share a teacher they cannot be that different subject for each
+  // other, and there may be nothing else to pair with.
+  test("a split whose halves share a teacher needs other split hours to pair with") {
+    val c = cls("1A")
+    val shared = UUID.randomUUID
+    val english = UUID.randomUUID
+    val lines = List(
+      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("ta sama osoba")),
+      found.map(_.message).toString)
+  }
+
+  test("the same split pairs fine once each half has somewhere else to be") {
+    val c = cls("1A")
+    val shared = UUID.randomUUID
+    val english = UUID.randomUUID
+    val info = UUID.randomUUID
+    val lines = List(
+      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_2),
+      // Two more hours each, under teachers of their own, for English to sit against.
+      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = info, audience = LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = info, audience = LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    assert(!found.exists(_.message.contains("ta sama osoba")), found.map(_.message).toString)
   }
 

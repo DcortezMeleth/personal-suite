@@ -44,6 +44,7 @@ case class SchoolSnapshot(
   crossClassUnits: List[CrossClassUnit],
   teacherSubjects: Map[UUID, Set[UUID]],
   roomsOfKind: Map[UUID, Int],
+  totalRooms: Int,
   homeroomSubjectCode: String = "zaj. z wych."
 )
 
@@ -60,8 +61,10 @@ object Validation:
   def run(s: SchoolSnapshot): List[Finding] =
     val capacity = s.slotsPerDay * s.teachingDays
     classCapacity(s, capacity) ++
+      roomCapacity(s, capacity) ++
       blocksAcrossDays(s) ++
       groupBalance(s) ++
+      splitPairing(s) ++
       teacherLoad(s, capacity) ++
       pensumSummary(s) ++
       teacherSubjects(s) ++
@@ -87,20 +90,58 @@ object Validation:
     }
 
   /**
+   * Two lessons cannot share a room, so the week has only so much room-time in
+   * it. Counting that is instant; discovering it by search costs a run.
+   *
+   * A slot where a class is split needs two rooms, not one — which is why this
+   * counts lines rather than the class's occupied hours.
+   */
+  private def roomCapacity(s: SchoolSnapshot, capacity: Int): List[Finding] =
+    val needed =
+      s.lessonLines.map(_.hours).sum +
+        // Each group of a unit is taught somewhere of its own, simultaneously.
+        s.crossClassUnits.map(u => u.hours * u.groups.size).sum
+    val available = s.totalRooms * capacity
+    if s.totalRooms == 0 then
+      List(Finding(Severity.Blocking, "Sale",
+        "Nie wpisano żadnej sali — arkusz ich nie zawiera, trzeba je dodać ręcznie"))
+    else if needed > available then
+      List(Finding(Severity.Blocking, "Sale",
+        s"$needed godzin lekcyjnych wymaga sali, a ${s.totalRooms} sal daje tylko " +
+          s"$available miejsc w tygodniu"))
+    else Nil
+
+  /**
    * At most one block of a subject per day, so a subject needing more blocks
    * than there are teaching days cannot be placed however much room there is.
+   *
+   * Counted across every line of the subject, not per line. Base and extension
+   * hours are one subject and compete for the same days, and the import makes
+   * every hour its own block — so a class with five base and two extension
+   * hours of maths arrives as seven blocks wanting seven days, while no single
+   * line looks wrong. That is the shape this check exists to catch.
    */
   private def blocksAcrossDays(s: SchoolSnapshot): List[Finding] =
     val names = s.subjects.map(x => x.id -> x.name).toMap
     val classNames = s.classes.map(c => c.id -> c.name).toMap
-    s.lessonLines.flatMap { line =>
-      if line.blocks.sizeIs > s.teachingDays then
-        Some(Finding(Severity.Blocking, classNames.getOrElse(line.classId, "?"),
-          s"${names.getOrElse(line.subjectId, "?")}: ${line.blocks.size} bloków, " +
-            s"a dni nauki jest ${s.teachingDays} — najwyżej jeden blok dziennie",
-          Some(line.classId)))
-      else None
-    }
+    s.lessonLines
+      .groupBy(l => (l.classId, l.subjectId, l.audience))
+      .toList
+      .sortBy((key, _) => (classNames.getOrElse(key._1, ""), names.getOrElse(key._2, "")))
+      .flatMap { case ((classId, subjectId, audience), lines) =>
+        val blocks = lines.map(_.blocks.size).sum
+        if blocks > s.teachingDays then
+          val half = audience match
+            case LessonAudience.WHOLE_CLASS => ""
+            case LessonAudience.GROUP_1     => " (grupa 1)"
+            case LessonAudience.GROUP_2     => " (grupa 2)"
+          Some(Finding(Severity.Blocking, classNames.getOrElse(classId, "?"),
+            s"${names.getOrElse(subjectId, "?")}$half: $blocks bloków, a dni nauki jest " +
+              s"${s.teachingDays} — najwyżej jeden blok dziennie. Połącz godziny w bloki " +
+              "dwugodzinne.",
+            Some(classId)))
+        else None
+      }
 
   /** Both halves must be busy at once, so their hours have to match. */
   private def groupBalance(s: SchoolSnapshot): List[Finding] =
@@ -110,6 +151,56 @@ object Validation:
         .problems(s.lessonLines.filter(_.classId == cls.id), names)
         .map(p => Finding(if p.blocking then Severity.Blocking else Severity.Warning,
           cls.name, p.message, Some(cls.id)))
+    }
+
+  /**
+   * Both halves of a class are busy at the same time, so every hour one half
+   * spends on a split subject is an hour the other half must spend on a
+   * different one.
+   *
+   * That is only possible if there is a different one to spend it on. When a
+   * subject's two halves share a teacher they cannot be taught at the same
+   * moment, so they cannot pair with each other — the hours have to find
+   * partners elsewhere, and there may not be enough. Counting says so straight
+   * away; the solver takes a quarter of an hour to prove the same thing and
+   * cannot say which subject caused it.
+   */
+  private def splitPairing(s: SchoolSnapshot): List[Finding] =
+    val names = s.subjects.map(x => x.id -> x.name).toMap
+    s.classes.flatMap { cls =>
+      val split = s.lessonLines
+        .filter(l => l.classId == cls.id && l.audience != LessonAudience.WHOLE_CLASS)
+      val hours = split
+        .groupBy(l => (l.subjectId, l.audience))
+        .view.mapValues(_.map(_.hours).sum).toMap
+      val teachers = split
+        .groupBy(l => (l.subjectId, l.audience))
+        .view.mapValues(_.flatMap(_.teacherId).toSet).toMap
+
+      val totalSecond = hours.collect { case ((_, LessonAudience.GROUP_2), h) => h }.sum
+      val totalFirst = hours.collect { case ((_, LessonAudience.GROUP_1), h) => h }.sum
+
+      split.map(_.subjectId).distinct.flatMap { subjectId =>
+        val sharesTeacher = teachers
+          .getOrElse((subjectId, LessonAudience.GROUP_1), Set.empty)
+          .intersect(teachers.getOrElse((subjectId, LessonAudience.GROUP_2), Set.empty))
+          .nonEmpty
+        if !sharesTeacher then None
+        else
+          val first = hours.getOrElse((subjectId, LessonAudience.GROUP_1), 0)
+          val second = hours.getOrElse((subjectId, LessonAudience.GROUP_2), 0)
+          // What is left for each half to be doing while the other has this.
+          val partnersForFirst = totalSecond - second
+          val partnersForSecond = totalFirst - first
+          if first > partnersForFirst || second > partnersForSecond then
+            Some(Finding(Severity.Blocking, cls.name,
+              s"${names.getOrElse(subjectId, "?")}: obie grupy prowadzi ta sama osoba, " +
+                s"więc nie mogą odbywać się jednocześnie — a druga połowa klasy ma tylko " +
+                s"${math.min(partnersForFirst, partnersForSecond)} godz. innych zajęć " +
+                s"w grupach, przy ${math.max(first, second)} potrzebnych",
+              Some(cls.id)))
+          else None
+      }
     }
 
   // ── Teachers ──────────────────────────────────────────────────────────────

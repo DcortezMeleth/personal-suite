@@ -101,6 +101,24 @@ maven.install(
         # constructor DefaultSolverFactory(config, FORCE_REFLECTION) and owning
         # an unsupported API. That is a Phase 3 decision, not a version bump.
         "ai.timefold.solver:timefold-solver-core:1.16.0",
+        # ── Solver evaluation (services/belFER/solver-poc) ────────────────────
+        # Candidates weighed against Timefold before Phase 3 commits to one.
+        # They are only reachable from the POC package and carry no weight in
+        # either service's binary.
+        "org.jacop:jacop:4.10.0",
+        "com.google.ortools:ortools-java:9.15.6755",
+        # The solver itself is a native binary. ortools-java depends on every
+        # platform's artifact, so all of them arrive whatever is asked for and
+        # the Loader picks at runtime — these two are listed only to pin the
+        # versions the build resolves.
+        "com.google.ortools:ortools-darwin-x86-64:9.15.6755",
+        "com.google.ortools:ortools-linux-x86-64:9.15.6755",
+        "com.google.ortools:ortools-linux-aarch64:9.15.6755",
+        "com.google.protobuf:protobuf-java:4.33.1",
+        # JaCoP still asks for slf4j 1.7 where everything else wants 2.0.
+        # Pinned here so the resolver has one answer rather than a conflict;
+        # 2.0 keeps the 1.7 logger API it actually calls.
+        "org.slf4j:slf4j-api:2.0.19",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
@@ -145,6 +163,7 @@ oci.pull(
     tag = "25-jre-noble",
     platforms = ["linux/amd64"],
 )
+
 oci.pull(
     name = "nginx_base",
     image = "nginx",

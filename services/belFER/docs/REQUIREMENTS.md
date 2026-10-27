@@ -373,6 +373,14 @@ never compared.
 
 ## 10. Solver
 
+> **Superseded in part.** The engine named below was chosen on paper before
+> anything had been tried. It was measured against four alternatives in
+> [SOLVER_EVALUATION.md](SOLVER_EVALUATION.md) and replaced by OR-Tools CP-SAT
+> — see [ADR 0001](decisions/0001-timetable-solver-engine.md). Everything in
+> this section that is not about *which* engine still holds, and §10.1 is
+> retained because its conclusion survived the change: the solver stays behind
+> a Java boundary and no solver type crosses into Scala.
+
 - **Timefold Solver** is the starting point. Writing a well-optimised search
   algorithm by hand is not a task to take on up front; revisit only if
   Timefold proves insufficient.
@@ -389,7 +397,12 @@ never compared.
 - Input validation is wanted, but the goal is to catch most problems **at
   data-entry time** rather than at generation time.
 
-### 10.1 Consequences of choosing Timefold
+### 10.1 Consequences of choosing a solver library
+
+> Written about Timefold; the conclusions held when the engine changed. The one
+> that did not: weighted hard/soft scoring is no longer something the engine
+> hands us, so how soft constraints are expressed became its own decision —
+> [ADR 0002](decisions/0002-soft-constraints-as-weighted-penalties.md).
 
 - Weighted hard/soft scoring maps directly onto the configurable-optimisation-
   key requirement: weights can live in Postgres and be edited in the UI rather
