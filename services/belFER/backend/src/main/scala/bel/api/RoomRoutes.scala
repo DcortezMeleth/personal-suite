@@ -17,7 +17,7 @@ class RoomRoutes(repo: RoomRepository):
 
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "room-kinds" =>
       req.as[CreateRoomKind].flatMap { cmd =>
-        if cmd.name.trim.isEmpty then UnprocessableEntity(ApiError.body("Nazwa typu sali nie może być pusta"))
+        if cmd.name.trim.isEmpty then UnprocessableContent(ApiError.body("Nazwa typu sali nie może być pusta"))
         else
           ApiError.onDuplicate("Typ sali o tej nazwie już istnieje")(repo.createKind(schoolId, cmd)) { kind =>
             Created(kind.asJson)
@@ -26,7 +26,7 @@ class RoomRoutes(repo: RoomRepository):
 
     case req @ PUT -> Root / "room-kinds" / UUIDVar(id) =>
       req.as[CreateRoomKind].flatMap { cmd =>
-        if cmd.name.trim.isEmpty then UnprocessableEntity(ApiError.body("Nazwa typu sali nie może być pusta"))
+        if cmd.name.trim.isEmpty then UnprocessableContent(ApiError.body("Nazwa typu sali nie może być pusta"))
         else
           ApiError.onDuplicate("Typ sali o tej nazwie już istnieje")(repo.renameKind(id, cmd)) {
             case Some(kind) => Ok(kind.asJson)
@@ -44,7 +44,7 @@ class RoomRoutes(repo: RoomRepository):
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "rooms" =>
       req.as[RoomInput].flatMap { input =>
         RoomValidation.validate(input) match
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right(_) =>
             ApiError.onDuplicate("Sala o tym numerze już istnieje")(repo.createRoom(schoolId, input)) { room =>
               Created(room.asJson)
@@ -54,7 +54,7 @@ class RoomRoutes(repo: RoomRepository):
     case req @ PUT -> Root / "schools" / UUIDVar(schoolId) / "rooms" / UUIDVar(id) =>
       req.as[RoomInput].flatMap { input =>
         RoomValidation.validate(input) match
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right(_) =>
             ApiError.onDuplicate("Sala o tym numerze już istnieje")(repo.updateRoom(schoolId, id, input)) {
               case Some(room) => Ok(room.asJson)

@@ -90,7 +90,7 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "import" / "preview" =>
       req.decode[Multipart[IO]] { mp =>
         uploadFrom(mp).flatMap {
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right((doc, weeks)) =>
             val plan = ArkuszMapper.map(doc, weeks)
             repo.existingCounts(schoolId).flatMap { existing =>
@@ -111,7 +111,7 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "import" / "apply" =>
       req.decode[Multipart[IO]] { mp =>
         uploadFrom(mp).flatMap {
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right((doc, weeks)) =>
             val plan = ArkuszMapper.map(doc, weeks)
             // Checked before writing: without it an unknown school reaches the

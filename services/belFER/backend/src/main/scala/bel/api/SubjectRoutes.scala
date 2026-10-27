@@ -18,7 +18,7 @@ class SubjectRoutes(repo: SubjectRepository):
     case req @ POST -> Root / "schools" / UUIDVar(schoolId) / "subjects" =>
       req.as[SubjectInput].flatMap { input =>
         SubjectValidation.validate(input) match
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right(_) =>
             ApiError.onDuplicate("Przedmiot o tym kodzie już istnieje")(repo.create(schoolId, input)) { subject =>
               Created(subject.asJson)
@@ -28,7 +28,7 @@ class SubjectRoutes(repo: SubjectRepository):
     case req @ PUT -> Root / "subjects" / UUIDVar(id) =>
       req.as[SubjectInput].flatMap { input =>
         SubjectValidation.validate(input) match
-          case Left(message) => UnprocessableEntity(ApiError.body(message))
+          case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right(_) =>
             ApiError.onDuplicate("Przedmiot o tym kodzie już istnieje")(repo.update(id, input)) {
               case Some(subject) => Ok(subject.asJson)

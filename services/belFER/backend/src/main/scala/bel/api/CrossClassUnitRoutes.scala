@@ -23,7 +23,7 @@ class CrossClassUnitRoutes(
       slots <- schools.slotCount(schoolId)
       rooms <- input.requiredRoomKindId.traverse(rooms.roomsOfKind)
       result <- CrossClassUnitValidation.validate(input, slots, rooms) match
-                  case Left(message) => UnprocessableEntity(ApiError.body(message))
+                  case Left(message) => UnprocessableContent(ApiError.body(message))
                   case Right(_)      => onValid
     yield result
 

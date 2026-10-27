@@ -24,7 +24,7 @@ class LessonLineRoutes(
   ): IO[Response[IO]] =
     schools.slotCount(schoolId).flatMap { slots =>
       LessonLineValidation.validate(input, slots) match
-        case Left(message) => UnprocessableEntity(ApiError.body(message))
+        case Left(message) => UnprocessableContent(ApiError.body(message))
         case Right(_)      => onValid
     }
 

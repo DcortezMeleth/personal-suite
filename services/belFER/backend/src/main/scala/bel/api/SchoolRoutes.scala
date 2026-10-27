@@ -23,9 +23,9 @@ class SchoolRoutes(repo: SchoolRepository):
       req.as[CreateSchool].flatMap { cmd =>
         // A new school takes the defaults, so only the fields that identify it
         // are validated here.
-        if cmd.name.trim.isEmpty then UnprocessableEntity(error("Nazwa szkoły nie może być pusta"))
+        if cmd.name.trim.isEmpty then UnprocessableContent(error("Nazwa szkoły nie może być pusta"))
         else if cmd.years < 1 || cmd.years > 12 then
-          UnprocessableEntity(error("Liczba roczników musi mieścić się w przedziale 1–12"))
+          UnprocessableContent(error("Liczba roczników musi mieścić się w przedziale 1–12"))
         else repo.create(cmd).flatMap(school => Created(school.asJson))
       }
 
@@ -38,7 +38,7 @@ class SchoolRoutes(repo: SchoolRepository):
     case req @ PUT -> Root / "schools" / UUIDVar(id) =>
       req.as[UpdateSchool].flatMap { cmd =>
         SchoolValidation.validate(cmd.name, cmd.years, cmd.settings) match
-          case Left(message) => UnprocessableEntity(error(message))
+          case Left(message) => UnprocessableContent(error(message))
           case Right(_) =>
             repo.update(id, cmd).flatMap {
               case Some(school) => Ok(school.asJson)
@@ -52,7 +52,7 @@ class SchoolRoutes(repo: SchoolRepository):
     case req @ PUT -> Root / "schools" / UUIDVar(id) / "time-slots" =>
       req.as[List[TimeSlotInput]].flatMap { slots =>
         BellSchedule.validate(slots) match
-          case Left(message) => UnprocessableEntity(error(message))
+          case Left(message) => UnprocessableContent(error(message))
           case Right(_) =>
             repo.find(id).flatMap {
               case None    => NotFound(error("Nie ma takiej szkoły"))

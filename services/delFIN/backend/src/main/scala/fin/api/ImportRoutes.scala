@@ -59,7 +59,7 @@ class ImportRoutes(
               case None    => BadRequest("""{"error":"Account not found"}""")
               case Some(_) =>
                 parser(content) match
-                  case Left(err)     => UnprocessableEntity(s"""{"error":"$err"}""")
+                  case Left(err)     => UnprocessableContent(s"""{"error":"$err"}""")
                   case Right(parsed) =>
                     txService.importTransactions(parsed, accountId).flatMap(r => Ok(r.asJson))
             }
@@ -81,7 +81,7 @@ class ImportRoutes(
               case None    => BadRequest("""{"error":"Account not found"}""")
               case Some(_) =>
                 XtbCsvParser.parse(content) match
-                  case Left(err)  => UnprocessableEntity(s"""{"error":"$err"}""")
+                  case Left(err)  => UnprocessableContent(s"""{"error":"$err"}""")
                   case Right(rows) =>
                     investService.importXtb(rows, accountId).flatMap(r => Ok(r.asJson))
             }

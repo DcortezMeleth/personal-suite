@@ -28,7 +28,7 @@ class SchoolClassRoutes(repo: SchoolClassRepository, schools: SchoolRepository):
       req.as[SchoolClassInput].flatMap { input =>
         withYears(schoolId) { years =>
           SchoolClassValidation.validate(input, years) match
-            case Left(message) => UnprocessableEntity(ApiError.body(message))
+            case Left(message) => UnprocessableContent(ApiError.body(message))
             case Right(_) =>
               ApiError.onDuplicate(duplicate)(repo.create(schoolId, input))(c => Created(c.asJson))
         }
@@ -38,7 +38,7 @@ class SchoolClassRoutes(repo: SchoolClassRepository, schools: SchoolRepository):
       req.as[GenerateClasses].flatMap { cmd =>
         withYears(schoolId) { years =>
           SchoolClassValidation.validateGeneration(cmd, years) match
-            case Left(message) => UnprocessableEntity(ApiError.body(message))
+            case Left(message) => UnprocessableContent(ApiError.body(message))
             case Right(_)      => repo.generate(schoolId, cmd).flatMap(all => Ok(all.asJson))
         }
       }
@@ -47,7 +47,7 @@ class SchoolClassRoutes(repo: SchoolClassRepository, schools: SchoolRepository):
       req.as[SchoolClassInput].flatMap { input =>
         withYears(schoolId) { years =>
           SchoolClassValidation.validate(input, years) match
-            case Left(message) => UnprocessableEntity(ApiError.body(message))
+            case Left(message) => UnprocessableContent(ApiError.body(message))
             case Right(_) =>
               ApiError.onDuplicate(duplicate)(repo.update(id, input)) {
                 case Some(cls) => Ok(cls.asJson)
