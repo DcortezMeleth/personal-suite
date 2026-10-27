@@ -2,7 +2,6 @@ package bel.repository
 
 import bel.domain.*
 import cats.effect.IO
-import cats.syntax.traverse.*
 import java.util.UUID
 
 /**
@@ -48,7 +47,6 @@ class SnapshotLoader(
           plans       <- individual.findAll(schoolId)
           allRooms    <- rooms.findRooms(schoolId)
           kinds       <- rooms.findKinds(schoolId)
-          counts      <- kinds.traverse(kind => rooms.roomsOfKind(kind.id).map(count => kind.id -> count))
         yield Some((SchoolSnapshot(
           settings = school.settings,
           slotsPerDay = slots,
@@ -60,7 +58,13 @@ class SnapshotLoader(
           crossClassUnits = units,
           individualPlans = plans,
           teacherSubjects = allTeachers.map(t => t.id -> t.subjectIds.toSet).toMap,
-          roomsOfKind = counts.toMap,
+          // Counted from the rooms already in hand rather than asked for one
+          // query per kind: findRooms attaches each room's kinds, and the
+          // assignment table is keyed on (room, kind) so a room counts once.
+          // Listed over the kinds rather than grouped over the rooms, so that
+          // a kind no room carries still reports zero — which is the case
+          // validation cares about.
+          roomsOfKind = kinds.map(k => k.id -> allRooms.count(_.kinds.exists(_.id == k.id))).toMap,
           totalRooms = allRooms.size
         ), allRooms))
     }
