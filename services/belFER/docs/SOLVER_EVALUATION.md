@@ -1098,6 +1098,15 @@ real bug, also not this. Every day in this data is interchangeable, because the
 school as imported has no teacher unavailability at all, so a rule proved on
 Monday is a rule about Thursday too.
 
+**Where it went.** It stopped reproducing. Three runs of the configuration that
+had proved a solvable week impossible now build one — 141, 50 and 219 plans —
+and the guard added in between, against a quarrel that names the same kind of
+lesson twice, never once fired in any of them. So the guard is correct and is
+not demonstrably what changed; either those runs simply did not meet the case
+it catches, or something else did it. A loop this nondeterministic does not
+offer a way to tell, and three successes are not a proof of soundness. The
+reproduction below is kept for whoever meets it again.
+
 **Where to look next.** Not by reasoning — that has now produced three wrong
 answers in a row, two of which were real bugs that turned out not to be this
 one, and a third about lesson kinds that share a class, subject and audience.
@@ -1141,3 +1150,111 @@ a Polish liceum — and we had forbidden it without ever being told to.
 The whole-week model is unmoved: twenty-five classes posed in one piece is
 still nothing after ten minutes, with or without the rule. So the decomposition
 is still doing the work; the rule was what the decomposition kept running into.
+
+## Twenty-five, and a rule that got harder when another got easier
+
+The whole school does not follow twenty through. Two hundred and thirty-three
+plans, every one of them failing on the first day, with quarrels of about ten
+lessons spanning a pair of classes each time.
+
+There is a reason to suspect a particular rule, and it is a rule that *became*
+harder when the start-of-day rule was lifted. An optional subject must be the
+first or the last thing a class does. A cross-class block must happen at the
+same hour for every class taking it. Put those together for the ethics block
+that seven classes share, and while every class began its day at the first
+hour, "first" meant the same hour for all of them — so the block went there and
+that was that. Allow classes to come in late and "first" is a different hour for
+each, and seven of them have to agree on one.
+
+So lifting the rule that stopped twenty classes may be what stops twenty-five.
+That is a pleasing shape for a problem to have and it is only a hypothesis; the
+measurement that settles it is to lift optional-subjects-at-the-edges as well
+and see whether the first day goes in.
+
+## A day of the whole school is not the problem
+
+Worth pinning down before chasing the planner any further. One day, all
+twenty-five classes, both unconfirmed rules lifted, the solver free to choose
+which lessons fall on it:
+
+    25 oddziałów, 1175 bloków, 1x8 slotów
+    OPTIMAL w 7,1 s
+
+Seven seconds, proved best. So nothing about a day of this school is hard. What
+fails, two hundred and thirty-three times over, is the particular set of lessons
+the planner chooses to put on one — and that is a far better problem than a day
+that cannot be laid out, because it is a question of choosing well rather than
+of whether a choice exists.
+
+# The bug under all the others: a question only some rules can be asked
+
+The loop pares a failure down by asking, over and over, whether a handful of
+lessons can still not share a day — with those lessons on it and nothing else.
+That is a fair question for a rule which adding lessons can only make harder.
+Two of ours are the other way about:
+
+  - **a teacher's gap limit.** Take her other classes off the day and she sits
+    idle through the middle of it. In a real day she is teaching somebody else.
+  - **a class's day being unbroken.** Take a class's other lessons away and its
+    morning acquires the holes they were filling.
+
+So quarrels were being proved by gaps that existed only because the probe had
+emptied the day, and the rules drawn from them forbade weeks that work. The
+planner obeyed them, and eventually reported that no week existed — which it
+did, for instances where this loop had built one.
+
+The clearest case, found by asking the solver which rule each small quarrel was
+about rather than by reading code: five lessons of 1H, three whole-class hours
+and both halves of one English lesson. The halves share a teacher, so they
+cannot be taught at once, so they sit at either end of the day — and with the
+other three lessons removed, that teacher has three free hours between them.
+Nothing about those five lessons is impossible. The probe made it so.
+
+**Fixing it made the loop faster, not slower.**
+
+| | before | after |
+|---|---|---|
+| fifteen classes | 50 to 219 plans | **11** |
+| twenty classes | 71 plans | **25** |
+
+Cores come out at two dozen lessons rather than a handful, because paring stops
+where the evidence does. And the loop converges in a fraction of the rounds,
+because it is no longer sending the planner away from weeks that were never
+excluded. Four earlier attempts at this bug each found something real — a
+timeout read as a proof, a verdict that conflated the two, a cross-class block
+followed to the wrong teacher, a quarrel that named one kind twice — and none
+of them was this.
+
+The lesson generalises past this program. **A search that learns from its own
+failures must only ask questions its answers are valid for.** Subset probing is
+sound for constraints that adding work can only tighten, and quietly wrong for
+anything that empty space can violate — gaps, idleness, balance, anything whose
+breach is an absence rather than a collision.
+
+## Where it stands
+
+| | |
+|---|---|
+| fifteen classes | **a complete week, 11 plans** |
+| twenty classes | **a complete week, 943 blocks, 25 plans** |
+| twenty-five classes | six hundred and eighty-seven plans, none past the first day |
+| one day of twenty-five classes, solver choosing | **proved best in 2.7 s** |
+
+Those last two lines together say what is left. There is nothing hard about a
+day of this school. What the planner cannot do is choose which lessons go on
+one — six hundred and eighty-seven attempts, three and a half thousand rules
+learned, and it never found a first day that could be laid out.
+
+A loop that learns and does not converge is being told true things that do not
+add up to the thing it needs. The planner decides by counting, and only one of
+its beliefs is a guess rather than a copy of a rule the placement enforces:
+what a class's day costs it, taken as the whole-class hours plus the longer of
+its two halves, plus an hour wherever one teacher has both. That formula is
+right when the halves line up and low when they do not — and it is low in
+exactly the case this school has, where a shared teacher forces them apart.
+Underestimating what a day costs is how a planner packs one too full, over and
+over, in six hundred and eighty-seven different ways.
+
+So the next thing to measure is not the search. It is whether the planner's
+arithmetic for a day agrees with what the placement then finds, class by class,
+on a day it has just proposed. Where they disagree is where the next rule is.

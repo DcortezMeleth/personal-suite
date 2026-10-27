@@ -436,6 +436,25 @@ object SolveCli extends IOApp:
      * that has nothing to do with it removes a dozen lessons for one question;
      * then what is left is pared a lesson at a time.
      */
+    /**
+     * Rules that a smaller day can break and a fuller one cannot.
+     *
+     * Asking whether a handful of lessons can share a day means asking about
+     * those lessons and nothing else, and that only answers the question for
+     * rules which adding lessons can only make harder. These two work the
+     * other way about. Take a teacher's other classes away and she sits idle
+     * through the middle of the day; take a class's other lessons away and its
+     * morning acquires the holes they were filling. Both make a day look
+     * impossible when the real one, with everything in it, is fine.
+     *
+     * So the probes leave them out. A quarrel that survives without them is
+     * about something that more lessons cannot mend, and a rule drawn from it
+     * is true of the day it came from.
+     */
+    def onlyWithEverything: Set[TimetableProblem.Rule] = Set(
+      TimetableProblem.Rule.CLASS_DAY_CONTIGUOUS,
+      TimetableProblem.Rule.TEACHER_GAP_LIMIT)
+
     def narrow(day: Int, blamed: Set[String]): IO[Set[String]] =
       // Proved impossible, not merely not managed. A probe that runs out of
       // time has shown nothing, and treating it as proof would mint a rule
@@ -449,7 +468,8 @@ object SolveCli extends IOApp:
           // that cannot prove the lessons still clash simply keeps the lesson
           // in. Waiting longer for that buys a slightly smaller rule at the
           // price of a far slower round.
-          val problem = SolverInput.build(snapshot, rooms, 10, workers, relaxed = relaxed,
+          val problem = SolverInput.build(snapshot, rooms, 10, workers,
+            relaxed = relaxed ++ onlyWithEverything,
             shape = Map.empty, onlyDays = Seq(day), skip = everyLesson.keySet -- subset)
           IO.blocking(TimetableSolver.solve(problem))
             .map(_.status == TimetableSolution.Status.INFEASIBLE)
@@ -484,29 +504,72 @@ object SolveCli extends IOApp:
      * nothing is being claimed anywhere it was not.
      */
     def everywhere(day: Int, lessons: Set[String]): IO[List[DaySpread.Cut]] =
+      // A rule names the kinds of lesson that may not share a day, and bounds
+      // how many of them may appear at one fewer than it names. That is only
+      // the thing that was proved while the lessons proved about are of
+      // distinct kinds. Two of a kind cannot share a day anyway — another rule
+      // sees to that — so a quarrel containing two says less than it looks:
+      // the bound would forbid a combination nobody showed to be impossible.
+      //
+      // Such a quarrel is kept to the very lessons it was about.
+      val kinds = lessons.map(id => DaySpread.sameAs(everyLesson(id)))
+      val collapsed = kinds.size < lessons.size
       val subjects =
-        if literal then lessons.map(id => "lesson:" + id)
-        else lessons.map(id => DaySpread.sameAs(everyLesson(id)))
+        if literal || collapsed then lessons.map(id => "lesson:" + id) else kinds
       val others =
         if oneDay then Nil else (0 until snapshot.teachingDays).filterNot(_ == day).toList
       others
         .traverse(d => alsoImpossible(d, lessons).map(Option.when(_)(d)))
         .map(found => (day :: found.flatten).map(d => DaySpread.Cut(d, subjects.asJava)))
+        .flatTap(cuts => IO.whenA(collapsed)(IO.println(
+          s"    ${lessons.size} lekcji, ale tylko ${kinds.size} rodzajów — reguła tylko o nich")))
 
     /** Whether these same lessons are impossible on another day too. */
     def alsoImpossible(day: Int, lessons: Set[String]): IO[Boolean] =
-      val problem = SolverInput.build(snapshot, rooms, 10, workers, relaxed = relaxed,
+      val problem = SolverInput.build(snapshot, rooms, 10, workers,
+        relaxed = relaxed ++ onlyWithEverything,
         shape = Map.empty, onlyDays = Seq(day), skip = everyLesson.keySet -- lessons)
       IO.blocking(TimetableSolver.solve(problem))
         .map(_.status == TimetableSolution.Status.INFEASIBLE)
+
+    /**
+     * Which rule a small quarrel is actually about.
+     *
+     * A handful of lessons that cannot share a day is a fact, and on its own
+     * it says nothing about why. Asking again with each rule lifted in turn
+     * says it outright: whichever one makes the day possible is the rule the
+     * quarrel is about. Cheap only for small quarrels, and those are the ones
+     * worth understanding.
+     */
+    def blamedRule(day: Int, lessons: Set[String]): IO[List[String]] =
+      val candidates = List(
+        TimetableProblem.Rule.CLASS_DAY_CONTIGUOUS,
+        TimetableProblem.Rule.CLASS_DAY_STARTS_FIRST,
+        TimetableProblem.Rule.ONE_BLOCK_PER_SUBJECT_PER_DAY,
+        TimetableProblem.Rule.OPTIONAL_AT_DAY_EDGE,
+        TimetableProblem.Rule.TEACHER_GAP_LIMIT,
+        TimetableProblem.Rule.ROOM_CAPACITY,
+        TimetableProblem.Rule.ROOM_KIND,
+        TimetableProblem.Rule.CROSS_CLASS_TOGETHER)
+      candidates.filterNot(relaxed.contains).traverse { rule =>
+        val problem = SolverInput.build(snapshot, rooms, 15, workers,
+          relaxed = relaxed + rule, shape = Map.empty, onlyDays = Seq(day),
+          skip = everyLesson.keySet -- lessons)
+        IO.blocking(TimetableSolver.solve(problem)).map(s => Option.when(s.solved)(rule.toString))
+      }.map(_.flatten)
 
     /** Turns a day that will not go in into something the planner can use. */
     def learn(cuts: List[DaySpread.Cut], round: Int, day: Int,
               solution: TimetableSolution, counting: Boolean): IO[ExitCode] =
       val core = solution.core.asScala.toSet
       if core.isEmpty then
-        IO.println(s"  dnia ${day + 1} nie da się ułożyć i nie wiadomo, co za to odpowiada")
-          .as(ExitCode(1))
+        // No account of the failure means the day was not proved impossible,
+        // only not managed — so there is nothing to learn and nothing to
+        // re-plan around, and planning again would produce the same week. The
+        // honest thing is to say which day ran out of time rather than to
+        // report that the week cannot be built.
+        IO.println(s"  dzień ${day + 1} nie zmieścił się w czasie, jaki na niego przypada " +
+          s"— spróbuj dłuższego limitu niż $seconds s").as(ExitCode(1))
       else if round >= maxRounds then
         IO.println(s"  poddaję się po $maxRounds planach").as(ExitCode(1))
       else
@@ -520,9 +583,25 @@ object SolveCli extends IOApp:
                    .map((a, ls) => s"$a=${ls.size}").toList.sorted.mkString(" ")
                  val units = small.count(id => everyLesson(id).crossClassUnitId != null)
                  val spare = small.count(id => everyLesson(id).optional)
+                 val named =
+                   if small.size > 6 then ""
+                   else small.toList.map(everyLesson).map { l =>
+                     val subject = snapshot.subjects.find(_.id.toString == l.subjectId)
+                       .fold("?")(_.name.take(12))
+                     val who = l.audience match
+                       case Audience.GROUP_1 => "/1"
+                       case Audience.GROUP_2 => "/2"
+                       case _                => ""
+                     val cross = if l.crossClassUnitId != null then "*" else ""
+                     val edge = if l.optional then "!" else ""
+                     s"$subject$who$cross$edge(${l.length}h)"
+                   }.sorted.mkString("\n      ", "\n      ", "")
                  s"    kształt sporu: $kinds" + (if units > 0 then s" międzyodd=$units" else "") +
-                   (if spare > 0 then s" nieobowiązkowe=$spare" else "")
+                   (if spare > 0 then s" nieobowiązkowe=$spare" else "") + named
                })
+          why <- if small.size <= 6 then blamedRule(day, small) else IO.pure(Nil)
+          _ <- IO.whenA(why.nonEmpty)(
+                 IO.println(s"      bez tej reguły dzień by się ułożył: ${why.mkString(", ")}"))
           _ <- IO.println(s"  winnych lekcji: ${small.size} z ${core.size} (" +
                  small.flatMap(id => Option(everyLesson(id).classId)).flatMap(c =>
                    snapshot.classes.find(_.id.toString == c).map(_.name)).toList.sorted
