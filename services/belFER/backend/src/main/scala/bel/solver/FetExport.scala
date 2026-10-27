@@ -37,7 +37,7 @@ object FetExport:
    * can no longer name. Keeping the mapping is what makes the round trip a
    * round trip rather than a one-way export.
    */
-  case class Written(xml: String, means: Map[Int, SolverInput.LessonRef])
+  case class Written(xml: String, means: Map[Int, LessonRef])
 
   private val Days = List("Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek")
 
@@ -56,7 +56,7 @@ object FetExport:
     /** Activities that must begin at the same hour as this one. */
     sameTimeAs: Option[Int],
     /** What this activity is, in our own terms. */
-    means: Option[SolverInput.LessonRef],
+    means: Option[LessonRef],
     /** The kind of room it needs, when it needs a particular one. */
     roomKind: Option[UUID],
     /** Whether a whole class has to fit in the room. */
@@ -307,7 +307,7 @@ object FetExport:
         out += Act(next, staff, subject, List(who), length, mine,
           optional = snapshot.subjects.find(_.id == line.subjectId).exists(_.optional),
           sameTimeAs = None,
-          means = Some(SolverInput.LessonRef.Line(line.id, block)),
+          means = Some(LessonRef.Line(line.id, block)),
           roomKind = snapshot.subjects.find(_.id == line.subjectId)
             .flatMap(_.requiredRoomKind).map(_.id),
           wholeClass = line.audience == LessonAudience.WHOLE_CLASS)
@@ -343,7 +343,7 @@ object FetExport:
       for g <- unit.groups do
         out += Act(next, g.teacherId.toList.flatMap(teachers.get), subject, Nil, length, mine,
           optional = false, sameTimeAs = Some(anchor),
-          means = Some(SolverInput.LessonRef.CrossClassGroupRef(unit.id, g.id, block)),
+          means = Some(LessonRef.CrossClassGroupRef(unit.id, g.id, block)),
           roomKind = unit.requiredRoomKindId,
           // A cross-class group is part of a class, never a whole one.
           wholeClass = false)
@@ -367,7 +367,7 @@ object FetExport:
       out += Act(next, lesson.teacherId.toList.flatMap(teachers.get),
         subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
         optional = false, sameTimeAs = None,
-        means = Some(SolverInput.LessonRef.Individual(lesson.id, block)),
+        means = Some(LessonRef.Individual(lesson.id, block)),
         roomKind = individualKind, wholeClass = false)
       next += 1
 

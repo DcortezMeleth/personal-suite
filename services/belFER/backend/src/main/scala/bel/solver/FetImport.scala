@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters.*
 object FetImport:
 
   /** Where one lesson ended up. */
-  case class Placed(what: SolverInput.LessonRef, day: Int, position: Int, length: Int,
+  case class Placed(what: LessonRef, day: Int, position: Int, length: Int,
                     /** The room FET put it in, by the name we gave the room. */
                     room: Option[String])
 
@@ -35,7 +35,7 @@ object FetImport:
    * @param days the day names written into the file, in order, because FET
    *     answers with the names it was given rather than with indices
    */
-  def apply(xml: String, means: Map[Int, SolverInput.LessonRef],
+  def apply(xml: String, means: Map[Int, LessonRef],
             days: List[String]): Result =
     val byName = days.zipWithIndex.toMap
     val factory = DocumentBuilderFactory.newInstance()
@@ -86,7 +86,7 @@ object FetImport:
     val tuition = s.individualPlans.flatMap(_.lessons).map(l => l.id -> l).toMap
 
     val individual = placed.collect {
-      case Placed(SolverInput.LessonRef.Individual(lessonId, block), day, from, _, where)
+      case Placed(LessonRef.Individual(lessonId, block), day, from, _, where)
         if tuition.contains(lessonId) =>
         val lesson = tuition(lessonId)
         PlanCheck.Scheduled(
@@ -104,7 +104,7 @@ object FetImport:
     }
 
     val ordinary = placed.collect {
-      case Placed(SolverInput.LessonRef.Line(lineId, block), day, from, _, where)
+      case Placed(LessonRef.Line(lineId, block), day, from, _, where)
         if lines.contains(lineId) =>
         val l = lines(lineId)
         PlanCheck.Scheduled(
@@ -126,7 +126,7 @@ object FetImport:
     // groups look booked three times over — which is the same mistake the
     // export made, and is why the check is written separately from it.
     val crossPlacements = placed.collect {
-      case q @ Placed(ref: SolverInput.LessonRef.CrossClassGroupRef, _, _, _, _) => (ref, q)
+      case q @ Placed(ref: LessonRef.CrossClassGroupRef, _, _, _, _) => (ref, q)
     }
 
     val teaching = crossPlacements.flatMap { (ref, q) =>

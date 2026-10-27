@@ -169,9 +169,9 @@ object SolveCli extends IOApp:
     val blocking = Validation.run(snapshot).filter(_.severity == Severity.Blocking)
 
     val shape = shaped.fold(Map.empty[UUID, Seq[Int]])(strategy =>
-      SolverInput.shapes(snapshot, snapshot.teachingDays, snapshot.slotsPerDay, strategy))
-    val faults = SolverInput.shapeFaults(snapshot, shape, snapshot.slotsPerDay, rooms.size)
-    val problem = SolverInput.build(snapshot, rooms, seconds, workers, hints = hints,
+      CpSatInput.shapes(snapshot, snapshot.teachingDays, snapshot.slotsPerDay, strategy))
+    val faults = CpSatInput.shapeFaults(snapshot, shape, snapshot.slotsPerDay, rooms.size)
+    val problem = CpSatInput.build(snapshot, rooms, seconds, workers, hints = hints,
       halvesApartWeight = apart.getOrElse(20), shape = shape,
       partial = onlyDay.isDefined, onlyDays = onlyDay.toSeq)
     for
@@ -220,7 +220,7 @@ object SolveCli extends IOApp:
     val slotsPerDay = snapshot.slotsPerDay
     val maxDays = snapshot.teachers.map(t =>
       t.id.toString -> t.maxWorkingDays.getOrElse(snapshot.settings.defaultTeacherMaxWorkingDays)).toMap
-    val everyLesson = SolverInput.build(snapshot, rooms, 1, 0, shape = shape)
+    val everyLesson = CpSatInput.build(snapshot, rooms, 1, 0, shape = shape)
       .lessons.asScala.map(l => l.id -> l).toMap
 
     def teachersOf(lessonId: String): List[String] =
@@ -327,7 +327,7 @@ object SolveCli extends IOApp:
       // anything off to, so everything still unplaced has to go in now —
       // otherwise the solver answers by quietly teaching less.
       val lastDay = window.contains(snapshot.teachingDays - 1)
-      val problem = SolverInput.build(snapshot, rooms, seconds, workers, relaxed = relaxed,
+      val problem = CpSatInput.build(snapshot, rooms, seconds, workers, relaxed = relaxed,
         shape = shapeNow(window, keep),
         partial = !lastDay, shapeSlack = give, onlyDays = window,
         skip = keep.map(_.lessonId).toSet ++ paced,
@@ -388,7 +388,7 @@ object SolveCli extends IOApp:
      * next plan is a different plan rather than the same one retried.
      */
     def byPlan(cuts: List[DaySpread.Cut], round: Int, counting: Boolean = true): IO[ExitCode] =
-      val whole = SolverInput.build(snapshot, rooms, seconds, workers, shape = shape)
+      val whole = CpSatInput.build(snapshot, rooms, seconds, workers, shape = shape)
       // Charging a class the extra hour a shared teacher costs it is worth a
       // great deal where the week still adds up with it in, and past about
       // twenty-two classes it does not. Rather than guess which school this
@@ -433,7 +433,7 @@ object SolveCli extends IOApp:
               TimetableSolution.Status.FEASIBLE, placed.asJava, 0L, 0L, "")).as(ExitCode.Success)
       else
         val elsewhere = plan.collect { case (id, d) if d != day => id }.toSet
-        val problem = SolverInput.build(snapshot, rooms, seconds, workers, relaxed = relaxed,
+        val problem = CpSatInput.build(snapshot, rooms, seconds, workers, relaxed = relaxed,
           shape = Map.empty, explain = true, onlyDays = Seq(day), skip = elsewhere,
           spentTeachers = Set.empty)
         for
@@ -501,7 +501,7 @@ object SolveCli extends IOApp:
           // that cannot prove the lessons still clash simply keeps the lesson
           // in. Waiting longer for that buys a slightly smaller rule at the
           // price of a far slower round.
-          val problem = SolverInput.build(snapshot, rooms, 10, workers,
+          val problem = CpSatInput.build(snapshot, rooms, 10, workers,
             relaxed = relaxed ++ onlyWithEverything,
             shape = Map.empty, onlyDays = Seq(day), skip = everyLesson.keySet -- subset)
           IO.blocking(TimetableSolver.solve(problem))
@@ -559,7 +559,7 @@ object SolveCli extends IOApp:
 
     /** Whether these same lessons are impossible on another day too. */
     def alsoImpossible(day: Int, lessons: Set[String]): IO[Boolean] =
-      val problem = SolverInput.build(snapshot, rooms, 10, workers,
+      val problem = CpSatInput.build(snapshot, rooms, 10, workers,
         relaxed = relaxed ++ onlyWithEverything,
         shape = Map.empty, onlyDays = Seq(day), skip = everyLesson.keySet -- lessons)
       IO.blocking(TimetableSolver.solve(problem))
@@ -585,7 +585,7 @@ object SolveCli extends IOApp:
         TimetableProblem.Rule.ROOM_KIND,
         TimetableProblem.Rule.CROSS_CLASS_TOGETHER)
       candidates.filterNot(relaxed.contains).traverse { rule =>
-        val problem = SolverInput.build(snapshot, rooms, 15, workers,
+        val problem = CpSatInput.build(snapshot, rooms, 15, workers,
           relaxed = relaxed + rule, shape = Map.empty, onlyDays = Seq(day),
           skip = everyLesson.keySet -- lessons)
         IO.blocking(TimetableSolver.solve(problem)).map(s => Option.when(s.solved)(rule.toString))
@@ -770,14 +770,17 @@ object SolveCli extends IOApp:
     val slotsPerDay = snapshot.slotsPerDay
 
     val placed = solution.placements.asScala.toList.flatMap { p =>
-      SolverInput.LessonRef.parse(p.lessonId).map {
-        case SolverInput.LessonRef.Line(id, _) =>
+      LessonRef.parse(p.lessonId).map {
+        case LessonRef.Line(id, _) =>
           val line = lines(id)
           (line.classId, p.startSlot, label(subjects, line))
-        case SolverInput.LessonRef.CrossClass(_, _, classId, _) =>
+        case LessonRef.CrossClass(_, _, classId, _) =>
           (classId, p.startSlot, "zaj. międzyoddz.")
-        // The group itself has no class to show; its classes report themselves.
-        case SolverInput.LessonRef.CrossClassGroupRef(_, _, _) =>
+        // Neither of these names a class to show: a group's classes report
+        // themselves, and tuition takes no class at all. CP-SAT places neither
+        // kind today, but the identifier can express them, so the match says
+        // so rather than failing if it ever does.
+        case LessonRef.CrossClassGroupRef(_, _, _) | LessonRef.Individual(_, _) =>
           (null, -1, "")
       }
     }
@@ -835,7 +838,7 @@ object SolveCli extends IOApp:
     val rules = TimetableProblem.Rule.values.toList
     IO.println(s"Sprawdzam, która reguła blokuje plan (${rules.size} prób po $seconds s)\n") *>
       rules.traverse_ { rule =>
-        val problem = SolverInput.build(snapshot, rooms, seconds, workers, relaxed = Set(rule))
+        val problem = CpSatInput.build(snapshot, rooms, seconds, workers, relaxed = Set(rule))
         IO.blocking(TimetableSolver.solve(problem)).flatMap { solution =>
           val verdict = if solution.solved then "PLAN SIĘ UKŁADA" else solution.status.toString
           IO.println(f"  bez ${rule.toString}%-32s $verdict%s (${solution.millis / 1000.0}%.0f s)")
@@ -900,7 +903,7 @@ object SolveCli extends IOApp:
         classes = classes,
         lessonLines = snapshot.lessonLines.filter(l => ids.contains(l.classId)),
         crossClassUnits = snapshot.crossClassUnits.filter(_.classIds.forall(ids.contains)))
-      val problem = SolverInput.build(part, rooms, perChunk, workers)
+      val problem = CpSatInput.build(part, rooms, perChunk, workers)
       IO.blocking(TimetableSolver.solve(problem)).flatMap { solution =>
         IO.println(f"  ${classes.map(_.name).mkString(", ")}%-28s ${solution.status}%s " +
           f"(${solution.millis / 1000.0}%.0f s)").as(

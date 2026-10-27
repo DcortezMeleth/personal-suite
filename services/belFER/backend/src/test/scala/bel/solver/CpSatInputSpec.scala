@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters.*
  * merged cross-class group is taught once rather than once per class, and that
  * what comes back can be matched to what went in.
  */
-class SolverInputSpec extends AnyFunSuite:
+class CpSatInputSpec extends AnyFunSuite:
 
   private val settings = SchedulingSettings(2, 5, 8)
   private val maths = Subject(UUID.randomUUID, "mat", "Matematyka", false, None, false)
@@ -46,7 +46,7 @@ class SolverInputSpec extends AnyFunSuite:
     val snapshot = snapshotOf(List(a), List(kowalski),
       List(line(a.id, maths.id, List(1, 2, 1), kowalski)), Nil)
 
-    val problem = SolverInput.build(snapshot, rooms(2), timeLimitSeconds = 10)
+    val problem = CpSatInput.build(snapshot, rooms(2), timeLimitSeconds = 10)
     assert(problem.lessons.size == 3)
     assert(problem.lessons.asScala.map(_.length).toList.sorted == List(1, 1, 2))
   }
@@ -62,7 +62,7 @@ class SolverInputSpec extends AnyFunSuite:
       List(CrossClassGroup(UUID.randomUUID, "chłopcy", Some(nowak.id), List(a.id, b.id))))
     val snapshot = snapshotOf(List(a, b), List(nowak), Nil, List(unit))
 
-    val problem = SolverInput.build(snapshot, rooms(2), timeLimitSeconds = 10)
+    val problem = CpSatInput.build(snapshot, rooms(2), timeLimitSeconds = 10)
     val all = problem.lessons.asScala.toList
     // One lesson for the group — who teaches it, and where — carrying no class,
     // and one per class to say that class is occupied. Emitting a lesson per
@@ -86,15 +86,15 @@ class SolverInputSpec extends AnyFunSuite:
     val lines = List(line(a.id, maths.id, List(1, 1), kowalski))
     val snapshot = snapshotOf(List(a), List(kowalski), lines, Nil)
 
-    val problem = SolverInput.build(snapshot, rooms(2), timeLimitSeconds = 30)
+    val problem = CpSatInput.build(snapshot, rooms(2), timeLimitSeconds = 30)
     val solution = TimetableSolver.solve(problem)
 
     assert(solution.solved, solution.detail)
     assert(solution.placements.size == 2)
-    val refs = solution.placements.asScala.toList.flatMap(p => SolverInput.LessonRef.parse(p.lessonId))
+    val refs = solution.placements.asScala.toList.flatMap(p => LessonRef.parse(p.lessonId))
     assert(refs.sizeIs == 2)
     assert(refs.forall {
-      case SolverInput.LessonRef.Line(id, _) => id == lines.head.id
+      case LessonRef.Line(id, _) => id == lines.head.id
       case _                                 => false
     })
   }
@@ -114,7 +114,7 @@ class SolverInputSpec extends AnyFunSuite:
       List(line(a.id, maths.id, List(1, 1), shared),
            line(b.id, maths.id, List(1, 1), shared)), Nil)
 
-    val problem = SolverInput.build(snapshot, rooms(4), timeLimitSeconds = 60)
+    val problem = CpSatInput.build(snapshot, rooms(4), timeLimitSeconds = 60)
     val solution = TimetableSolver.solve(problem)
     assert(solution.solved, solution.detail)
 
@@ -132,7 +132,7 @@ class SolverInputSpec extends AnyFunSuite:
     val mat = line(a.id, maths.id, List(2), matematyk)
     val snapshot = snapshotOf(List(a), List(katecheta, matematyk), List(rel, mat), Nil)
 
-    val problem = SolverInput.build(snapshot, rooms(2), timeLimitSeconds = 60)
+    val problem = CpSatInput.build(snapshot, rooms(2), timeLimitSeconds = 60)
     val solution = TimetableSolver.solve(problem)
     assert(solution.solved, solution.detail)
 

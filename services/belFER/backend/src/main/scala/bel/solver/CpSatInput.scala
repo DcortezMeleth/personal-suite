@@ -6,15 +6,7 @@ import java.util.UUID
 import scala.jdk.CollectionConverters.*
 
 /**
- * Everything the solver needs that the snapshot does not already carry.
- *
- * Rooms are here rather than in SchoolSnapshot because validation only ever
- * needed to count them by kind, while the solver has to assign one.
- */
-case class SolverRooms(rooms: List[Room])
-
-/**
- * Turns the school's data into the solver's problem.
+ * Turns the school's data into CP-SAT's problem.
  *
  * The one real piece of work is expansion. A lesson line is four hours shaped
  * 1+2+1; the solver places *blocks*, so that line becomes three things to
@@ -24,10 +16,18 @@ case class SolverRooms(rooms: List[Room])
  * as one.
  *
  * Ids are carried out and back as strings so no solver type reaches the rest
- * of the backend — see ADR 0001. They are reversible: `LessonRef` parses them
- * back into what the placement refers to.
+ * of the backend — see ADR 0001. `LessonRef.key` writes them and
+ * `LessonRef.parse` reads them back.
+ *
+ * ADR 0004 took this off the critical path: FET generates the week now, and
+ * nothing the server serves reaches this file. It is kept because it solves
+ * fifteen and twenty classes, it is the only thing that can express "first or
+ * last, whichever suits", and it is a second opinion on instances FET finds
+ * hard. Being kept is not the same as being carried, though — it builds
+ * separately from the server so that OR-Tools and its four platforms' worth of
+ * native libraries stay out of the image the school runs.
  */
-object SolverInput:
+object CpSatInput:
 
   /**
    * How long each day of a class's week should be.
@@ -152,44 +152,6 @@ object SolverInput:
         math.max(0, first - (totalSecond - second)) + math.max(0, second - (totalFirst - first))
     }.sum
 
-  /** What a placement in the solution refers to. */
-  enum LessonRef:
-    case Line(lineId: UUID, block: Int)
-    case CrossClass(unitId: UUID, groupId: UUID, classId: UUID, block: Int)
-    /** The taught group, as distinct from the classes it draws from. */
-    case CrossClassGroupRef(unitId: UUID, groupId: UUID, block: Int)
-    /** One student taught alone: books a teacher and a room, and no class. */
-    case Individual(lessonId: UUID, block: Int)
-
-  object LessonRef:
-    def parse(id: String): Option[LessonRef] =
-      id.split('|').toList match
-        case "line" :: line :: block :: Nil =>
-          uuid(line).map(LessonRef.Line(_, block.toInt))
-        case "group" :: unit :: group :: block :: Nil =>
-          for
-            u <- uuid(unit)
-            g <- uuid(group)
-          yield LessonRef.CrossClassGroupRef(u, g, block.toInt)
-        case "cross" :: unit :: group :: cls :: block :: Nil =>
-          for
-            u <- uuid(unit)
-            g <- uuid(group)
-            c <- uuid(cls)
-          yield LessonRef.CrossClass(u, g, c, block.toInt)
-        case _ => None
-
-    private def uuid(s: String): Option[UUID] = scala.util.Try(UUID.fromString(s)).toOption
-
-  private def lineId(line: LessonLine, block: Int): String =
-    s"line|${line.id}|$block"
-
-  private def crossId(unit: CrossClassUnit, group: CrossClassGroup, classId: UUID, block: Int): String =
-    s"cross|${unit.id}|${group.id}|$classId|$block"
-
-  /** The group itself — who teaches it, and in which room. */
-  private def groupId(unit: CrossClassUnit, group: CrossClassGroup, block: Int): String =
-    s"group|${unit.id}|${group.id}|$block"
 
   /**
    * @param timeLimitSeconds the planner's budget. ADR 0001: at school size the
@@ -238,7 +200,7 @@ object SolverInput:
       (length, index) <- line.blocks.zipWithIndex
     do
       lessons += TimetableProblem.Lesson(
-        lineId(line, index),
+        LessonRef.Line(line.id, index).key,
         line.classId.toString,
         line.subjectId.toString,
         audienceOf(line.audience),
@@ -269,7 +231,7 @@ object SolverInput:
     do
       for group <- unit.groups do
         lessons += TimetableProblem.Lesson(
-          groupId(unit, group, index),
+          LessonRef.CrossClassGroupRef(unit.id, group.id, index).key,
           null,
           unit.subjectId.toString,
           Audience.WHOLE_CLASS,
@@ -288,7 +250,7 @@ object SolverInput:
         group   <- unit.groups.find(_.classIds.contains(classId))
       do
         lessons += TimetableProblem.Lesson(
-          crossId(unit, group, classId, index),
+          LessonRef.CrossClass(unit.id, group.id, classId, index).key,
           classId.toString,
           unit.subjectId.toString,
           Audience.WHOLE_CLASS,

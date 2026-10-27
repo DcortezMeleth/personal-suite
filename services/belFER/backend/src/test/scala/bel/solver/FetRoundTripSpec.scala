@@ -113,7 +113,7 @@ class FetRoundTripSpec extends AnyFunSuite:
     }.toMap
 
   /** Which activity number stands for a given lesson of ours. */
-  private val numberOf: Map[SolverInput.LessonRef, Int] =
+  private val numberOf: Map[LessonRef, Int] =
     written.means.map((id, ref) => ref -> id)
 
   /**
@@ -129,15 +129,15 @@ class FetRoundTripSpec extends AnyFunSuite:
     b ++= "</Activities_Timetable>\n"
     b.result()
 
-  private def at(ref: SolverInput.LessonRef, day: String, hour: Int, room: String) =
+  private def at(ref: LessonRef, day: String, hour: Int, room: String) =
     (numberOf(ref), day, hour, Some(room))
 
-  private val mathsSingle = SolverInput.LessonRef.Line(mathsLine.id, 0)
-  private val mathsDouble = SolverInput.LessonRef.Line(mathsLine.id, 1)
-  private val polishBlock = SolverInput.LessonRef.Line(polishHalf.id, 0)
-  private val boysBlock = SolverInput.LessonRef.CrossClassGroupRef(peUnit.id, groupBoys.id, 0)
-  private val girlsBlock = SolverInput.LessonRef.CrossClassGroupRef(peUnit.id, groupGirls.id, 0)
-  private val tuitionBlock = SolverInput.LessonRef.Individual(tuitionLesson.id, 0)
+  private val mathsSingle = LessonRef.Line(mathsLine.id, 0)
+  private val mathsDouble = LessonRef.Line(mathsLine.id, 1)
+  private val polishBlock = LessonRef.Line(polishHalf.id, 0)
+  private val boysBlock = LessonRef.CrossClassGroupRef(peUnit.id, groupBoys.id, 0)
+  private val girlsBlock = LessonRef.CrossClassGroupRef(peUnit.id, groupGirls.id, 0)
+  private val tuitionBlock = LessonRef.Individual(tuitionLesson.id, 0)
 
   /** A plausible week. The two PE groups share an hour, because they must. */
   private val week = List(

@@ -102,9 +102,13 @@ maven.install(
         # an unsupported API. That is a Phase 3 decision, not a version bump.
         "ai.timefold.solver:timefold-solver-core:1.16.0",
         # ── Solver evaluation (services/belFER/solver-poc) ────────────────────
-        # Candidates weighed against Timefold before Phase 3 commits to one.
-        # They are only reachable from the POC package and carry no weight in
-        # either service's binary.
+        # Candidates weighed against Timefold before Phase 3 committed to one.
+        # JaCoP lost and is reachable only from the POC package, so it carries
+        # no weight anywhere. OR-Tools won, and then ADR 0004 replaced it with
+        # FET: it is still built, as //services/belFER/backend:cpsat_lib and
+        # the solve binary, but deliberately not from belfer_lib — so it stays
+        # out of the server image, which is where it sat unloaded until the
+        # libraries were separated.
         "org.jacop:jacop:4.10.0",
         "com.google.ortools:ortools-java:9.15.6755",
         # The solver itself is a native binary. ortools-java depends on every
