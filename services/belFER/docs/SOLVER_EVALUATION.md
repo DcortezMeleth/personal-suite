@@ -1111,3 +1111,33 @@ the rule is issued. The first rule that the known-good week breaks is the
 faulty one, and it can be read directly: which lessons, which day, and what the
 probe claimed about them. That is a small piece of work and it ends the hunt,
 where another round of reading the code probably does not.
+
+# Addendum: the most expensive thing we believed was never asked for
+
+Sixteen hard rules, and the planner was asked which of them she had actually
+said. One she did not recognise at all: *a class's day starts at the first
+hour*. It went into the requirements during the first pass, from the
+conversation rather than from her, and has been load-bearing ever since.
+
+In the solver it was not even a rule of its own. A class's day was stated as
+"the slots below its own length", which says two things at once — unbroken, and
+beginning at zero — so there has never been a way to test one without the
+other. Told apart, with the first kept and the second lifted:
+
+| | before | after |
+|---|---|---|
+| **twenty classes** | never, by any method | **a complete week, all 943 blocks, 71 plans** |
+
+Twenty classes is the size that has defeated every approach in this document:
+the whole week at once, the shape, the day at a time, the day-pair repair, the
+loop. It falls out in about twenty minutes once a class is allowed to come in
+at the second hour.
+
+Which is worth saying plainly. Weeks of measurement went into making the search
+cleverer, and what was actually in the way was a sentence nobody had checked.
+The school's timetable has classes starting late — this is an ordinary thing in
+a Polish liceum — and we had forbidden it without ever being told to.
+
+The whole-week model is unmoved: twenty-five classes posed in one piece is
+still nothing after ten minutes, with or without the rule. So the decomposition
+is still doing the work; the rule was what the decomposition kept running into.

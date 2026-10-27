@@ -344,14 +344,27 @@ room.
 8. At most one block of a subject per day **per group/audience** (see the
    caveat in §6).
 9. A multi-hour block occupies consecutive slots on the same day.
-10. Both groups of a split class are busy in the same slot.
+10. Both groups of a split class are busy in the same slot — but not always,
+    and it is not a hard rule. An odd number of split hours, or one teacher
+    taking both halves, leaves a half with nothing to do; those lessons go
+    first or last so that half can come in later or go home earlier. Modelled
+    as a cost rather than a prohibition.
 11. All classes merged for PE have PE in the same slot.
-12. A class's day starts at slot 1.
-13. A class never has a gap — its day is contiguous. Exposed as a
-    school-level setting so it can be relaxed.
+12. A class's day starts at slot 1. ⚠ **Unconfirmed — probably ours, not the
+    school's.** It was written down during the first requirements pass and the
+    planner does not recall saying it. Separate from 13: that one says a
+    student has nowhere to be in a free period, which is about the middle of a
+    day; this says they must be in school for the start of one, which is about
+    whether a class may come in late. Both were a single rule in the solver
+    until they were told apart, and this is by some distance the most expensive
+    thing we believe.
+13. A class never has a gap — its day is contiguous. Confirmed: no gaps for
+    students. Teachers may have a one-lesson gap (see 16).
 14. A class has at most 8 lessons per day.
 15. Optional subjects are first or last in the day.
-16. A teacher never has more than 2 consecutive free periods.
+16. A teacher never has more than 2 consecutive free periods. Confirmed as a
+    rule; a single free period is acceptable. To be checked against the
+    school's current timetable.
 
 ### 9.2 Soft constraints, user-weighted
 

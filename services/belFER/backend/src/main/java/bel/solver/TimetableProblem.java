@@ -163,6 +163,14 @@ public record TimetableProblem(
     /** The rules that can be dropped one at a time to explain an infeasibility. */
     public enum Rule {
         CLASS_DAY_CONTIGUOUS,
+        /**
+         * A class's day begins at the first hour rather than merely being
+         * unbroken. Separate from the rule above because they are separate
+         * claims: one says a student has nowhere to be in a free period, which
+         * is about the middle of a day, and this says they must be in school
+         * for the start of it, which is about whether they may come in later.
+         */
+        CLASS_DAY_STARTS_FIRST,
         OPTIONAL_AT_DAY_EDGE,
         ONE_BLOCK_PER_SUBJECT_PER_DAY,
         TEACHER_WORKING_DAYS,
