@@ -2,47 +2,66 @@
 
 ## Build System
 
-| Tool | Version | Notes |
-|---|---|---|
-| Bazel | 9.1.1 | bzlmod (MODULE.bazel), not legacy WORKSPACE |
-| rules_scala | 7.2.5 | Scala 3 support |
-| rules_jvm_external | 7.0 | Maven artifact resolution |
-| aspect_rules_js | 3.2.0 | Node/npm/pnpm support |
-| aspect_rules_ts | 3.8.10 | TypeScript compilation |
-| rules_oci | 2.3.0 | Container image building |
-| bazel_skylib | 1.9.0 | Common Bazel utilities |
-| rules_pkg | 1.2.0 | Packaging |
+> **Versions live in `MODULE.bazel` and `.bazelversion`, not here.** This file
+> used to restate them and every row had drifted — the table claimed Bazel
+> 9.1.1 two lines above the sentence saying `.bazelversion` pins 9.2.0. What a
+> build file cannot say is *why*, so that is what this file keeps.
 
-`.bazelversion` pins to `9.2.0`. `.bazelrc` enables bzlmod, sets JVM 25, disables Java header compilation.
+| Tool | Notes |
+|---|---|
+| Bazel | bzlmod (MODULE.bazel), not legacy WORKSPACE |
+| rules_scala | Scala 3 support |
+| rules_jvm_external | Maven artifact resolution |
+| aspect_rules_js | Node/npm/pnpm support |
+| aspect_rules_ts | TypeScript compilation |
+| rules_oci | Container image building |
+| bazel_skylib | Common Bazel utilities |
+| rules_pkg | Packaging |
+
+`.bazelrc` enables bzlmod, sets JVM 25, disables Java header compilation.
 
 ---
 
 ## Backend
 
-| Library | Version | Purpose |
-|---|---|---|
-| Scala | **3.3.7 LTS** | Language — see version constraint note below |
-| http4s-ember-server | 0.23.30 | HTTP server |
-| http4s-ember-client | 0.23.30 | HTTP client (Eurostat, dane.gov.pl) |
-| http4s-circe | 0.23.30 | JSON response encoding |
-| http4s-dsl | 0.23.30 | Route DSL |
-| cats-effect | **3.5.7** | Async runtime — see version constraint note below |
-| cats-core | **2.9.0** | Functional core |
-| fs2-core / fs2-io | 3.10.2 | Streaming |
-| circe-core/generic/parser | 0.14.10 | JSON codec |
-| doobie-core/postgres/hikari | 1.0.0-RC4 | Database access |
-| postgresql JDBC | 42.7.11 | PostgreSQL driver |
-| Flyway | 12.8.0 | Schema migrations |
-| logback-classic | 1.5.34 | Logging backend |
-| log4cats-slf4j | 2.6.0 | Functional logging |
-| Typesafe Config | 1.4.3 | Application config (`application.conf`) |
-| ip4s-core | 3.4.0 | Host/port types |
+Again, `MODULE.bazel` holds the versions.
 
-### Critical version constraint
+| Library | Purpose |
+|---|---|
+| Scala | Language — 3.3.x LTS, see the note below |
+| http4s-ember-server | HTTP server |
+| http4s-ember-client | HTTP client (Eurostat, dane.gov.pl) |
+| http4s-circe | JSON response encoding |
+| http4s-dsl | Route DSL |
+| cats-effect | Async runtime |
+| cats-core | Functional core |
+| fs2-core / fs2-io | Streaming |
+| circe-core/generic/parser | JSON codec |
+| doobie-core/postgres/hikari | Database access |
+| postgresql JDBC | PostgreSQL driver |
+| Flyway | Schema migrations |
+| logback-classic | Logging backend |
+| log4cats-slf4j | Functional logging |
+| Typesafe Config | Application config (`application.conf`) |
+| ip4s-core | Host/port types |
 
-**Do not upgrade cats-effect past 3.5.7 or cats-core past 2.9.0** without re-verifying compilation under Bazel.
+### The cats constraint, and why it is gone
 
-cats-core 2.12.0 introduced `TupleParallelSyntax` with a TASTy encoding that every Scala 3.x compiler version (through at least 3.8.x) fails to read. This causes a fatal compilation crash (`TupleParallelSyntax` in `cats.syntax`) when any library that transitively depends on cats-core 2.12+ is on the classpath. cats-effect 3.7.0 pulls in cats-core 2.13.0 and therefore triggers this crash. The 3.5.7 line stays on cats-core 2.9.0 and is safe.
+This file used to say **do not upgrade cats-effect past 3.5.7 or cats-core past
+2.9.0**: cats-core 2.12.0 shipped `TupleParallelSyntax` with a TASTy encoding
+that Scala 3 compilers could not read, and anything pulling cats-core 2.12+ onto
+the classpath crashed the compiler. That was real, and it pinned the whole
+Typelevel stack behind it — fs2, http4s, ip4s, vault, keypool, cats-mtl all
+stayed where they were because cats could not move.
+
+It no longer reproduces. On 2026-10-27, under Scala 3.3.8, cats-core 2.13.0 and
+cats-effect 3.7.1 compile and pass both services' tests, and both servers serve
+identical responses against the real database. The pin is lifted.
+
+Worth keeping the shape of the lesson: a constraint discovered the hard way is
+worth writing down, and worth **re-testing before believing**, because the fix
+arrives upstream without telling anyone. Re-testing cost one build. The pin had
+been holding back a dozen libraries.
 
 ### Explicit transitive deps required
 
