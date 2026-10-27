@@ -12,7 +12,6 @@ import java.util.UUID
  * previous software ended up needing manual rework.
  */
 case class SchedulingSettings(
-  allowClassGaps: Boolean,
   maxConsecutiveTeacherGaps: Int,
   defaultTeacherMaxWorkingDays: Int,
   defaultTeacherMaxLessonsPerDay: Int

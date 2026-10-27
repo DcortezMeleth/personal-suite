@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters.*
  */
 class SolverInputSpec extends AnyFunSuite:
 
-  private val settings = SchedulingSettings(false, 2, 5, 8)
+  private val settings = SchedulingSettings(2, 5, 8)
   private val maths = Subject(UUID.randomUUID, "mat", "Matematyka", false, None, false)
   private val wf = Subject(UUID.randomUUID, "wf", "WF", false, None, false)
   private val religia = Subject(UUID.randomUUID, "rel", "Religia", true, None, false)

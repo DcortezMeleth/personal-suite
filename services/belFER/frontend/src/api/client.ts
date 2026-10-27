@@ -46,7 +46,6 @@ export interface Health {
 }
 
 export interface SchedulingSettings {
-  allowClassGaps: boolean;
   maxConsecutiveTeacherGaps: number;
   defaultTeacherMaxWorkingDays: number;
   defaultTeacherMaxLessonsPerDay: number;

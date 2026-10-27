@@ -78,11 +78,22 @@ class ArkuszMapperSpec extends AnyFunSuite:
     assert(mixed.nonEmpty, "expected units joining an in-class half to a merged one")
   }
 
-  // One warning stands, and should: the arkusz changes some allocations
-  // part-way through the semester, which a single plan cannot express.
-  test("the only warning left is the mid-period change in hours") {
-    assert(plan.warnings.sizeIs == 1, plan.warnings.map(_.message).mkString("; "))
-    assert(plan.warnings.head.message.contains("liczba godzin zmienia się"))
+  // Two warnings stand, and both should. The arkusz changes some allocations
+  // part-way through the semester, which a single plan cannot express; and it
+  // gives a good many splits one teacher for both halves, which means the rest
+  // of the class is not in school for them.
+  test("the warnings left are the ones the file genuinely raises") {
+    assert(plan.warnings.sizeIs == 2, plan.warnings.map(_.message).mkString("; "))
+    assert(plan.warnings.exists(_.message.contains("liczba godzin zmienia się")))
+    assert(plan.warnings.exists(_.message.contains("ta sama osoba")))
+  }
+
+  // The school calls this rare and unwanted; its own arkusz is full of it, so
+  // the number is worth stating rather than the fact.
+  test("splits taught by one person are counted, not just mentioned") {
+    val message = plan.warnings.find(_.message.contains("ta sama osoba")).get.message
+    val count = "\\d+".r.findFirstIn(message).map(_.toInt).getOrElse(0)
+    assert(count > 50, message)
   }
 
   // Groups sharing a class must run together, so they must end up in one unit.

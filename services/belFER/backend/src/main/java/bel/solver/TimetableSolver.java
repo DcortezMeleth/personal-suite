@@ -13,6 +13,7 @@ import com.google.ortools.sat.LinearExpr;
 import com.google.ortools.sat.LinearExprBuilder;
 import com.google.ortools.sat.Literal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -69,6 +70,9 @@ public final class TimetableSolver {
         //    its teachers is away for.
         BoolVar[][] startsAt = new BoolVar[n][slots];
         IntVar[] start = new IntVar[n];
+        BoolVar[] isPlaced = new BoolVar[n];
+        List<Literal> assumptions = new ArrayList<>();
+        Map<Integer, String> blamed = new HashMap<>();
         for (int i = 0; i < n; i++) {
             Lesson l = lessons.get(i);
             List<Literal> options = new ArrayList<>();
@@ -80,9 +84,27 @@ public final class TimetableSolver {
                 options.add(startsAt[i][s]);
                 value.addTerm(startsAt[i][s], s);
             }
-            if (options.isEmpty())
+            if (options.isEmpty() && !problem.settings().partial())
                 return impossible(began, "nie ma slotu, w którym lekcja mogłaby się odbyć");
-            model.addExactlyOne(options.toArray(new Literal[0]));
+            // Filling one day at a time means most lessons belong to another
+            // day, so "nowhere today" has to be an available answer. What
+            // stops that answer being chosen for everything is the shape,
+            // which says how many hours the class has today.
+            if (problem.settings().partial() || problem.settings().explain()) {
+                isPlaced[i] = model.newBoolVar("placed" + i);
+                model.addAtMostOne(options.toArray(new Literal[0]));
+                model.addEquality(LinearExpr.sum(options.toArray(new Literal[0])), isPlaced[i]);
+                if (problem.settings().explain()) {
+                    // Everything still has to be placed, but it is placed
+                    // under something the solver may point at afterwards.
+                    BoolVar blame = model.newBoolVar("must" + i);
+                    model.addImplication(blame, isPlaced[i]);
+                    assumptions.add(blame);
+                    blamed.put(blame.getIndex(), lessons.get(i).id());
+                }
+            } else {
+                model.addExactlyOne(options.toArray(new Literal[0]));
+            }
             start[i] = model.newIntVar(0, slots - 1, "start" + i);
             model.addEquality(start[i], value.build());
         }
@@ -100,33 +122,56 @@ public final class TimetableSolver {
             }
         }
 
-        // ── A class is in one place, and its halves are busy together.
+        // ── A class is in one place, and its halves are normally busy together.
+        //
         //    A whole-class lesson counts against both halves; a half counts
-        //    against only its own. Equality between the two sums is both the
-        //    "never double-booked" rule and the "both halves busy" rule, and it
-        //    is what makes the language swap legal — Gr1 sitting angielski
-        //    while Gr2 sits niemiecki satisfies it as a shared subject does.
+        //    against only its own, so capping each at one is the "never
+        //    double-booked" rule. Keeping the two equal is the "both halves
+        //    busy" rule, and it is what makes the language swap legal — Gr1
+        //    sitting angielski while Gr2 sits niemiecki satisfies it exactly as
+        //    a shared subject would.
+        //
+        //    They are not forced equal, though. One teacher sometimes takes
+        //    both halves of a split and cannot teach them at once, which leaves
+        //    the other half with nothing for that hour. Rare and unwanted, so
+        //    every such slot is paid for in the objective — and because each
+        //    half's day has to be unbroken, the hours it misses can only fall
+        //    at the start or the end, where that half comes in later or goes
+        //    home earlier rather than sitting through a free period.
         List<String> classIds = distinct(lessons);
         Map<String, BoolVar[]> classBusy = new LinkedHashMap<>();
+        Map<String, BoolVar[][]> halfBusy = new LinkedHashMap<>();
+        List<IntVar> halvesApart = new ArrayList<>();
         for (String classId : classIds) {
             BoolVar[] busy = new BoolVar[slots];
+            BoolVar[][] halves = new BoolVar[2][slots];
             for (int s = 0; s < slots; s++) {
-                LinearExprBuilder half1 = LinearExpr.newBuilder();
-                LinearExprBuilder half2 = LinearExpr.newBuilder();
+                LinearExprBuilder[] half = { LinearExpr.newBuilder(), LinearExpr.newBuilder() };
                 for (int i = 0; i < n; i++) {
                     Lesson l = lessons.get(i);
                     if (!classId.equals(l.classId())) continue;
-                    if (l.audience() != Audience.GROUP_2) half1.add(occupies[i][s].build());
-                    if (l.audience() != Audience.GROUP_1) half2.add(occupies[i][s].build());
+                    if (l.audience() != Audience.GROUP_2) half[0].add(occupies[i][s].build());
+                    if (l.audience() != Audience.GROUP_1) half[1].add(occupies[i][s].build());
                 }
+                for (int h = 0; h < 2; h++) {
+                    halves[h][s] = model.newBoolVar("h" + h + "_" + classId + "_" + s);
+                    model.addEquality(halves[h][s], half[h].build());
+                }
+
+                IntVar apart = model.newIntVar(0, 1, "apart_" + classId + "_" + s);
+                model.addGreaterOrEqual(apart, LinearExpr.newBuilder()
+                    .add(halves[0][s]).addTerm(halves[1][s], -1).build());
+                model.addGreaterOrEqual(apart, LinearExpr.newBuilder()
+                    .add(halves[1][s]).addTerm(halves[0][s], -1).build());
+                halvesApart.add(apart);
+
                 busy[s] = model.newBoolVar("cb_" + classId + "_" + s);
-                model.addEquality(busy[s], half1.build());
-                if (problem.settings().has(Rule.HALVES_TOGETHER))
-                    model.addEquality(busy[s], half2.build());
-                else
-                    model.addLessOrEqual(half2.build(), 1);
+                model.addImplication(halves[0][s], busy[s]);
+                model.addImplication(halves[1][s], busy[s]);
+                model.addBoolOr(new Literal[] { busy[s].not(), halves[0][s], halves[1][s] });
             }
             classBusy.put(classId, busy);
+            halfBusy.put(classId, halves);
         }
 
         // ── A teacher is in one place, counting hours spent supporting someone
@@ -222,16 +267,104 @@ public final class TimetableSolver {
                 units.computeIfAbsent(lessons.get(i).crossClassUnitId(), k -> new ArrayList<>()).add(i);
         if (problem.settings().has(Rule.CROSS_CLASS_TOGETHER))
             for (List<Integer> together : units.values())
-                for (int k = 1; k < together.size(); k++)
-                    model.addEquality(start[together.get(0)], start[together.get(k)]);
+                for (int k = 1; k < together.size(); k++) {
+                    int a = together.get(0), b = together.get(k);
+                    if (problem.settings().partial()) {
+                        // Either the whole unit runs today or none of it does.
+                        model.addEquality(isPlaced[a], isPlaced[b]);
+                        model.addEquality(start[a], start[b]).onlyEnforceIf(isPlaced[a]);
+                    } else {
+                        model.addEquality(start[a], start[b]);
+                    }
+                }
 
-        // ── A class's day is a solid block starting at the first slot.
-        if (!problem.settings().allowClassGaps() && problem.settings().has(Rule.CLASS_DAY_CONTIGUOUS))
-            for (BoolVar[] busy : classBusy.values())
-                for (int d = 0; d < problem.days(); d++)
-                    for (int p = 1; p < problem.slotsPerDay(); p++)
-                        model.addGreaterOrEqual(busy[d * problem.slotsPerDay() + p - 1],
-                            busy[d * problem.slotsPerDay() + p]);
+        // ── A class's day is a solid block starting at the first slot, and so
+        //    is each half's — a student has nowhere to be during a free
+        //    period. The halves may begin later or end earlier than the class
+        //    does, which is what an hour without the other half buys them, but
+        //    neither may have a hole in the middle.
+        //
+        //    Stated through the length of the day rather than slot by slot.
+        //    "Busy here means busy in the slot before" is the same rule and
+        //    propagates almost nothing: each slot argues only with its
+        //    neighbour, and nothing argues with the day. Against a single
+        //    length, fixing any one slot settles all eight.
+        //
+        //    It did not move the wall this rule puts the school against — see
+        //    the addendum in docs/SOLVER_EVALUATION.md — so it is kept for
+        //    being the clearer statement, not for being faster.
+        Map<String, IntVar[]> dayLength = new LinkedHashMap<>();
+        if (problem.settings().has(Rule.CLASS_DAY_CONTIGUOUS)) {
+            for (Map.Entry<String, BoolVar[]> entry : classBusy.entrySet()) {
+                BoolVar[] busy = entry.getValue();
+                BoolVar[][] halves = halfBusy.get(entry.getKey());
+                IntVar[] lengths = new IntVar[problem.days()];
+                for (int d = 0; d < problem.days(); d++) {
+                    int base = d * problem.slotsPerDay();
+                    IntVar length = model.newIntVar(0, problem.slotsPerDay(),
+                        "len_" + entry.getKey() + "_" + d);
+                    // When the week's shape is already settled, say so. Every
+                    // "is this class in school now" then stops being a question.
+                    int[] decided = problem.shape().get(entry.getKey());
+                    if (decided != null && d < decided.length) {
+                        // Pinned exactly, the last day of the week has to be an
+                        // exact cover of whatever the earlier days left behind,
+                        // which almost never happens by luck — so every week
+                        // ends up back at the whole-week problem. A day that
+                        // may run an hour long or an hour short costs the
+                        // shape little and gives the week somewhere to absorb
+                        // the difference.
+                        int slack = problem.settings().shapeSlack();
+                        model.addLinearConstraint(length,
+                            Math.max(0, decided[d] - slack),
+                            Math.min(problem.slotsPerDay(), decided[d] + slack));
+                    }
+                    lengths[d] = length;
+                    for (int p = 0; p < problem.slotsPerDay(); p++) {
+                        model.addGreaterThan(length, p).onlyEnforceIf(busy[base + p]);
+                        model.addLessOrEqual(length, p).onlyEnforceIf(busy[base + p].not());
+                    }
+                    for (int h = 0; h < 2; h++)
+                        atMostOneStart(model, problem, halves[h], base,
+                            entry.getKey() + "_" + h + "_" + d);
+                }
+                // No "the days add up to the week" constraint here, and it
+                // is worth saying why: the obvious figure — hours counted once
+                // per split — is only right when both halves are always
+                // together. Every hour one half spends alone is an extra slot
+                // the class occupies, so the equality quietly forbids the one
+                // arrangement the school asked for.
+                dayLength.put(entry.getKey(), lengths);
+            }
+        }
+
+        // ── Days are interchangeable, so most of the search is relabelling.
+        //
+        //    Nothing in this model tells Monday from Friday: the only
+        //    day-specific thing is a teacher being elsewhere, and when nobody
+        //    is, every timetable exists a hundred and twenty times over — the
+        //    same plan with its days shuffled. CP-SAT looks for this itself and
+        //    says so in its log, but on an instance this size it gives up part
+        //    way: "some automorphisms were found, but probably not all".
+        //
+        //    Pinning one class's week into descending order picks a single
+        //    representative of each of those hundred and twenty. Ordering on
+        //    every class lexicographically breaks strictly more and was tried;
+        //    it found the same timetables in the same time, so the simpler
+        //    statement stands.
+        //
+        //    Sound only while the days really are alike, so it switches off the
+        //    moment anyone is unavailable: then Monday genuinely differs from
+        //    Friday and shuffling would throw away real answers.
+        // A settled shape already picks one arrangement of the days, so
+        // ordering them again would only argue with it.
+        boolean daysAlike = problem.shape().isEmpty()
+            && problem.teachers().stream().allMatch(x -> x.unavailable().isEmpty());
+        if (daysAlike && !dayLength.isEmpty()) {
+            IntVar[] week = dayLength.values().iterator().next();
+            for (int d = 1; d < week.length; d++)
+                model.addGreaterOrEqual(week[d - 1], week[d]);
+        }
 
         // ── Religia and etyka sit at an end of the day: at the first slot, or
         //    with the next one free, which given the rule above means last.
@@ -277,23 +410,57 @@ public final class TimetableSolver {
         //    why this is not "longest day minus shortest": said that way the
         //    same preference costs twentyfold and stops proving anything.
         List<IntVar> penalties = new ArrayList<>();
-        int target = problem.settings().targetDayLength();
-        for (BoolVar[] busy : classBusy.values())
+        for (Map.Entry<String, BoolVar[]> entry : classBusy.entrySet()) {
+            // What an even week looks like for this class in particular. Using
+            // one figure for the whole school means the busiest class sets it,
+            // every other class sits comfortably under it, and the objective
+            // stops saying anything about them — which leaves the solver with
+            // nothing to improve and no reason to balance anybody's days.
+            int hours = 0;
+            for (int i = 0; i < n; i++) {
+                Lesson l = lessons.get(i);
+                if (!entry.getKey().equals(l.classId())) continue;
+                if (l.audience() == Audience.GROUP_2) continue;  // shares its slot
+                hours += l.length();
+            }
+            int target = problem.settings().targetDayLength() > 0
+                ? problem.settings().targetDayLength()
+                : Math.min(problem.slotsPerDay(),
+                    (hours + problem.days() - 1) / problem.days());
+
+            BoolVar[] busy = entry.getValue();
+            IntVar[] known = dayLength.get(entry.getKey());
             for (int d = 0; d < problem.days(); d++) {
+                // Where contiguity applies the length is already a variable;
+                // summing the slots again would only restate it.
                 LinearExprBuilder length = LinearExpr.newBuilder();
-                for (int p = 0; p < problem.slotsPerDay(); p++)
+                if (known != null) length.add(known[d]);
+                else for (int p = 0; p < problem.slotsPerDay(); p++)
                     length.add(busy[d * problem.slotsPerDay() + p]);
                 IntVar over = model.newIntVar(0, problem.slotsPerDay(), "over");
                 model.addGreaterOrEqual(over,
                     LinearExpr.newBuilder().add(length.build()).add(-target).build());
                 penalties.add(over);
             }
+        }
+
         // Always minimise something, even when every weight is zero: with an
         // objective CP-SAT puts workers on large-neighbourhood search, and at
         // school size those are what find the first feasible solution at all.
+        List<IntVar> weighted = new ArrayList<>(penalties);
+        List<Long> weights = new ArrayList<>();
+        for (int i = 0; i < penalties.size(); i++)
+            weights.add((long) problem.settings().dayLengthWeight());
+        for (IntVar apart : halvesApart) {
+            weighted.add(apart);
+            weights.add((long) problem.settings().halvesApartWeight());
+        }
         model.minimize(LinearExpr.weightedSum(
-            penalties.toArray(new IntVar[0]),
-            filled(problem.settings().dayLengthWeight(), penalties.size())));
+            weighted.toArray(new IntVar[0]),
+            weights.stream().mapToLong(Long::longValue).toArray()));
+
+        if (!assumptions.isEmpty())
+            model.addAssumptions(assumptions.toArray(new Literal[0]));
 
         CpSolver solver = new CpSolver();
         solver.getParameters().setMaxTimeInSeconds(problem.settings().timeLimitSeconds());
@@ -303,26 +470,75 @@ public final class TimetableSolver {
         // a run comes back with nothing to explain itself, its presolve summary
         // usually says where the model went wrong.
         solver.getParameters().setLogSearchProgress("1".equals(System.getenv("BELFER_SOLVER_LOG")));
+        // No linearisation override here, though it looks like an easy win.
+        // A timetable's linear relaxation is hopeless — half a lesson in half a
+        // room means nothing — and CP-SAT's log appears to confirm it: every
+        // solution on this school's data is reported by the subsolver named
+        // "no_lp". Turning linearisation off anyway made twenty classes
+        // unsolvable where the default had managed it. Which worker reports a
+        // solution is not which work was needed to reach it; the linear
+        // subsolvers were evidently feeding the one that got there.
 
         CpSolverStatus status = solver.solve(model);
         long millis = System.currentTimeMillis() - began;
 
         if (status != CpSolverStatus.OPTIMAL && status != CpSolverStatus.FEASIBLE) {
             boolean proven = status == CpSolverStatus.INFEASIBLE;
+            // When asked to explain, a proven failure names the lessons whose
+            // being here together is what cannot be done. It is usually a
+            // handful out of hundreds, which is the difference between knowing
+            // that a day failed and knowing something about why.
+            List<String> core = new ArrayList<>();
+            if (proven && !blamed.isEmpty())
+                for (int index : solver.sufficientAssumptionsForInfeasibility()) {
+                    String id = blamed.get(index);
+                    if (id != null) core.add(id);
+                }
             return new TimetableSolution(
                 proven ? TimetableSolution.Status.INFEASIBLE : TimetableSolution.Status.UNKNOWN,
                 List.of(), millis, 0,
                 proven ? "Tych zajęć nie da się ułożyć przy obecnych regułach"
-                       : "Nie znaleziono planu w wyznaczonym czasie");
+                       : "Nie znaleziono planu w wyznaczonym czasie",
+                core);
         }
 
         List<int[]> placed = new ArrayList<>();
-        for (int i = 0; i < n; i++) placed.add(new int[] { i, (int) solver.value(start[i]) });
+        for (int i = 0; i < n; i++) {
+            if (isPlaced[i] != null && solver.value(isPlaced[i]) == 0) continue;
+            placed.add(new int[] { i, (int) solver.value(start[i]) });
+        }
         return new TimetableSolution(
             status == CpSolverStatus.OPTIMAL
                 ? TimetableSolution.Status.OPTIMAL : TimetableSolution.Status.FEASIBLE,
             assignRooms(problem, lessons, books, placed),
             millis, (long) solver.objectiveValue(), "");
+    }
+
+    /**
+     * A day with no holes in it, which may begin after the first slot.
+     *
+     * Counting rising edges rather than forcing a prefix: a half that arrives
+     * late because the other had the first lesson alone is still a day without
+     * gaps, and a prefix would forbid it. One rise is a single unbroken
+     * stretch; two would mean a hole between them.
+     *
+     * Saying it instead as a window — from here until there — reads better and
+     * propagates more per decision, which is why the class's own day is stated
+     * that way. It was tried here too and cost twenty classes their timetable,
+     * so the halves keep the weaker statement. Where the stronger form helps
+     * and where it hurts is not something to reason about from the armchair.
+     */
+    private static void atMostOneStart(CpModel model, TimetableProblem problem,
+                                       BoolVar[] busy, int base, String name) {
+        List<IntVar> rises = new ArrayList<>();
+        for (int p = 0; p < problem.slotsPerDay(); p++) {
+            IntVar rise = model.newIntVar(0, 1, "rise_" + name + "_" + p);
+            LinearExprBuilder change = LinearExpr.newBuilder().add(busy[base + p]);
+            if (p > 0) change.addTerm(busy[base + p - 1], -1);
+            model.addGreaterOrEqual(rise, change.build());
+            rises.add(rise);
+        }
+        model.addLessOrEqual(LinearExpr.sum(rises.toArray(new IntVar[0])), 1);
     }
 
     /**

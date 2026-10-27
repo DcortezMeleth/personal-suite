@@ -198,15 +198,6 @@ export function SchoolPage() {
 
       <DataCard title="Zasady układania planu">
         <div className="space-y-4">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={school.settings.allowClassGaps}
-              onChange={(e) => patchSettings({ allowClassGaps: e.target.checked })}
-            />
-            <span className="text-neutral-700">Pozwól na okienka w planie klasy</span>
-          </label>
-
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className={label}>Maks. okienek pod rząd (nauczyciel)</label>

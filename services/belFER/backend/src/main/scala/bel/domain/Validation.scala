@@ -64,7 +64,7 @@ object Validation:
       roomCapacity(s, capacity) ++
       blocksAcrossDays(s) ++
       groupBalance(s) ++
-      splitPairing(s) ++
+      sharedTeacherSplits(s) ++
       teacherLoad(s, capacity) ++
       pensumSummary(s) ++
       teacherSubjects(s) ++
@@ -154,53 +154,39 @@ object Validation:
     }
 
   /**
-   * Both halves of a class are busy at the same time, so every hour one half
-   * spends on a split subject is an hour the other half must spend on a
-   * different one.
+   * A split whose two halves are taught by the same person.
    *
-   * That is only possible if there is a different one to spend it on. When a
-   * subject's two halves share a teacher they cannot be taught at the same
-   * moment, so they cannot pair with each other — the hours have to find
-   * partners elsewhere, and there may not be enough. Counting says so straight
-   * away; the solver takes a quarter of an hour to prove the same thing and
-   * cannot say which subject caused it.
+   * They cannot be taught at once, so the other half of the class is not in
+   * school for them. That is schedulable — the lesson goes at an end of the
+   * day so the other half comes in later or leaves earlier — but it is worth
+   * saying out loud, because it is not what the school wants and it is easy to
+   * create by accident when assigning teachers.
    */
-  private def splitPairing(s: SchoolSnapshot): List[Finding] =
+  private def sharedTeacherSplits(s: SchoolSnapshot): List[Finding] =
     val names = s.subjects.map(x => x.id -> x.name).toMap
     s.classes.flatMap { cls =>
-      val split = s.lessonLines
+      val affected = s.lessonLines
         .filter(l => l.classId == cls.id && l.audience != LessonAudience.WHOLE_CLASS)
-      val hours = split
-        .groupBy(l => (l.subjectId, l.audience))
-        .view.mapValues(_.map(_.hours).sum).toMap
-      val teachers = split
-        .groupBy(l => (l.subjectId, l.audience))
-        .view.mapValues(_.flatMap(_.teacherId).toSet).toMap
+        .groupBy(_.subjectId)
+        .toList
+        .filter { (_, lines) =>
+          val first = lines.filter(_.audience == LessonAudience.GROUP_1).flatMap(_.teacherId).toSet
+          val second = lines.filter(_.audience == LessonAudience.GROUP_2).flatMap(_.teacherId).toSet
+          first.intersect(second).nonEmpty
+        }
+        .map((subjectId, _) => names.getOrElse(subjectId, "?"))
+        .sorted
 
-      val totalSecond = hours.collect { case ((_, LessonAudience.GROUP_2), h) => h }.sum
-      val totalFirst = hours.collect { case ((_, LessonAudience.GROUP_1), h) => h }.sum
-
-      split.map(_.subjectId).distinct.flatMap { subjectId =>
-        val sharesTeacher = teachers
-          .getOrElse((subjectId, LessonAudience.GROUP_1), Set.empty)
-          .intersect(teachers.getOrElse((subjectId, LessonAudience.GROUP_2), Set.empty))
-          .nonEmpty
-        if !sharesTeacher then None
-        else
-          val first = hours.getOrElse((subjectId, LessonAudience.GROUP_1), 0)
-          val second = hours.getOrElse((subjectId, LessonAudience.GROUP_2), 0)
-          // What is left for each half to be doing while the other has this.
-          val partnersForFirst = totalSecond - second
-          val partnersForSecond = totalFirst - first
-          if first > partnersForFirst || second > partnersForSecond then
-            Some(Finding(Severity.Blocking, cls.name,
-              s"${names.getOrElse(subjectId, "?")}: obie grupy prowadzi ta sama osoba, " +
-                s"więc nie mogą odbywać się jednocześnie — a druga połowa klasy ma tylko " +
-                s"${math.min(partnersForFirst, partnersForSecond)} godz. innych zajęć " +
-                s"w grupach, przy ${math.max(first, second)} potrzebnych",
-              Some(cls.id)))
-          else None
-      }
+      // One line per class, listing its subjects. The school's own arkusz has
+      // nearly a hundred of these; a line each would bury everything else on
+      // the page, and beside a class row the list is what is useful anyway.
+      if affected.isEmpty then None
+      else
+        Some(Finding(Severity.Warning, cls.name,
+          s"${affected.mkString(", ")}: obie grupy prowadzi ta sama osoba, więc nie mogą " +
+            "odbywać się jednocześnie — zostaną zaplanowane na początku lub końcu dnia, " +
+            "a druga połowa klasy przyjdzie później albo wyjdzie wcześniej",
+          Some(cls.id)))
     }
 
   // ── Teachers ──────────────────────────────────────────────────────────────

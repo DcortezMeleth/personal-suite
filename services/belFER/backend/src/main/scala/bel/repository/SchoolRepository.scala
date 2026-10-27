@@ -10,7 +10,7 @@ import java.util.UUID
 class SchoolRepository(xa: Transactor[IO]):
 
   private val columns =
-    fr"""id, name, years, allow_class_gaps, max_consecutive_teacher_gaps,
+    fr"""id, name, years, max_consecutive_teacher_gaps,
          default_teacher_max_working_days, default_teacher_max_lessons_per_day, created_at"""
 
   def findAll: IO[List[School]] =
@@ -32,7 +32,6 @@ class SchoolRepository(xa: Transactor[IO]):
       UPDATE school SET
         name                                = ${cmd.name.trim},
         years                               = ${cmd.years},
-        allow_class_gaps                    = ${cmd.settings.allowClassGaps},
         max_consecutive_teacher_gaps        = ${cmd.settings.maxConsecutiveTeacherGaps},
         default_teacher_max_working_days    = ${cmd.settings.defaultTeacherMaxWorkingDays},
         default_teacher_max_lessons_per_day = ${cmd.settings.defaultTeacherMaxLessonsPerDay}

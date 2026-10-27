@@ -13,8 +13,15 @@ public record TimetableSolution(
     List<Placement> placements,
     long millis,
     long penalty,
-    String detail
+    String detail,
+    /** Lessons that cannot share a day, when the solver was asked to explain. */
+    List<String> core
 ) {
+
+    public TimetableSolution(Status status, List<Placement> placements, long millis,
+                             long penalty, String detail) {
+        this(status, placements, millis, penalty, detail, List.of());
+    }
 
     public enum Status {
         /** Solved, and no better arrangement exists under the given weights. */

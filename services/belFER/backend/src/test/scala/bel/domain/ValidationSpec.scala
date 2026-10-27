@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class ValidationSpec extends AnyFunSuite:
 
-  private val settings = SchedulingSettings(false, 2, 5, 8)
+  private val settings = SchedulingSettings(2, 5, 8)
   private val mathsId = UUID.randomUUID
   private val homeroomId = UUID.randomUUID
 
@@ -295,11 +295,11 @@ class ValidationSpec extends AnyFunSuite:
     assert(!found.exists(_.subject == "Sale"), found.map(_.message).toString)
   }
 
-  // Both halves of a class are busy at once, so an hour one half spends on a
-  // split subject is an hour the other must spend on a different one. When the
-  // two halves share a teacher they cannot be that different subject for each
-  // other, and there may be nothing else to pair with.
-  test("a split whose halves share a teacher needs other split hours to pair with") {
+  // Rare and unwanted, says the school, but real: one teacher cannot take both
+  // halves at once, so the other half is not in school for it. That is
+  // schedulable — the lesson goes at an end of the day — but worth saying,
+  // because it is easy to create by accident when assigning teachers.
+  test("a split whose halves share a teacher is reported, but does not block") {
     val c = cls("1A")
     val shared = UUID.randomUUID
     val english = UUID.randomUUID
@@ -307,22 +307,19 @@ class ValidationSpec extends AnyFunSuite:
       line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_1),
       line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_2))
     val found = Validation.run(snapshot(classes = List(c), lines = lines))
-    assert(found.exists(f => f.severity == Severity.Blocking && f.message.contains("ta sama osoba")),
+    assert(found.exists(f => f.severity == Severity.Warning && f.message.contains("ta sama osoba")),
       found.map(_.message).toString)
+    assert(!found.exists(_.severity == Severity.Blocking), found.map(_.message).toString)
   }
 
-  test("the same split pairs fine once each half has somewhere else to be") {
+  test("halves taught by different people say nothing") {
     val c = cls("1A")
-    val shared = UUID.randomUUID
     val english = UUID.randomUUID
-    val info = UUID.randomUUID
     val lines = List(
-      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_1),
-      line(c.id, List(1, 1), Some(shared), subject = english, audience = LessonAudience.GROUP_2),
-      // Two more hours each, under teachers of their own, for English to sit against.
-      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = info, audience = LessonAudience.GROUP_1),
-      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = info, audience = LessonAudience.GROUP_2))
+      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = english,
+        audience = LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(UUID.randomUUID), subject = english,
+        audience = LessonAudience.GROUP_2))
     val found = Validation.run(snapshot(classes = List(c), lines = lines))
     assert(!found.exists(_.message.contains("ta sama osoba")), found.map(_.message).toString)
   }
-

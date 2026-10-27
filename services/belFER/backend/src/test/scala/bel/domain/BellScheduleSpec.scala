@@ -52,7 +52,6 @@ class BellScheduleSpec extends AnyFunSuite:
 class SchoolValidationSpec extends AnyFunSuite:
 
   private val settings = SchedulingSettings(
-    allowClassGaps = false,
     maxConsecutiveTeacherGaps = 2,
     defaultTeacherMaxWorkingDays = 5,
     defaultTeacherMaxLessonsPerDay = 8

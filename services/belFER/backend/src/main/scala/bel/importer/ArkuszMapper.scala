@@ -165,6 +165,24 @@ object ArkuszMapper:
         "wzięto wariant obowiązujący w jego środku. Rozważ zaimportowanie węższego " +
         "zakresu tygodni, jeśli ta zmiana ma być w planie")
 
+    // Both halves of a split under one teacher. They cannot be taught at the
+    // same time, so the rest of the class is not in school for them — which is
+    // schedulable, by putting the lesson at an end of the day, but it is not
+    // what the school wants and it is better said at import than discovered
+    // when the plan comes out with half a class arriving late.
+    val sharedHalves = collapsedLines
+      .filter(_.audience != LessonAudience.WHOLE_CLASS)
+      .groupBy(l => (l.classCode, l.subjectCode))
+      .count { (_, group) =>
+        val first = group.filter(_.audience == LessonAudience.GROUP_1).flatMap(_.teacherCode).toSet
+        val second = group.filter(_.audience == LessonAudience.GROUP_2).flatMap(_.teacherCode).toSet
+        first.intersect(second).nonEmpty
+      }
+    if sharedHalves > 0 then
+      warn(s"W $sharedHalves przedmiotach obie grupy prowadzi ta sama osoba — nie mogą " +
+        "odbywać się jednocześnie, więc zostaną zaplanowane na początku lub końcu dnia, " +
+        "a druga połowa klasy przyjdzie później albo wyjdzie wcześniej")
+
     val multiTeacher = collapsedLines
       .groupBy(l => (l.classCode, l.subjectCode))
       .count((_, group) => group.map(_.teacherCode).distinct.sizeIs > 1)
