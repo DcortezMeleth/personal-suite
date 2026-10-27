@@ -66,6 +66,8 @@ object SolveCli extends IOApp:
         // --all-days puts it back for anyone chasing that.
         val oneDay = !rest.contains("--all-days")
         val literal = rest.contains("--literal")
+        // --fet=<plik> writes the school out for FET instead of solving it.
+        val fet = rest.collectFirst { case s if s.startsWith("--fet=") => s.drop(6) }
         // --slack=N lets a day run N hours either side of its shape.
         val slack = rest.collectFirst { case s if s.startsWith("--slack=") => s.drop(8).toInt }
           .getOrElse(0)
@@ -83,14 +85,15 @@ object SolveCli extends IOApp:
         val seconds = plain.headOption.flatMap(_.toLongOption).getOrElse(300L)
         val workers = plain.drop(1).headOption.flatMap(_.toIntOption).getOrElse(0)
         solve(UUID.fromString(schoolId), seconds, workers, diagnose, limit, doubles, warm, apart,
-          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal)
+          pretendRooms, shaped, onlyDay, week, slack, spread, relaxed, rounds, oneDay, literal, fet)
 
   private def solve(schoolId: UUID, seconds: Long, workers: Int, diagnose: Boolean,
                     limit: Option[Int], doubles: Boolean, warm: Option[Int],
                     apart: Option[Int], pretendRooms: Option[Int], shaped: Option[String],
                     onlyDay: Option[Int], week: Boolean, slack: Int,
                     spread: Boolean, relaxed: Set[TimetableProblem.Rule],
-                    rounds: Int, oneDay: Boolean, literal: Boolean): IO[ExitCode] =
+                    rounds: Int, oneDay: Boolean, literal: Boolean,
+                    fet: Option[String]): IO[ExitCode] =
     val config = ConfigFactory.load()
     Database.transactor(config).use { xa =>
       val loader = SnapshotLoader(
@@ -112,7 +115,7 @@ object SolveCli extends IOApp:
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet)
       yield code
     }
 
@@ -131,7 +134,8 @@ object SolveCli extends IOApp:
     relaxed: Set[TimetableProblem.Rule] = Set.empty,
     rounds: Int = 30,
     oneDay: Boolean = false,
-    literal: Boolean = false
+    literal: Boolean = false,
+    fet: Option[String] = None
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -155,7 +159,8 @@ object SolveCli extends IOApp:
       _ <- IO.whenA(faults.nonEmpty)(
              IO.println(s"\n${faults.size} powodów, dla których ten kształt tygodnia nie zadziała:") *>
                faults.take(10).traverse_(f => IO.println(s"  $f")))
-      code <- if faults.nonEmpty then IO.pure(ExitCode(1))
+      code <- if fet.isDefined then writeFet(snapshot, rooms, fet.get)
+              else if faults.nonEmpty then IO.pure(ExitCode(1))
               else if week then solveWeek(snapshot, rooms, seconds, workers, shape, slack, spread, relaxed, rounds,
                             oneDay, literal)
               else solveIt(snapshot, problem)
@@ -612,6 +617,14 @@ object SolveCli extends IOApp:
         yield code
 
     if useSpread then byPlan(Nil, 1) else fill(0, Nil)
+
+  /** The school written out for FET, which solves this size in minutes. */
+  private def writeFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =
+    for
+      _ <- IO.blocking(java.nio.file.Files.writeString(
+             java.nio.file.Path.of(path), FetExport(snapshot, rooms)))
+      _ <- IO.println(s"zapisano $path")
+    yield ExitCode.Success
 
   private def solveIt(snapshot: SchoolSnapshot, problem: TimetableProblem): IO[ExitCode] =
     for

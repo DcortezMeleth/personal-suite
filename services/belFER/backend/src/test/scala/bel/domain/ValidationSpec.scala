@@ -323,3 +323,21 @@ class ValidationSpec extends AnyFunSuite:
     val found = Validation.run(snapshot(classes = List(c), lines = lines))
     assert(!found.exists(_.message.contains("ta sama osoba")), found.map(_.message).toString)
   }
+
+  test("a half with more hours than the week holds is blocking, even when the class fits"):
+    // The class's own sum counts the whole-class hours and one half's, so a
+    // class whose halves differ can pass that and still have one half in
+    // school for more hours than there are.
+    val c = cls("1A")
+    val lines = filler(c.id, 36) ++ List(
+      line(c.id, List(1, 1, 1), audience = LessonAudience.GROUP_1),
+      line(c.id, List(1, 1, 1, 1, 1), audience = LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    // Only the week-capacity findings; the halves also differ, which another
+    // check has its own opinion about and words almost identically.
+    val blocking = found.filter(f =>
+      f.severity == Severity.Blocking && f.message.contains("w planie mieści się"))
+    assert(blocking.exists(_.message.contains("grupa 2 ma 41 godz")),
+      s"expected group 2 to be flagged, got: ${found.map(_.message).mkString("; ")}")
+    assert(!blocking.exists(_.message.contains("grupa 1 ma")),
+      s"group 1 fits in the week; got: ${blocking.map(_.message).mkString(" | ")}")

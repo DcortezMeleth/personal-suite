@@ -61,6 +61,7 @@ object Validation:
   def run(s: SchoolSnapshot): List[Finding] =
     val capacity = s.slotsPerDay * s.teachingDays
     classCapacity(s, capacity) ++
+      halfCapacity(s, capacity) ++
       roomCapacity(s, capacity) ++
       blocksAcrossDays(s) ++
       groupBalance(s) ++
@@ -87,6 +88,38 @@ object Validation:
           s"$total godz. wypełnia cały tydzień co do godziny — brak miejsca na jakikolwiek ruch",
           Some(cls.id)))
       else None
+    }
+
+  /**
+   * The same sum again, but for each half of a class on its own.
+   *
+   * The check above counts a class's week as its whole-class hours plus one
+   * half's, which is right while the halves have the same number of hours —
+   * they sit in the same slots, so one of them stands for both. When they do
+   * not, the longer half is in school for hours the sum never counted, and a
+   * class can pass the first check while one of its halves has a forty-four
+   * hour week in a building that is open for forty.
+   *
+   * We did not have this, and found out by handing the school to a program
+   * that did: FET refused the file in seconds over exactly this sum. Worth
+   * keeping for its own sake — it costs nothing and it is the difference
+   * between a clear answer now and a search that fails later for reasons that
+   * take an afternoon to attribute.
+   */
+  private def halfCapacity(s: SchoolSnapshot, capacity: Int): List[Finding] =
+    s.classes.flatMap { cls =>
+      val mine = s.lessonLines.filter(_.classId == cls.id)
+      val whole = mine.filter(_.audience == LessonAudience.WHOLE_CLASS).map(_.hours).sum
+      val cross = s.crossClassUnits.filter(_.classIds.contains(cls.id)).map(_.hours).sum
+      List(LessonAudience.GROUP_1, LessonAudience.GROUP_2).flatMap { half =>
+        val own = mine.filter(_.audience == half).map(_.hours).sum
+        val total = whole + cross + own
+        val label = if half == LessonAudience.GROUP_1 then "1" else "2"
+        Option.when(total > capacity)(Finding(Severity.Blocking, cls.name,
+          s"grupa $label ma $total godz. tygodniowo, a w planie mieści się $capacity " +
+            s"— nie da się ułożyć",
+          Some(cls.id)))
+      }
     }
 
   /**

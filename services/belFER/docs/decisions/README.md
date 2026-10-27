@@ -30,6 +30,7 @@ current system is described by REQUIREMENTS.md and the code.
 | [0001](0001-timetable-solver-engine.md) | Timetable solver engine: OR-Tools CP-SAT | Accepted |
 | [0002](0002-soft-constraints-as-weighted-penalties.md) | Soft constraints as weighted penalties | Accepted |
 | [0003](0003-plan-days-then-place-and-learn-from-what-fails.md) | Plan the days, place them, learn from the failures | Accepted |
+| [0004](0004-generate-with-fet-verify-with-our-own-rules.md) | Generate with FET, verify with our own rules | Proposed |
 
 Decisions taken before this log existed are recorded in `TECH_STACK.md` and in
 `REQUIREMENTS.md` §2; they have not been back-filled.
