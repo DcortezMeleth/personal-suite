@@ -2,6 +2,7 @@ package bel.api
 
 import bel.domain.*
 import bel.repository.*
+import bel.solver.PlanGenerator
 import cats.effect.IO
 import io.circe.Encoder
 import io.circe.generic.semiauto.*
@@ -66,6 +67,28 @@ object PlanView:
     days: Int
   )
 
+  /** One rule, as the generate screen reports it. */
+  case class RuleResult(code: String, what: String, ok: Boolean, detail: String)
+
+  /**
+   * What came of pressing generate.
+   *
+   * `status` is "saved" or "rejected": FET answering is not the same as FET
+   * answering well, and a week that breaks a rule is shown rather than kept.
+   */
+  case class Generated(
+    status: String,
+    planId: Option[UUID],
+    tookMillis: Long,
+    placed: Int,
+    unplaced: Int,
+    rulesKept: Int,
+    rulesTotal: Int,
+    broken: List[RuleResult],
+    /** Rules this check cannot speak to, so "11 of 11" is not read as "all". */
+    notChecked: List[String]
+  )
+
   case class Summary(
     id: UUID,
     name: String,
@@ -79,9 +102,12 @@ object PlanView:
   given Encoder[Entry]     = deriveEncoder
   given Encoder[Timetable] = deriveEncoder
   given Encoder[Summary]     = deriveEncoder
+  given Encoder[RuleResult]  = deriveEncoder
+  given Encoder[Generated]   = deriveEncoder
   given Encoder[TeacherGaps] = deriveEncoder
 
-class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
+class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
+                 generator: PlanGenerator):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
@@ -126,6 +152,21 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
         case _ => NotFound(ApiError.body("Nie ma takiego planu"))
       }
 
+    // Synchronous: FET satisfies this school in about two seconds, so this is
+    // a button and not a job. See PlanGenerator for what changes when it is
+    // asked to optimise rather than merely satisfy.
+    case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generate" =>
+      generator.generate(schoolId).flatMap {
+        case PlanGenerator.Result.NoSchool =>
+          NotFound(ApiError.body("Nie ma takiej szkoły"))
+
+        case PlanGenerator.Result.Rejected(report, placed, unplaced, millis) =>
+          Ok(generated("rejected", None, report, placed, unplaced, millis).asJson)
+
+        case PlanGenerator.Result.Saved(plan, report, placed, millis) =>
+          Ok(generated("saved", Some(plan.id), report, placed, 0, millis).asJson)
+      }
+
     case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / UUIDVar(planId) / "current" =>
       plans.find(planId).flatMap {
         case Some(plan) if plan.schoolId == schoolId =>
@@ -133,6 +174,19 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader):
         case _ => NotFound(ApiError.body("Nie ma takiego planu"))
       }
   }
+
+  private def generated(status: String, planId: Option[UUID], report: PlanCheck.Report,
+                        placed: Int, unplaced: Int, millis: Long): PlanView.Generated =
+    PlanView.Generated(
+      status = status,
+      planId = planId,
+      tookMillis = millis,
+      placed = placed,
+      unplaced = unplaced,
+      rulesKept = report.kept,
+      rulesTotal = report.rules.size,
+      broken = report.broken.map(r => PlanView.RuleResult(r.code, r.what, r.ok, r.detail)),
+      notChecked = PlanCheck.notChecked.map((code, why) => s"$code — $why"))
 
   private def timetable(schoolId: UUID, plan: Plan): IO[Response[IO]] =
     loader.loadWithRooms(schoolId).flatMap {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type PlanEntry, type Timetable } from "../api/client";
+import { api, type Generated, type PlanEntry, type Timetable } from "../api/client";
 import { useSchool } from "../hooks/useSchool";
 import { NoSchool } from "../components/NoSchool";
 import { TimetableGrid } from "../components/TimetableGrid";
@@ -28,8 +28,10 @@ export function PlanPage() {
   const [view, setView] = useState<View>("oddzial");
   const [who, setWho] = useState<string>("");
   const [missing, setMissing] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [outcome, setOutcome] = useState<Generated | null>(null);
 
-  const { school, error, setError, gate } = useSchool({
+  const { school, error, setError, reload, gate } = useSchool({
     title: "Plan lekcji",
     load: async (school) => {
       try {
@@ -43,6 +45,58 @@ export function PlanPage() {
       }
     },
   });
+
+  // This waits rather than polling a job. Laying out the real school has
+  // taken between thirty-five seconds and two minutes, so the wait is long
+  // enough to need saying out loud — hence the button's own busy state — and
+  // the proxy in front of this has a matching timeout. Asking FET to optimise
+  // as well as satisfy is what will make polling unavoidable.
+  const generate = useCallback(async () => {
+    if (!school) return;
+    setGenerating(true);
+    setOutcome(null);
+    try {
+      const result = await api.generatePlan(school.id);
+      setOutcome(result);
+      setError(null);
+      // A saved plan is the current one, so the grid below has to catch up.
+      if (result.status === "saved") await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setGenerating(false);
+    }
+  }, [school, reload, setError]);
+
+  const generateButton = (
+    <button
+      type="button"
+      onClick={generate}
+      disabled={generating}
+      className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 disabled:opacity-60"
+    >
+      {generating ? "Układanie…" : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
+    </button>
+  );
+
+  const outcomeBanner = outcome && (
+    outcome.status === "saved" ? (
+      <AlertBanner
+        level="success"
+        message={`Ułożono w ${(outcome.tookMillis / 1000).toFixed(1)} s — ${outcome.placed} zajęć, ` +
+          `${outcome.rulesKept} z ${outcome.rulesTotal} reguł spełnionych.`}
+        onDismiss={() => setOutcome(null)}
+      />
+    ) : (
+      <AlertBanner
+        level="danger"
+        message={`Ułożony plan łamie reguły, więc go nie zapisano: ` +
+          outcome.broken.map((r) => `${r.code} ${r.what}${r.detail ? ` (${r.detail})` : ""}`).join("; ") +
+          (outcome.unplaced > 0 ? ` — ${outcome.unplaced} zajęć bez godziny.` : ".")}
+        onDismiss={() => setOutcome(null)}
+      />
+    )
+  );
 
   // Whoever the view is about: a class, a teacher, a room. Kept valid as the
   // view changes, so switching never lands on an empty grid.
@@ -86,11 +140,20 @@ export function PlanPage() {
 
   if (missing)
     return (
-      <DataCard title="Plan lekcji">
-        <p className="text-neutral-700">
-          Nie ma jeszcze ułożonego planu. Gdy powstanie, pojawi się tutaj.
-        </p>
-      </DataCard>
+      <div className="space-y-4">
+        {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
+        {outcomeBanner}
+        <DataCard title="Plan lekcji">
+          <p className="mb-4 text-neutral-700">
+            Nie ma jeszcze ułożonego planu.
+          </p>
+          {generateButton}
+          <p className="mt-3 text-xs text-neutral-500">
+            Plan jest sprawdzany względem reguł, zanim zostanie zapisany. Taki,
+            który je łamie, zostanie pokazany, ale nie stanie się planem szkoły.
+          </p>
+        </DataCard>
+      </div>
     );
 
   if (!plan) return null;
@@ -109,7 +172,9 @@ export function PlanPage() {
         />
       )}
 
-      <DataCard title={plan.name}>
+      {outcomeBanner}
+
+      <DataCard title={plan.name} actions={generateButton}>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
           <span>{plan.entries.length} zajęć</span>
           {total > 0 && (

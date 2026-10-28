@@ -652,13 +652,35 @@ object SolveCli extends IOApp:
   private def generateWithFet(xa: doobie.Transactor[IO], schoolId: UUID,
                               snapshot: SchoolSnapshot, rooms: List[Room]): IO[ExitCode] =
     for
-      outcome <- FetRunner(snapshot, rooms, FetRunner.Config.container)
-      _ <- IO.println(f"ułożone w ${outcome.millis / 1000.0}%.1f s, " +
-             f"${outcome.result.placed.size} zajęć")
-      _ <- outcome.report.rules.traverse_(r =>
-             IO.println(f"  ${if r.ok then "ok" else "XX"}  ${r.code}%-4s ${r.what}%-52s ${r.detail}"))
-      code <- keepIfSound(xa, schoolId, rooms, outcome)
+      result <- PlanGenerator(
+                  SnapshotLoader(
+                    SchoolRepository(xa), SchoolClassRepository(xa), TeacherRepository(xa),
+                    SubjectRepository(xa), LessonLineRepository(xa), CrossClassUnitRepository(xa),
+                    RoomRepository(xa), IndividualPlanRepository(xa)),
+                  PlanRepository(xa),
+                  FetRunner.Config.from(ConfigFactory.load()))
+                  .generateFrom(schoolId, snapshot, rooms)
+      code <- report(result)
     yield code
+
+  /** The same outcome the screen shows, printed. */
+  private def report(result: PlanGenerator.Result): IO[ExitCode] = result match
+    case PlanGenerator.Result.NoSchool =>
+      IO.println("Nie ma takiej szkoły").as(ExitCode(1))
+    case PlanGenerator.Result.Rejected(r, placed, unplaced, millis) =>
+      for
+        _ <- IO.println(f"ułożone w ${millis / 1000.0}%.1f s, $placed zajęć, $unplaced bez godziny")
+        _ <- r.rules.traverse_(x =>
+               IO.println(f"  ${if x.ok then "ok" else "XX"}  ${x.code}%-4s ${x.what}%-52s ${x.detail}"))
+        _ <- IO.println("plan łamie reguły — nie zapisuję")
+      yield ExitCode(1)
+    case PlanGenerator.Result.Saved(plan, r, placed, millis) =>
+      for
+        _ <- IO.println(f"ułożone w ${millis / 1000.0}%.1f s, $placed zajęć")
+        _ <- r.rules.traverse_(x =>
+               IO.println(f"  ${if x.ok then "ok" else "XX"}  ${x.code}%-4s ${x.what}%-52s ${x.detail}"))
+        _ <- IO.println(s"zapisano plan ${plan.id} i ustawiono jako bieżący")
+      yield ExitCode.Success
 
   /**
    * The current plan, as a page to look at.
@@ -705,25 +727,6 @@ object SolveCli extends IOApp:
                    s"${applied.individualLessons} godz. nauczania indywidualnego")
           yield ExitCode.Success
     yield code
-
-  /** A week that breaks a rule is reported, never quietly made the school's. */
-  private def keepIfSound(xa: doobie.Transactor[IO], schoolId: UUID,
-                          rooms: List[Room], outcome: FetRunner.Outcome): IO[ExitCode] =
-    if !outcome.report.sound || !outcome.result.complete then
-      IO.println("plan łamie reguły — nie zapisuję").as(ExitCode(1))
-    else
-      val plans = PlanRepository(xa)
-      for
-        saved <- plans.save(schoolId, NewPlan(
-                   name = s"FET ${java.time.LocalDate.now}",
-                   madeBy = "fet",
-                   tookMillis = Some(outcome.millis.toInt),
-                   rulesKept = Some(outcome.report.kept),
-                   rulesTotal = Some(outcome.report.rules.size),
-                   placements = FetRunner.placements(outcome.result, rooms)))
-        _ <- plans.makeCurrent(schoolId, saved.id)
-        _ <- IO.println(s"zapisano plan ${saved.id} i ustawiono jako bieżący")
-      yield ExitCode.Success
 
   /** FET's answer, read back and counted. */
   private def readFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =

@@ -14,6 +14,21 @@ server {
         proxy_pass ${BELFER_BACKEND};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+
+        # Laying out a week is a request that waits, not a job that is polled,
+        # and nginx's default would cut it off at sixty seconds. Measured on
+        # the real school: thirty-five seconds one day and a hundred and
+        # fifteen the next, for the same twenty-five classes — FET's search
+        # does not take a predictable amount of time, and the plan it was
+        # still working on would have been saved by the backend while the
+        # browser was told the gateway timed out.
+        #
+        # Matched to belfer.fet.timeout, which is the real bound. If that is
+        # raised — and asking FET to optimise rather than merely satisfy will
+        # raise it — this has to move with it, or the answer is thrown away
+        # on the way back.
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
     }
 
     # /health sits at the root so a readiness probe does not depend on the API

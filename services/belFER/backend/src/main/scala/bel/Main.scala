@@ -2,6 +2,7 @@ package bel
 
 import bel.api.*
 import bel.db.Database
+import bel.solver.{FetRunner, PlanGenerator}
 import bel.repository.{SnapshotLoader, CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
 import cats.effect.*
 import cats.syntax.semigroupk.*
@@ -40,6 +41,9 @@ object Main extends IOApp.Simple:
           schoolRepo, classRepo, teacherRepo, subjectRepo, lineRepo, peRepo,
           roomRepo, individualRepo)
 
+        // FET is a separate program, reached however this machine reaches it.
+        val generator = PlanGenerator(loader, planRepo, FetRunner.Config.from(config))
+
         val apiRoutes =
           SchoolRoutes(schoolRepo).routes <+>
           RoomRoutes(roomRepo).routes     <+>
@@ -50,7 +54,7 @@ object Main extends IOApp.Simple:
           CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
           ImportRoutes(importRepo, schoolRepo).routes <+>
           ValidationRoutes(loader).routes <+>
-          PlanRoutes(planRepo, loader).routes
+          PlanRoutes(planRepo, loader, generator).routes
 
         EmberServerBuilder
           .default[IO]

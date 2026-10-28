@@ -292,6 +292,32 @@ export interface Timetable {
   unresolved: number;
 }
 
+/** One rule, as the generate result reports it. */
+export interface RuleResult {
+  code: string;
+  what: string;
+  ok: boolean;
+  detail: string;
+}
+
+/**
+ * What came of pressing generate.
+ *
+ * "rejected" means FET answered and the answer breaks one of our rules — it
+ * is shown, not kept. A plan only becomes the school's when it passes.
+ */
+export interface Generated {
+  status: "saved" | "rejected";
+  planId: string | null;
+  tookMillis: number;
+  placed: number;
+  unplaced: number;
+  rulesKept: number;
+  rulesTotal: number;
+  broken: RuleResult[];
+  notChecked: string[];
+}
+
 /** A teacher's idle hours in the finished week, for the ones who have any. */
 export interface TeacherGaps {
   teacher: string;
@@ -390,6 +416,9 @@ export const api = {
   validate: (schoolId: string) => send<ValidationReport>("GET", `/schools/${schoolId}/validation`),
 
   listPlans: (schoolId: string) => send<PlanSummary[]>("GET", `/schools/${schoolId}/plans`),
+  generatePlan: (schoolId: string) =>
+    send<Generated>("POST", `/schools/${schoolId}/plans/generate`),
+
   currentPlan: (schoolId: string) => send<Timetable>("GET", `/schools/${schoolId}/plans/current`),
   plan: (schoolId: string, planId: string) =>
     send<Timetable>("GET", `/schools/${schoolId}/plans/${planId}`),
