@@ -103,16 +103,13 @@ maven.install(
         # spike avoided on purpose for the sealed image, or calling the impl
         # constructor DefaultSolverFactory(config, FORCE_REFLECTION) and owning
         # an unsupported API. That is a Phase 3 decision, not a version bump.
-        "ai.timefold.solver:timefold-solver-core:1.16.0",
         # ── Solver evaluation (services/belFER/solver-poc) ────────────────────
-        # Candidates weighed against Timefold before Phase 3 committed to one.
-        # JaCoP lost and is reachable only from the POC package, so it carries
-        # no weight anywhere. OR-Tools won, and then ADR 0004 replaced it with
-        # FET: it is still built, as //services/belFER/backend:cpsat_lib and
-        # the solve binary, but deliberately not from belfer_lib — so it stays
-        # out of the server image, which is where it sat unloaded until the
-        # libraries were separated.
-        "org.jacop:jacop:4.10.0",
+        # OR-Tools won the Phase 3 comparison, and then ADR 0004 replaced it
+        # with FET. It is still built, as //services/belFER/backend:cpsat_lib
+        # and the solve binary, but deliberately not from belfer_lib — so it
+        # stays out of the server image, which is where it sat unloaded until
+        # the libraries were separated. The candidates it beat are gone; see
+        # services/belFER/docs/SOLVER_EVALUATION.md for what they scored.
         "com.google.ortools:ortools-java:9.15.6755",
         # The solver itself is a native binary. ortools-java depends on every
         # platform's artifact, so all of them arrive whatever is asked for and
@@ -122,9 +119,9 @@ maven.install(
         "com.google.ortools:ortools-linux-x86-64:9.15.6755",
         "com.google.ortools:ortools-linux-aarch64:9.15.6755",
         "com.google.protobuf:protobuf-java:4.33.1",
-        # JaCoP still asks for slf4j 1.7 where everything else wants 2.0.
-        # Pinned here so the resolver has one answer rather than a conflict;
-        # 2.0 keeps the 1.7 logger API it actually calls.
+        # Named rather than left to the resolver: logback and log4cats each
+        # bring their own floor, and pinning it keeps one answer in the lock
+        # file instead of whichever the graph happened to settle on.
         "org.slf4j:slf4j-api:2.0.20",
     ],
     repositories = [
