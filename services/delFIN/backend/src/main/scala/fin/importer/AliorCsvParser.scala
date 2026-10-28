@@ -12,10 +12,9 @@ object AliorCsvParser:
   private val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
   def parse(content: String): Either[String, List[ParsedTransaction]] =
-    scala.util.Try {
-      val lines = content.linesIterator.toVector
-      if lines.isEmpty then return Right(Nil)
-
+    val lines = content.linesIterator.toVector
+    if lines.isEmpty then Right(Nil)
+    else scala.util.Try {
       // Detect if file has a BOM or leading metadata rows before the header
       val headerIdx = lines.indexWhere(l =>
         l.contains("Data operacji") || l.contains("Data transakcji")

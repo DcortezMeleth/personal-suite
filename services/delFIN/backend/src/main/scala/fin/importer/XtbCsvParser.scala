@@ -25,10 +25,9 @@ object XtbCsvParser:
   //   ID; Symbol; Comment;   Type; Open time;   Open price;   Close time;       Close price;      Volume; Commission; Profit
 
   def parse(content: String): Either[String, List[XtbRow]] =
-    scala.util.Try {
-      val lines = content.linesIterator.toVector.map(_.trim).filter(_.nonEmpty)
-      if lines.isEmpty then return Right(Nil)
-
+    val lines = content.linesIterator.toVector.map(_.trim).filter(_.nonEmpty)
+    if lines.isEmpty then Right(Nil)
+    else scala.util.Try {
       val sep     = detectSeparator(lines.head)
       val headers = lines.head.split(sep.toString, -1).map(normalise)
       val dataLines = lines.drop(1)
@@ -53,31 +52,34 @@ object XtbCsvParser:
 
   private def parseRow(line: String, headers: Array[String], sep: Char): Option[XtbRow] =
     val cells = line.split(sep.toString, -1)
+    // Symbol, type and open date are what a row has to have; everything else
+    // has a sensible absence. A row missing one of the three is skipped, which
+    // is what the three early returns here used to say by unwinding the Try.
     scala.util.Try {
-      val symbol   = col(headers, cells, "symbol").getOrElse(return None)
-      val typStr   = col(headers, cells, "typ", "type").getOrElse(return None)
-      val openDate = col(headers, cells, "data otwarcia", "open time", "czas").flatMap(parseDate)
-                       .getOrElse(return None)
-      val openPrice= col(headers, cells, "cena otwarcia", "open price").flatMap(parseDec)
-      val closePrc = col(headers, cells, "cena zamkniecia", "close price").flatMap(parseDec)
-      val volume   = col(headers, cells, "ilosc", "volume", "wolumen").flatMap(parseDec)
-      val commission = col(headers, cells, "prowizja", "commission")
-                        .flatMap(parseDec).getOrElse(BigDecimal(0))
-      val profit   = col(headers, cells, "zysk", "profit").flatMap(parseDec).getOrElse(BigDecimal(0))
+      for
+        symbol   <- col(headers, cells, "symbol")
+        typStr   <- col(headers, cells, "typ", "type")
+        openDate <- col(headers, cells, "data otwarcia", "open time", "czas").flatMap(parseDate)
+      yield
+        val openPrice= col(headers, cells, "cena otwarcia", "open price").flatMap(parseDec)
+        val closePrc = col(headers, cells, "cena zamkniecia", "close price").flatMap(parseDec)
+        val volume   = col(headers, cells, "ilosc", "volume", "wolumen").flatMap(parseDec)
+        val commission = col(headers, cells, "prowizja", "commission")
+                          .flatMap(parseDec).getOrElse(BigDecimal(0))
+        val profit   = col(headers, cells, "zysk", "profit").flatMap(parseDec).getOrElse(BigDecimal(0))
 
-      val txType = classifyType(typStr, closePrc)
-      XtbRow(
-        symbol      = symbol,
-        name        = symbol,
-        txType      = txType,
-        date        = openDate,
-        quantity    = volume,
-        openPrice   = openPrice,
-        closePrice  = closePrc,
-        commission  = commission.abs,
-        profitPln   = profit
-      )
-    }.toOption
+        XtbRow(
+          symbol      = symbol,
+          name        = symbol,
+          txType      = classifyType(typStr, closePrc),
+          date        = openDate,
+          quantity    = volume,
+          openPrice   = openPrice,
+          closePrice  = closePrc,
+          commission  = commission.abs,
+          profitPln   = profit
+        )
+    }.toOption.flatten
 
   private def classifyType(raw: String, closePrice: Option[BigDecimal]): InvestmentTxType =
     val lower = raw.toLowerCase
