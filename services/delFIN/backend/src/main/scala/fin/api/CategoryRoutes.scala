@@ -8,7 +8,6 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import fin.domain.*
 import fin.repository.CategoryRepository
-import java.util.UUID
 
 case class ReapplyRequest(scope: RecategorizeScope)
 object ReapplyRequest:

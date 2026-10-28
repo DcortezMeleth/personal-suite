@@ -1,6 +1,5 @@
 package bel.domain
 
-import java.time.OffsetDateTime
 import java.util.UUID
 import org.scalatest.funsuite.AnyFunSuite
 

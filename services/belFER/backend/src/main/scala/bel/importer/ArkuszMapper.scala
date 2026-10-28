@@ -374,8 +374,6 @@ object ArkuszMapper:
     baseOf: String => String,
     warn: String => Unit
   ): List[PlannedCrossClassUnit] =
-    val names = doc.crossClassLessons.map(l => l.code -> l.name).toMap
-
     val membership = inRange
       .filter(_.isCrossClassMembership)
       .groupMap(_.crossClassCode.get)(_.classCode.get)

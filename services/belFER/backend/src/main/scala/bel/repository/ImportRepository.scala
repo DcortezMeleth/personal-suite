@@ -1,6 +1,5 @@
 package bel.repository
 
-import bel.domain.{LessonAudience, LessonKind}
 import bel.importer.*
 import bel.repository.DoobieMeta.given
 import cats.effect.IO
@@ -54,7 +53,7 @@ class ImportRepository(xa: Transactor[IO]):
         lines    <- insertLessonLines(schoolId, plan.lessonLines, classes, subjects, teachers)
         units    <- insertUnits(schoolId, plan.crossClassUnits, classes, subjects, teachers)
         tuition  <- insertIndividual(schoolId, plan.individualPlans, classes, subjects, teachers)
-        _        <- deriveTeacherSubjects(schoolId, plan, classes, subjects, teachers)
+        _        <- deriveTeacherSubjects(schoolId, plan, subjects, teachers)
       yield Applied(teachers.size, subjects.size, classes.size, lines, units, tuition)
     program.transact(xa)
 
@@ -177,7 +176,6 @@ class ImportRepository(xa: Transactor[IO]):
   private def deriveTeacherSubjects(
     schoolId: UUID,
     plan: ImportPlan,
-    classes: Map[String, UUID],
     subjects: Map[String, UUID],
     teachers: Map[String, UUID]
   ): ConnectionIO[Unit] =

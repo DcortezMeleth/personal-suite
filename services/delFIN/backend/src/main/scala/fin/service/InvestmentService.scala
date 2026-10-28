@@ -3,15 +3,11 @@ package fin.service
 import cats.effect.IO
 import cats.syntax.traverse.*
 import fin.domain.*
-import fin.importer.XtbCsvParser
 import fin.repository.*
 import java.time.LocalDate
 import java.util.UUID
 
-class InvestmentService(
-  investRepo:  InvestmentRepository,
-  accountRepo: AccountRepository
-):
+class InvestmentService(investRepo: InvestmentRepository):
 
   def importXtb(rows: List[fin.importer.XtbRow], accountId: UUID): IO[ImportResult] =
     rows.traverse { row =>

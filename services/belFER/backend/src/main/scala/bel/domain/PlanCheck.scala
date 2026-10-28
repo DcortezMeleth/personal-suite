@@ -70,7 +70,6 @@ object PlanCheck:
 
   def apply(s: SchoolSnapshot, plan: List[Scheduled], rooms: List[Room] = Nil): Report =
     val capacity = s.slotsPerDay
-    val subjects = s.subjects.map(x => x.id -> x).toMap
     val rules = List.newBuilder[Rule]
     def rule(code: String, what: String, bad: Int, unit: String) =
       rules += Rule(code, what, bad == 0, if bad == 0 then "" else s"$bad $unit")

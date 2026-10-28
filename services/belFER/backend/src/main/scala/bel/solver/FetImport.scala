@@ -5,7 +5,6 @@ import java.util.UUID
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
-import scala.jdk.CollectionConverters.*
 
 /**
  * FET's answer, read back into our own terms.

@@ -100,7 +100,7 @@ object PlanLayout:
             individual = false)
         }
       }.orElse {
-        p.individualLessonId.flatMap(byTuition.get).map { (plan, lesson) =>
+        p.individualLessonId.flatMap(byTuition.get).map { (_, lesson) =>
           Lesson(
             day = p.dayOfWeek - 1, position = p.position - 1,
             length = lesson.blocks.lift(p.blockIndex).getOrElse(1),

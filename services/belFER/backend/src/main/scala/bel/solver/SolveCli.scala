@@ -137,7 +137,7 @@ object SolveCli extends IOApp:
             else warm match
               case Some(chunk) => warmStart(s, rooms, seconds, workers, chunk)
               case None        => run(s, rooms, seconds, workers, apart = apart, shaped = shaped,
-                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack, generate = generate, reimport = reimport, weeks = weeks, sheet = sheet)
+                                        onlyDay = onlyDay, week = week, slack = slack, spread = spread, relaxed = relaxed, rounds = rounds, oneDay = oneDay, literal = literal, fet = fet, readBack = readBack)
       yield code
     }
 
@@ -158,11 +158,7 @@ object SolveCli extends IOApp:
     oneDay: Boolean = false,
     literal: Boolean = false,
     fet: Option[String] = None,
-    readBack: Option[String] = None,
-    generate: Boolean = false,
-    reimport: Option[String] = None,
-    weeks: bel.importer.ArkuszMapper.WeekRange = bel.importer.ArkuszMapper.WeekRange(1, 19),
-    sheet: Option[String] = None
+    readBack: Option[String] = None
   ): IO[ExitCode] =
     // Say no before spending half an hour proving it. The checks decide by
     // counting what the solver would have to discover by searching.
@@ -554,7 +550,7 @@ object SolveCli extends IOApp:
       others
         .traverse(d => alsoImpossible(d, lessons).map(Option.when(_)(d)))
         .map(found => (day :: found.flatten).map(d => DaySpread.Cut(d, subjects.asJava)))
-        .flatTap(cuts => IO.whenA(collapsed)(IO.println(
+        .flatTap(_ => IO.whenA(collapsed)(IO.println(
           s"    ${lessons.size} lekcji, ale tylko ${kinds.size} rodzajów — reguła tylko o nich")))
 
     /** Whether these same lessons are impossible on another day too. */
@@ -790,7 +786,6 @@ object SolveCli extends IOApp:
     // halves of a split, and the one worth seeing rather than taking on trust.
     val halfAlone = snapshot.classes.filter { cls =>
       val mine = placed.filter(_._1 == cls.id)
-      val lines = snapshot.lessonLines.filter(_.classId == cls.id)
       (0 until snapshot.teachingDays * slotsPerDay).exists { slot =>
         val here = mine.filter(_._2 == slot).map(_._3)
         here.sizeIs == 1 && here.exists(l => l.endsWith("/1") || l.endsWith("/2"))

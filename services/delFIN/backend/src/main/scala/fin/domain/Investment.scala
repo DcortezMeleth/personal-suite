@@ -1,6 +1,6 @@
 package fin.domain
 
-import java.time.{LocalDate, OffsetDateTime}
+import java.time.LocalDate
 import java.util.UUID
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*

@@ -8,7 +8,6 @@ import org.http4s.dsl.io.*
 import fin.domain.*
 import fin.repository.BudgetRepository
 import java.time.YearMonth
-import java.util.UUID
 
 object YearMonthParam extends OptionalQueryParamDecoderMatcher[String]("month")
 

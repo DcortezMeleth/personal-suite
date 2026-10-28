@@ -3,7 +3,6 @@ package bel.api
 import bel.domain.*
 import bel.repository.*
 import cats.effect.IO
-import cats.syntax.all.*
 import io.circe.Encoder
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*

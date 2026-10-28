@@ -37,7 +37,7 @@ object Main extends IOApp.Simple:
 
         val txService       = TransactionService(txRepo, categoryRepo)
         val spendingService = SpendingService(spendingRepo)
-        val investService   = InvestmentService(investRepo, accountRepo)
+        val investService   = InvestmentService(investRepo)
         val inflationSvc    = InflationService(httpClient, investRepo)
 
         val apiRoutes =

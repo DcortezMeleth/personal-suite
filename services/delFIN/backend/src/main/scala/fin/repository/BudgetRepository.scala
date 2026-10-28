@@ -5,7 +5,7 @@ import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
 import fin.domain.*
-import java.time.{LocalDate, YearMonth}
+import java.time.YearMonth
 import java.util.UUID
 
 class BudgetRepository(xa: Transactor[IO]):

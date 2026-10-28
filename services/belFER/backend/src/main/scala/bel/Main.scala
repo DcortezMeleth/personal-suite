@@ -8,7 +8,6 @@ import cats.syntax.semigroupk.*
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.typesafe.config.ConfigFactory
-import org.http4s.HttpRoutes
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 
