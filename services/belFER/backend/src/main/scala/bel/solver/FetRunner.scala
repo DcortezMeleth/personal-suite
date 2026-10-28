@@ -51,6 +51,25 @@ object FetRunner:
     val installed: Config = Config(List(
       "fet-cl", "--inputfile={dir}/school.fet", "--outputdir={dir}/out"))
 
+    /**
+     * How this deployment reaches FET, from `belfer.fet`.
+     *
+     * The command is read as a list of arguments or as one string to split on
+     * whitespace, because the two ways it is set want different shapes: a
+     * config file is happier with a list, and an environment variable — which
+     * is how compose and a systemd unit will set it — can only carry a string.
+     */
+    def from(config: com.typesafe.config.Config): Config =
+      val fet = config.getConfig("belfer.fet")
+      val command = fet.getValue("command").unwrapped match
+        case args: java.util.List[?] => args.asScala.map(String.valueOf).toList
+        case one                     => String.valueOf(one).split("\\s+").filter(_.nonEmpty).toList
+      require(command.nonEmpty, "belfer.fet.command is empty — nothing to run")
+      Config(
+        command = command,
+        timeout = FiniteDuration(fet.getDuration("timeout").toMillis, MILLISECONDS),
+        workRoot = Path.of(fet.getString("work-root")))
+
   case class Outcome(result: FetImport.Result, report: PlanCheck.Report, millis: Long)
 
   /**
