@@ -4,6 +4,7 @@ import bel.domain.*
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import java.nio.file.{Files, Path}
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 
@@ -29,7 +30,7 @@ object FetRunner:
    */
   case class Config(
     command: List[String],
-    timeout: FiniteDuration = 5.minutes,
+    timeout: FiniteDuration = 30.minutes,
     /**
      * Where the file is written for FET to read.
      *
@@ -101,20 +102,62 @@ object FetRunner:
         Files.walk(dir).sorted(java.util.Comparator.reverseOrder()).forEach(Files.deleteIfExists(_))
       }.handleError(_ => ()))
 
+  /**
+   * The search, bounded.
+   *
+   * The bound is the JDK's own timed wait rather than a cats-effect timeout,
+   * and that shape is the whole point. `IO.blocking` is uncancelable, so a
+   * timeout around it ends nothing — measured before this was written: a
+   * two-second timeout let a twenty-second command run to completion and then
+   * reported success. Making the wait `interruptible` did not help either,
+   * because the thread was parked in `readAllBytes` on the process's pipe,
+   * which does not answer an interrupt. `waitFor(timeout)` answers the clock
+   * directly and needs neither.
+   *
+   * Output goes to a file rather than a pipe for the same reason in reverse:
+   * nothing reads it while the process runs, and a chatty program would
+   * otherwise fill the pipe buffer and block for ever, against a timeout that
+   * is waiting for it to finish.
+   *
+   * The process is held as a resource so that giving up kills it. Otherwise a
+   * run nobody is waiting for any more keeps a container alive, and the next
+   * one queues behind it.
+   */
   private def run(config: Config, dir: Path): IO[Unit] =
     val argv = config.command.map(_.replace("{dir}", dir.toString))
-    IO.blocking {
-      val process = ProcessBuilder(argv.asJava).redirectErrorStream(true).start()
-      val said = String(process.getInputStream.readAllBytes, "UTF-8")
-      (process.waitFor(), said)
-    }.timeout(config.timeout).flatMap { (code, said) =>
-      // FET reports a failure to lay out the week in its exit code, and says
-      // which rule defeated it on the way out. Carrying that through verbatim
-      // is better than translating it: it is FET's vocabulary and a person
-      // reading it is better served by the original.
-      IO.raiseWhen(code != 0)(
-        RuntimeException(s"fet-cl zakończył się kodem $code:\n${said.takeRight(2000)}"))
+    val log = dir.resolve("fet-cl.log")
+
+    val started = Resource.make(
+      IO.blocking(ProcessBuilder(argv.asJava)
+        .redirectErrorStream(true)
+        .redirectOutput(log.toFile)
+        .start()))(p =>
+      IO.blocking {
+        if p.isAlive then
+          // Politely first: `docker run` forwards the signal on, and --rm then
+          // clears the container up. Forcibly only if that is ignored.
+          p.destroy()
+          if !p.waitFor(5, TimeUnit.SECONDS) then p.destroyForcibly()
+      }.void)
+
+    started.use { p =>
+      for
+        finished <- IO.blocking(p.waitFor(config.timeout.toMillis, TimeUnit.MILLISECONDS))
+        said     <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
+        _        <- IO.raiseUnless(finished)(RuntimeException(
+                      s"fet-cl nie skończył w ${config.timeout.toMinutes} min — przerwano." +
+                      (if said.nonEmpty then s"\n${said.takeRight(2000)}" else "")))
+        code     <- IO.blocking(p.exitValue())
+        // FET reports a failure to lay out the week in its exit code, and says
+        // which rule defeated it on the way out. Carrying that through verbatim
+        // is better than translating it: it is FET's vocabulary and a person
+        // reading it is better served by the original.
+        _        <- IO.raiseWhen(code != 0)(RuntimeException(
+                      s"fet-cl zakończył się kodem $code:\n${said.takeRight(2000)}"))
+      yield ()
     }
+
+
 
   /**
    * FET writes a directory of timetables, in several shapes, named after the
