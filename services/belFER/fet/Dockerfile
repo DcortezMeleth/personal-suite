@@ -6,13 +6,25 @@
 # home lab will run — and the image is that same thing, not an approximation
 # of it.
 #
-# Debian packages FET for arm64 as well as x86-64, which is what makes this
+# Ubuntu rather than Debian, and that is the only reason: it is the archive
+# the backend image's base draws from, so the FET in this image and the FET
+# compose puts inside the backend are the same build of the same version. A
+# laptop and the home lab running different engines is the kind of difference
+# that produces a bug nobody can reproduce — and this is the component whose
+# output every measurement in SOLVER_EVALUATION.md is about.
+#
+# The cost is version 6.8.5 instead of the 7.0.8 Debian ships. It lays this
+# school out completely; it warns that our file declares a newer format and
+# continues. ADR 0004 is what makes that tolerable: nothing here is trusted,
+# every week it returns is checked against our own rules before anyone sees it.
+#
+# Ubuntu packages FET for arm64 as well as x86-64, which is what makes this
 # work without emulation on an Apple laptop.
 #
 # FET is AGPL v3. This image is built locally and not published; publishing it
 # would mean offering FET's source alongside, which is a link rather than a
 # difficulty, but it is a thing to do knowingly.
-FROM debian:stable-slim
+FROM ubuntu:24.04
 
 RUN apt-get update \
  && apt-get install --no-install-recommends -y fet \

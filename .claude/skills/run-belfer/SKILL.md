@@ -12,7 +12,20 @@ port **8081**), **frontend** (Vite dev server, port **3001**). delFIN holds
 The frontend proxies `/api` and `/health` → `localhost:8081`, so open **only**
 `http://localhost:3001`.
 
-Docker Compose is not the local dev path, and belFER has no compose entry yet.
+Docker Compose is not the local dev path — it is how the home lab runs, and
+`infra/docker-compose.yml` now carries belFER as well as delFIN. Two things to
+know before reaching for it on a laptop:
+
+- The service images are cross-built for **linux/amd64** (Proxmox). An Apple
+  Silicon machine cannot run them without binfmt emulation installed, and the
+  belFER backend will fail with `exec format error`.
+- The backend image is layered once more by compose to put `fet-cl` inside it,
+  so the order is `bazel run //services/belFER/backend:server_image_load`
+  first, then `docker compose build belfer-backend`.
+
+For a laptop, keep running the backend with `bazel run` as below and let it
+reach FET through the container — which is what `belfer.fet.command` defaults
+to.
 
 ## 1. Postgres
 
