@@ -144,3 +144,55 @@ might be possible. Worth remembering before believing a refusal.
 **The AGPL decision is taken now**, for self-hosting, with the knowledge that
 offering this to other schools as a service would mean publishing FET's source
 alongside. Nothing we are doing today is affected.
+
+---
+
+## Postscript, 2026-10-29 — what "two seconds" was measured on
+
+The two seconds above is real and is no longer the number to plan around.
+Writing down what it was measured on, because the figure outlived the thing it
+described and was quoted three more times before anyone checked.
+
+**Measured 2026-10-22**, when this decision was taken: twenty-five classes,
+1131 activities, two seconds. At that point the exporter wrote days, hours,
+subjects, teachers, student sets and activities. **It did not write rooms.**
+
+Rooms came afterwards, in *Make the week fit the building*, and individual
+tuition after that in *Keep one student's tuition, without keeping the
+student*. Both are after the commit that carries this ADR, which is easy to
+miss now: the history was squashed on 2026-10-27 and every commit from that
+session carries that date regardless of when the work happened.
+
+**Measured again 2026-10-29**, on the same school, now 1191 activities:
+
+| | first run | second run |
+|---|---|---|
+| as exported today | 67.9 s | 64.5 s |
+| same file, room constraints and room list stripped | 5.0 s | 3.8 s |
+
+Both produce a complete timetable — all 1191 activities placed — so this is
+the same question asked twice, not one success against one failure.
+
+**It is rooms.** The export now writes one `ConstraintActivityPreferredRooms`
+per placeable activity: 1146 of them, over 40 rooms. That turns laying out a
+week into laying out a week *and* assigning a room to every hour of it, and it
+costs about fifteen times the search.
+
+It is **not** randomness, which is what the first guess at the slowdown
+assumed and what the commit messages of 2026-10-28 wrongly recorded. The same
+input twice differs by about five per cent. FET's search is near enough
+deterministic that run-to-run variation explains nothing.
+
+It is **not** individual tuition either, though that was the other half of the
+suspicion. The code carries it, but this school's data has no individual plans
+at all right now, so no such activity reaches the file. It will cost something
+when there is some; it has not cost anything yet.
+
+**What to carry forward.** Generation takes a minute or two, not two seconds.
+That is still a request a person can wait out, but it is long enough that the
+proxy in front of it needed its read timeout raised from the sixty-second
+default, and long enough that the user interface polls rather than blocks.
+And it is the floor rather than the ceiling: everything measured here is FET
+being asked only to *satisfy* the rules. Asking it to prefer fewer teacher
+windows or evener days — which §2.10 wants and the 331 window-hours in the
+current week argue for — is paid for out of the same search.
