@@ -15,18 +15,16 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
 
-        # Laying out a week is a request that waits, not a job that is polled,
-        # and nginx's default would cut it off at sixty seconds. Measured on
-        # the real school: thirty-five seconds one day and a hundred and
-        # fifteen the next, for the same twenty-five classes — FET's search
-        # does not take a predictable amount of time, and the plan it was
-        # still working on would have been saved by the backend while the
-        # browser was told the gateway timed out.
+        # Laying out a week takes a minute or two — assigning a room to every
+        # hour is most of it, see the postscript to ADR 0004 — and nginx's
+        # default would cut that off at sixty seconds. The backend would have
+        # finished and saved the plan while the browser was told the gateway
+        # timed out.
         #
-        # Matched to belfer.fet.timeout, which is the real bound. If that is
-        # raised — and asking FET to optimise rather than merely satisfy will
-        # raise it — this has to move with it, or the answer is thrown away
-        # on the way back.
+        # The run is started and polled rather than waited on, so this no
+        # longer has to cover a whole generation. It still covers more than
+        # the default, because the poll and the start both go through here
+        # and because dropping back to blocking should not quietly break.
         proxy_read_timeout 300s;
         proxy_send_timeout 300s;
     }

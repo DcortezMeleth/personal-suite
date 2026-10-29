@@ -301,21 +301,26 @@ export interface RuleResult {
 }
 
 /**
- * What came of pressing generate.
+ * A generation run, in whatever state it has reached.
  *
- * "rejected" means FET answered and the answer breaks one of our rules — it
- * is shown, not kept. A plan only becomes the school's when it passes.
+ * One shape for every state, because the page asks the same question on a
+ * timer and wants the same answer back with more of it filled in. "rejected"
+ * means FET answered and the answer breaks one of our rules — it is shown,
+ * not kept. A plan only becomes the school's when it passes.
  */
-export interface Generated {
-  status: "saved" | "rejected";
+export interface Generation {
+  status: "running" | "saved" | "rejected" | "failed";
+  startedAt: string;
+  finishedAt: string | null;
+  tookMillis: number | null;
   planId: string | null;
-  tookMillis: number;
-  placed: number;
-  unplaced: number;
-  rulesKept: number;
-  rulesTotal: number;
+  placed: number | null;
+  unplaced: number | null;
+  rulesKept: number | null;
+  rulesTotal: number | null;
   broken: RuleResult[];
   notChecked: string[];
+  message: string | null;
 }
 
 /** A teacher's idle hours in the finished week, for the ones who have any. */
@@ -416,8 +421,12 @@ export const api = {
   validate: (schoolId: string) => send<ValidationReport>("GET", `/schools/${schoolId}/validation`),
 
   listPlans: (schoolId: string) => send<PlanSummary[]>("GET", `/schools/${schoolId}/plans`),
-  generatePlan: (schoolId: string) =>
-    send<Generated>("POST", `/schools/${schoolId}/plans/generate`),
+  /** Starts a run, or joins the one already going. */
+  startGeneration: (schoolId: string) =>
+    send<Generation>("POST", `/schools/${schoolId}/plans/generate`),
+
+  generationStatus: (schoolId: string) =>
+    send<Generation>("GET", `/schools/${schoolId}/plans/generation`),
 
   currentPlan: (schoolId: string) => send<Timetable>("GET", `/schools/${schoolId}/plans/current`),
   plan: (schoolId: string, planId: string) =>

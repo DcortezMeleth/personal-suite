@@ -2,9 +2,10 @@ package bel
 
 import bel.api.*
 import bel.db.Database
-import bel.solver.{FetRunner, PlanGenerator}
+import bel.solver.{FetRunner, PlanGenerationRuns, PlanGenerator}
 import bel.repository.{SnapshotLoader, CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
 import cats.effect.*
+import cats.effect.std.Supervisor
 import cats.syntax.semigroupk.*
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
@@ -21,6 +22,8 @@ object Main extends IOApp.Simple:
     val serverHost = Host.fromString(hostStr).getOrElse(Host.fromString("0.0.0.0").get)
     val serverPort = Port.fromInt(portInt).getOrElse(Port.fromInt(8081).get)
 
+    // The supervisor owns generation runs: they outlive the request that
+    // started them and must not outlive the server.
     Database.migrate(config) >>
       Database.transactor(config).use { xa =>
         val schoolRepo  = SchoolRepository(xa)
@@ -44,28 +47,34 @@ object Main extends IOApp.Simple:
         // FET is a separate program, reached however this machine reaches it.
         val generator = PlanGenerator(loader, planRepo, FetRunner.Config.from(config))
 
-        val apiRoutes =
-          SchoolRoutes(schoolRepo).routes <+>
-          RoomRoutes(roomRepo).routes     <+>
-          SubjectRoutes(subjectRepo).routes <+>
-          TeacherRoutes(teacherRepo, schoolRepo).routes <+>
-          SchoolClassRoutes(classRepo, schoolRepo).routes <+>
-          LessonLineRoutes(lineRepo, schoolRepo, subjectRepo, peRepo).routes <+>
-          CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
-          ImportRoutes(importRepo, schoolRepo).routes <+>
-          ValidationRoutes(loader).routes <+>
-          PlanRoutes(planRepo, loader, generator).routes
+        // A generation run outlives the request that started it, and must not
+        // outlive the server: the supervisor owns it on both counts.
+        Supervisor[IO].use { supervisor =>
+          PlanGenerationRuns(generator, supervisor).flatMap { generation =>
+            val apiRoutes =
+              SchoolRoutes(schoolRepo).routes <+>
+              RoomRoutes(roomRepo).routes     <+>
+              SubjectRoutes(subjectRepo).routes <+>
+              TeacherRoutes(teacherRepo, schoolRepo).routes <+>
+              SchoolClassRoutes(classRepo, schoolRepo).routes <+>
+              LessonLineRoutes(lineRepo, schoolRepo, subjectRepo, peRepo).routes <+>
+              CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
+              ImportRoutes(importRepo, schoolRepo).routes <+>
+              ValidationRoutes(loader).routes <+>
+              PlanRoutes(planRepo, loader, generation).routes
 
-        EmberServerBuilder
-          .default[IO]
-          .withHost(serverHost)
-          .withPort(serverPort)
-          .withHttpApp(
-            Router(
-              "/"    -> HealthRoutes.routes,
-              "/api" -> apiRoutes
-            ).orNotFound
-          )
-          .build
-          .useForever
+            EmberServerBuilder
+              .default[IO]
+              .withHost(serverHost)
+              .withPort(serverPort)
+              .withHttpApp(
+                Router(
+                  "/"    -> HealthRoutes.routes,
+                  "/api" -> apiRoutes
+                ).orNotFound
+              )
+              .build
+              .useForever
+          }
+        }
       }

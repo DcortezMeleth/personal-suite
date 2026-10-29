@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type Generated, type PlanEntry, type Timetable } from "../api/client";
+import { api, type Generation, type PlanEntry, type Timetable } from "../api/client";
 import { useSchool } from "../hooks/useSchool";
 import { NoSchool } from "../components/NoSchool";
 import { TimetableGrid } from "../components/TimetableGrid";
@@ -28,8 +28,8 @@ export function PlanPage() {
   const [view, setView] = useState<View>("oddzial");
   const [who, setWho] = useState<string>("");
   const [missing, setMissing] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [outcome, setOutcome] = useState<Generated | null>(null);
+  const [run, setRun] = useState<Generation | null>(null);
+  const [elapsed, setElapsed] = useState(0);
 
   const { school, error, setError, reload, gate } = useSchool({
     title: "Plan lekcji",
@@ -46,57 +46,120 @@ export function PlanPage() {
     },
   });
 
-  // This waits rather than polling a job. Laying out the real school has
-  // taken between thirty-five seconds and two minutes, so the wait is long
-  // enough to need saying out loud — hence the button's own busy state — and
-  // the proxy in front of this has a matching timeout. Asking FET to optimise
-  // as well as satisfy is what will make polling unavoidable.
+  const running = run?.status === "running";
+
+  // Ask once, so a page opened — or reloaded — while a run is going finds it
+  // rather than losing it.
+  useEffect(() => {
+    if (!school) return;
+    let live = true;
+    api
+      .generationStatus(school.id)
+      .then((latest) => {
+        if (live) setRun(latest);
+      })
+      // No run has ever been started for this school, which is not news.
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [school]);
+
+  // Poll only while something is actually running. Keyed on the status rather
+  // than started and stopped by hand, so there is no state in which a timer
+  // outlives what it was watching — a school that has never generated must
+  // not end up asking after a run that does not exist, every two seconds,
+  // forever.
+  useEffect(() => {
+    if (!school || run?.status !== "running") return;
+    let live = true;
+    const timer = window.setInterval(async () => {
+      try {
+        const latest = await api.generationStatus(school.id);
+        if (live) setRun(latest);
+      } catch {
+        // A blip while it works is not worth abandoning the run over.
+      }
+    }, 2000);
+    return () => {
+      live = false;
+      window.clearInterval(timer);
+    };
+  }, [school, run?.status]);
+
+  // A plain second counter while it works, because a minute of nothing
+  // happening looks the same as a minute of being broken.
+  useEffect(() => {
+    if (!running || !run) return;
+    const started = new Date(run.startedAt).getTime();
+    const tick = () => setElapsed(Math.max(0, Math.round((Date.now() - started) / 1000)));
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [running, run]);
+
+  // A finished run that saved a plan is the current one, so the grid below
+  // has to catch up with it.
+  const settled = run && run.status !== "running" ? run.finishedAt : null;
+  useEffect(() => {
+    if (settled && run?.status === "saved") void reload();
+  }, [settled, run?.status, reload]);
+
   const generate = useCallback(async () => {
     if (!school) return;
-    setGenerating(true);
-    setOutcome(null);
     try {
-      const result = await api.generatePlan(school.id);
-      setOutcome(result);
+      // The answer is the run, already "running", which is what starts the
+      // polling effect above.
+      setRun(await api.startGeneration(school.id));
       setError(null);
-      // A saved plan is the current one, so the grid below has to catch up.
-      if (result.status === "saved") await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setGenerating(false);
     }
-  }, [school, reload, setError]);
+  }, [school, setError]);
 
   const generateButton = (
     <button
       type="button"
       onClick={generate}
-      disabled={generating}
+      disabled={running}
       className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 disabled:opacity-60"
     >
-      {generating ? "Układanie…" : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
+      {running ? `Układanie… ${elapsed} s` : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
     </button>
   );
 
-  const outcomeBanner = outcome && (
-    outcome.status === "saved" ? (
-      <AlertBanner
-        level="success"
-        message={`Ułożono w ${(outcome.tookMillis / 1000).toFixed(1)} s — ${outcome.placed} zajęć, ` +
-          `${outcome.rulesKept} z ${outcome.rulesTotal} reguł spełnionych.`}
-        onDismiss={() => setOutcome(null)}
-      />
-    ) : (
+  const outcomeBanner = (() => {
+    if (!run || run.status === "running") return null;
+    const seconds = ((run.tookMillis ?? 0) / 1000).toFixed(1);
+    if (run.status === "saved")
+      return (
+        <AlertBanner
+          level="success"
+          message={`Ułożono w ${seconds} s — ${run.placed} zajęć, ` +
+            `${run.rulesKept} z ${run.rulesTotal} reguł spełnionych.`}
+          onDismiss={() => setRun(null)}
+        />
+      );
+    if (run.status === "failed")
+      return (
+        <AlertBanner
+          level="danger"
+          message={`Nie udało się ułożyć planu: ${run.message ?? "nieznany błąd"}`}
+          onDismiss={() => setRun(null)}
+        />
+      );
+    return (
       <AlertBanner
         level="danger"
-        message={`Ułożony plan łamie reguły, więc go nie zapisano: ` +
-          outcome.broken.map((r) => `${r.code} ${r.what}${r.detail ? ` (${r.detail})` : ""}`).join("; ") +
-          (outcome.unplaced > 0 ? ` — ${outcome.unplaced} zajęć bez godziny.` : ".")}
-        onDismiss={() => setOutcome(null)}
+        message={
+          `Ułożony plan łamie reguły, więc go nie zapisano: ` +
+          run.broken.map((r) => `${r.code} ${r.what}${r.detail ? ` (${r.detail})` : ""}`).join("; ") +
+          ((run.unplaced ?? 0) > 0 ? ` — ${run.unplaced} zajęć bez godziny.` : ".")
+        }
+        onDismiss={() => setRun(null)}
       />
-    )
-  );
+    );
+  })();
 
   // Whoever the view is about: a class, a teacher, a room. Kept valid as the
   // view changes, so switching never lands on an empty grid.

@@ -235,6 +235,10 @@ scala_test(
         "@maven//:com_google_ortools_ortools_java",
         "@maven//:com_typesafe_config",
         "@maven//:org_tpolecat_doobie_core_3",
+        "@maven//:org_typelevel_cats_core_3",
+        "@maven//:org_typelevel_cats_kernel_3",
         "@maven//:org_typelevel_cats_effect_3",
+        "@maven//:org_typelevel_cats_effect_kernel_3",
+        "@maven//:org_typelevel_cats_effect_std_3",
     ],
 )

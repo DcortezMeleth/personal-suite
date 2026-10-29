@@ -2,7 +2,7 @@ package bel.api
 
 import bel.domain.*
 import bel.repository.*
-import bel.solver.PlanGenerator
+import bel.solver.{PlanGenerationRuns, PlanGenerator}
 import cats.effect.IO
 import io.circe.Encoder
 import io.circe.generic.semiauto.*
@@ -71,22 +71,29 @@ object PlanView:
   case class RuleResult(code: String, what: String, ok: Boolean, detail: String)
 
   /**
-   * What came of pressing generate.
+   * A generation run, in whatever state it is in.
    *
-   * `status` is "saved" or "rejected": FET answering is not the same as FET
-   * answering well, and a week that breaks a rule is shown rather than kept.
+   * One shape for all of them rather than a union, because the screen asks
+   * the same question repeatedly and wants the same answer back each time
+   * with more of it filled in. `status` is "running", "saved", "rejected" or
+   * "failed" — FET answering is not the same as FET answering well, and a
+   * week that breaks a rule is shown rather than kept.
    */
-  case class Generated(
+  case class Generation(
     status: String,
+    startedAt: String,
+    finishedAt: Option[String],
+    tookMillis: Option[Long],
     planId: Option[UUID],
-    tookMillis: Long,
-    placed: Int,
-    unplaced: Int,
-    rulesKept: Int,
-    rulesTotal: Int,
+    placed: Option[Int],
+    unplaced: Option[Int],
+    rulesKept: Option[Int],
+    rulesTotal: Option[Int],
     broken: List[RuleResult],
-    /** Rules this check cannot speak to, so "11 of 11" is not read as "all". */
-    notChecked: List[String]
+    /** Rules this check cannot speak to, so "15 of 15" is not read as "all". */
+    notChecked: List[String],
+    /** Why it failed, when it did. */
+    message: Option[String]
   )
 
   case class Summary(
@@ -103,11 +110,11 @@ object PlanView:
   given Encoder[Timetable] = deriveEncoder
   given Encoder[Summary]     = deriveEncoder
   given Encoder[RuleResult]  = deriveEncoder
-  given Encoder[Generated]   = deriveEncoder
+  given Encoder[Generation]  = deriveEncoder
   given Encoder[TeacherGaps] = deriveEncoder
 
 class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
-                 generator: PlanGenerator):
+                 generation: PlanGenerationRuns):
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
@@ -152,19 +159,18 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
         case _ => NotFound(ApiError.body("Nie ma takiego planu"))
       }
 
-    // Synchronous: FET satisfies this school in about two seconds, so this is
-    // a button and not a job. See PlanGenerator for what changes when it is
-    // asked to optimise rather than merely satisfy.
+    // Started, not waited on: laying out a week takes a minute or two and
+    // every hop in between has an opinion about how long a reply may take.
+    // Answers with the run so that pressing twice joins the one already
+    // going rather than starting a second search.
     case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generate" =>
-      generator.generate(schoolId).flatMap {
-        case PlanGenerator.Result.NoSchool =>
-          NotFound(ApiError.body("Nie ma takiej szkoły"))
+      generation.start(schoolId).flatMap(run => Accepted(view(run).asJson))
 
-        case PlanGenerator.Result.Rejected(report, placed, unplaced, millis) =>
-          Ok(generated("rejected", None, report, placed, unplaced, millis).asJson)
-
-        case PlanGenerator.Result.Saved(plan, report, placed, millis) =>
-          Ok(generated("saved", Some(plan.id), report, placed, 0, millis).asJson)
+    // What became of it. Also how a reloaded page finds a run still going.
+    case GET -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generation" =>
+      generation.status(schoolId).flatMap {
+        case None      => NotFound(ApiError.body("Nie uruchamiano jeszcze układania"))
+        case Some(run) => Ok(view(run).asJson)
       }
 
     case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / UUIDVar(planId) / "current" =>
@@ -175,18 +181,41 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
       }
   }
 
-  private def generated(status: String, planId: Option[UUID], report: PlanCheck.Report,
-                        placed: Int, unplaced: Int, millis: Long): PlanView.Generated =
-    PlanView.Generated(
-      status = status,
-      planId = planId,
-      tookMillis = millis,
-      placed = placed,
-      unplaced = unplaced,
-      rulesKept = report.kept,
-      rulesTotal = report.rules.size,
-      broken = report.broken.map(r => PlanView.RuleResult(r.code, r.what, r.ok, r.detail)),
-      notChecked = PlanCheck.notChecked.map((code, why) => s"$code — $why"))
+  private def view(run: PlanGenerationRuns.Run): PlanView.Generation =
+    val base = PlanView.Generation(
+      status = "running",
+      startedAt = run.startedAt.toString,
+      finishedAt = run.finishedAt.map(_.toString),
+      tookMillis = None, planId = None, placed = None, unplaced = None,
+      rulesKept = None, rulesTotal = None,
+      broken = Nil, notChecked = Nil, message = None)
+
+    def withReport(status: String, report: PlanCheck.Report, placed: Int,
+                   unplaced: Int, millis: Long, planId: Option[UUID]) =
+      base.copy(
+        status = status, planId = planId,
+        tookMillis = Some(millis), placed = Some(placed), unplaced = Some(unplaced),
+        rulesKept = Some(report.kept), rulesTotal = Some(report.rules.size),
+        broken = report.broken.map(r => PlanView.RuleResult(r.code, r.what, r.ok, r.detail)),
+        notChecked = PlanCheck.notChecked.map((code, why) => s"$code — $why"))
+
+    run.state match
+      case PlanGenerationRuns.State.Running =>
+        base
+
+      case PlanGenerationRuns.State.Failed(message) =>
+        base.copy(status = "failed", message = Some(message))
+
+      case PlanGenerationRuns.State.Finished(PlanGenerator.Result.NoSchool) =>
+        base.copy(status = "failed", message = Some("Nie ma takiej szkoły"))
+
+      case PlanGenerationRuns.State.Finished(
+             PlanGenerator.Result.Rejected(report, placed, unplaced, millis)) =>
+        withReport("rejected", report, placed, unplaced, millis, None)
+
+      case PlanGenerationRuns.State.Finished(
+             PlanGenerator.Result.Saved(plan, report, placed, millis)) =>
+        withReport("saved", report, placed, 0, millis, Some(plan.id))
 
   private def timetable(schoolId: UUID, plan: Plan): IO[Response[IO]] =
     loader.loadWithRooms(schoolId).flatMap {
