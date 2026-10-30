@@ -303,6 +303,11 @@ export interface Timetable {
   classes: string[];
   teachers: string[];
   rooms: string[];
+  /**
+   * The six components FET was rolled with. Null for plans made before they
+   * were recorded, which cannot be reproduced.
+   */
+  randomSeed: string | null;
   entries: PlanEntry[];
   /**
    * Lessons in the saved plan that no longer match anything in the school —

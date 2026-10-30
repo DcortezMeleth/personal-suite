@@ -71,7 +71,9 @@ object FetRunner:
         timeout = FiniteDuration(fet.getDuration("timeout").toMillis, MILLISECONDS),
         workRoot = Path.of(fet.getString("work-root")))
 
-  case class Outcome(result: FetImport.Result, report: PlanCheck.Report, millis: Long)
+  case class Outcome(result: FetImport.Result, report: PlanCheck.Report, millis: Long,
+                     /** What it was rolled with, so the week can be had again. */
+                     seed: FetSeed)
 
   /**
    * Lay out the school, read the answer back, and check it.
@@ -79,18 +81,20 @@ object FetRunner:
    * The checking is not optional and does not live behind a flag. A timetable
    * nobody has held against the rules is not a timetable, it is a file.
    */
-  def apply(snapshot: SchoolSnapshot, rooms: List[Room], config: Config): IO[Outcome] =
+  def apply(snapshot: SchoolSnapshot, rooms: List[Room], config: Config,
+            seed: Option[FetSeed] = None): IO[Outcome] =
     workspace(config.workRoot).use { dir =>
       val written = FetExport(snapshot, rooms)
       for
+        dice <- seed.fold(FetSeed.random)(IO.pure)
         _ <- IO.blocking(Files.writeString(dir.resolve("school.fet"), written.xml))
         started <- IO.monotonic
-        _ <- run(config, dir)
+        _ <- run(config, dir, dice)
         xml <- readAnswer(dir)
         done <- IO.monotonic
         result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
         report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed, rooms), rooms)
-      yield Outcome(result, report, (done - started).toMillis)
+      yield Outcome(result, report, (done - started).toMillis, dice)
     }
 
   private def workspace(root: Path): Resource[IO, Path] =
@@ -123,8 +127,10 @@ object FetRunner:
    * run nobody is waiting for any more keeps a container alive, and the next
    * one queues behind it.
    */
-  private def run(config: Config, dir: Path): IO[Unit] =
-    val argv = config.command.map(_.replace("{dir}", dir.toString))
+  private def run(config: Config, dir: Path, seed: FetSeed): IO[Unit] =
+    // The seed goes on the end, where trailing flags work for both shapes the
+    // command takes — fet-cl directly, or docker run wrapping it.
+    val argv = config.command.map(_.replace("{dir}", dir.toString)) ++ seed.args
     val log = dir.resolve("fet-cl.log")
 
     val started = Resource.make(

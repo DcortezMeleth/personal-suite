@@ -1,0 +1,21 @@
+-- The dice FET rolled.
+--
+-- FET's search is seeded, and left to itself it seeds from the clock: the same
+-- file generated twice produces two different timetables. Its own manual says
+-- the same six seed components, the same input and the same FET version give
+-- back the same week, and that was verified before this column existed — two
+-- runs of one file differ in three thousand lines unseeded, and are identical
+-- when the seeds are pinned.
+--
+-- So a seed is chosen per run and kept here. A plan can then be reproduced
+-- exactly, and two settings can be compared fairly by running both from the
+-- same seed, where otherwise the dice and the change would move together and
+-- neither could be credited.
+--
+-- Text rather than six columns because nothing queries the parts: it is one
+-- opaque value that goes back out the way it came in.
+ALTER TABLE plan ADD COLUMN random_seed TEXT;
+
+-- Null for every plan made before this, which is honest — those cannot be
+-- reproduced, and recording a seed they were not generated from would be
+-- worse than admitting it.

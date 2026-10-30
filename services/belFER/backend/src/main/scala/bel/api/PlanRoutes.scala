@@ -36,6 +36,8 @@ object PlanView:
     createdAt: String,
     rulesKept: Option[Int],
     rulesTotal: Option[Int],
+    /** The dice FET was rolled with, so this week can be had again. */
+    randomSeed: Option[String],
     days: List[String],
     slotsPerDay: Int,
     classes: List[String],
@@ -103,6 +105,7 @@ object PlanView:
     createdAt: String,
     rulesKept: Option[Int],
     rulesTotal: Option[Int],
+    randomSeed: Option[String],
     current: Boolean
   )
 
@@ -124,7 +127,7 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
         current <- plans.current(schoolId)
         body = all.map(p => PlanView.Summary(
           p.id, p.name, p.madeBy, p.createdAt.toString,
-          p.rulesKept, p.rulesTotal, current.exists(_.id == p.id)))
+          p.rulesKept, p.rulesTotal, p.randomSeed, current.exists(_.id == p.id)))
         response <- Ok(body.asJson)
       yield response
 
@@ -232,6 +235,7 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
             createdAt = plan.createdAt.toString,
             rulesKept = plan.rulesKept,
             rulesTotal = plan.rulesTotal,
+            randomSeed = plan.randomSeed,
             days = SchoolWeek.names(s.teachingDays),
             slotsPerDay = s.slotsPerDay,
             classes = s.classes.map(_.name).sorted,

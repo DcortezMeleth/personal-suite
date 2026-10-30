@@ -21,7 +21,13 @@ case class Plan(
   tookMillis: Option[Int],
   /** What the checker made of it when it was saved. */
   rulesKept: Option[Int],
-  rulesTotal: Option[Int]
+  rulesTotal: Option[Int],
+  /**
+   * The six components FET was rolled with, comma-separated — null for plans
+   * made before they were recorded, which cannot be reproduced and should not
+   * pretend otherwise.
+   */
+  randomSeed: Option[String]
 ):
   def sound: Boolean = (rulesKept, rulesTotal) match
     case (Some(kept), Some(total)) => kept == total
@@ -45,5 +51,6 @@ case class NewPlan(
   tookMillis: Option[Int],
   rulesKept: Option[Int],
   rulesTotal: Option[Int],
+  randomSeed: Option[String],
   placements: List[Placement]
 )

@@ -125,7 +125,7 @@ class PlanLayoutSpec extends AnyFunSuite:
   // ── The sheet, which must say the same things ──────────────────────────
 
   private val plan = Plan(UUID.randomUUID, UUID.randomUUID, "FET",
-    OffsetDateTime.parse("2026-10-27T10:00:00Z"), "fet", None, Some(11), Some(11))
+    OffsetDateTime.parse("2026-10-27T10:00:00Z"), "fet", None, Some(11), Some(11), None)
 
   private val sheet = PlanSheet(school, plan, placements, rooms)
 

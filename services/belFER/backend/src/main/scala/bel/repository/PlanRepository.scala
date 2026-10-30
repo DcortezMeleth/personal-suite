@@ -12,7 +12,7 @@ class PlanRepository(xa: Transactor[IO]):
   // Qualified, because `current` joins two tables that both carry a school.
   private val columns =
     fr"""plan.id, plan.school_id, plan.name, plan.created_at, plan.made_by,
-         plan.took_millis, plan.rules_kept, plan.rules_total"""
+         plan.took_millis, plan.rules_kept, plan.rules_total, plan.random_seed"""
 
   def list(schoolId: UUID): IO[List[Plan]] =
     (fr"SELECT" ++ columns ++
@@ -40,9 +40,11 @@ class PlanRepository(xa: Transactor[IO]):
   def save(schoolId: UUID, plan: NewPlan): IO[Plan] =
     val insert =
       sql"""
-        INSERT INTO plan (school_id, name, made_by, took_millis, rules_kept, rules_total)
+        INSERT INTO plan (school_id, name, made_by, took_millis, rules_kept,
+                          rules_total, random_seed)
         VALUES ($schoolId, ${plan.name.trim}, ${plan.madeBy},
-                ${plan.tookMillis}, ${plan.rulesKept}, ${plan.rulesTotal})
+                ${plan.tookMillis}, ${plan.rulesKept}, ${plan.rulesTotal},
+                ${plan.randomSeed})
       """.update.withUniqueGeneratedKeys[UUID]("id")
 
     val tx = for

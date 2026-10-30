@@ -78,6 +78,9 @@ class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunne
                    tookMillis = Some(outcome.millis.toInt),
                    rulesKept = Some(outcome.report.kept),
                    rulesTotal = Some(outcome.report.rules.size),
+                   // So this exact week can be had again, and so that two
+                   // settings can be compared from the same dice.
+                   randomSeed = Some(outcome.seed.text),
                    placements = FetRunner.placements(outcome.result, rooms)))
         // The planner pressed generate, so the new week is the one they want
         // to look at. The old one stays in the list to go back to.

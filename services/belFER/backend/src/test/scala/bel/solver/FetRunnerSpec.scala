@@ -35,7 +35,10 @@ class FetRunnerSpec extends AnyFunSuite:
    * timeout let a twenty-second command finish and then reported success.
    */
   test("a run that overruns its timeout is given up on, near the timeout"):
-    val (outcome, took, _) = runWith(List("sleep", "20"), 2.seconds)
+    // Through a shell, because the runner appends FET's six seed flags to
+    // whatever command it is given and `sleep` would reject them outright —
+    // which is worth knowing about the contract, not just about this test.
+    val (outcome, took, _) = runWith(List("sh", "-c", "sleep 20"), 2.seconds)
     assert(took < 8.seconds, s"gave up after $took, which is not a two-second bound")
     assert(outcome.isLeft)
     assert(outcome.left.exists(_.getMessage.contains("nie skończył")), outcome.toString)

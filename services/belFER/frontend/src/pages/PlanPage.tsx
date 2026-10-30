@@ -246,6 +246,17 @@ export function PlanPage() {
             </span>
           )}
           <span>ułożony {new Date(plan.createdAt).toLocaleString("pl-PL")}</span>
+          {/* FET's search is seeded; the same seed and the same data give back
+              the same week. Shown small because it matters rarely and matters
+              a lot when it does. */}
+          {plan.randomSeed && (
+            <span
+              className="font-mono text-xs text-neutral-400"
+              title="Losowanie FET — te same dane i to samo ziarno dają ten sam plan"
+            >
+              ziarno {plan.randomSeed}
+            </span>
+          )}
         </div>
       </DataCard>
 

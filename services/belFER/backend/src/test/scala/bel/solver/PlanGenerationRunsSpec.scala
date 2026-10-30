@@ -27,7 +27,7 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
   private val emptyReport = PlanCheck.Report(Nil)
 
   private def saved = PlanGenerator.Result.Saved(
-    Plan(UUID.randomUUID, school, "FET", OffsetDateTime.now, "fet", None, Some(1), Some(1)),
+    Plan(UUID.randomUUID, school, "FET", OffsetDateTime.now, "fet", None, Some(1), Some(1), None),
     emptyReport, placed = 10, millis = 1234)
 
   /** Runs a body with a supervisor, the way Main does. */
