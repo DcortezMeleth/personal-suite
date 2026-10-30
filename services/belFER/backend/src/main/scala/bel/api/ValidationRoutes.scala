@@ -48,11 +48,11 @@ class ValidationRoutes(loader: SnapshotLoader):
               ValidationReport.ClassLoad(cls.id, cls.name, own + cross, capacity)
             },
             teachers = s.teachers.map { teacher =>
-              val own = s.lessonLines.filter(_.teacherId.contains(teacher.id)).map(_.hours).sum
-              val cross = s.crossClassUnits
-                .flatMap(u => u.groups.filter(_.teacherId.contains(teacher.id)).map(_ => u.hours)).sum
+              // Validation's own count, rather than a second one here that
+              // forgot about supporting another teacher's lesson.
+              val allocated = Validation.teacherHours(s, teacher.id)
               ValidationReport.TeacherLoad(
-                teacher.id, s"${teacher.lastName} ${teacher.firstName}", own + cross, teacher.pensum)
+                teacher.id, s"${teacher.lastName} ${teacher.firstName}", allocated, teacher.pensum)
             }
           ).asJson)
       }

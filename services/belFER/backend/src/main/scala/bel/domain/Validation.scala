@@ -70,7 +70,9 @@ object Validation:
       groupBalance(s) ++
       sharedTeacherSplits(s) ++
       teacherLoad(s, capacity) ++
-      pensumSummary(s) ++
+      // Overtime past pensum is not reported: the school says it is ordinary
+      // rather than remarkable, and the teacher load table on the same page
+      // already shows the figure for anyone who wants it.
       teacherSubjects(s) ++
       homeroomHour(s) ++
       crossClassBalance(s)
@@ -233,11 +235,30 @@ object Validation:
    * saying out loud, because it is not what the school wants and it is easy to
    * create by accident when assigning teachers.
    */
+  /**
+   * Split subjects whose two groups fall to one teacher — and whether that
+   * actually costs the class anything.
+   *
+   * One person cannot teach both halves at once, so each such hour occupies a
+   * slot in which only half the class is present. On its own that is not a
+   * problem: another split subject pairs against it, one half doing maths
+   * while the other does English, then swapped the next hour. Only the
+   * residue with nothing to pair against forces half a class to arrive later
+   * or leave earlier.
+   *
+   * The warning used to state the forcing as a certainty for every such
+   * subject, which read as "all of these will be pushed to the edges of the
+   * day" and alarmed the planner it was written for. It is reported now only
+   * when there is a residue, and says how many hours it is.
+   */
   private def sharedTeacherSplits(s: SchoolSnapshot): List[Finding] =
     val names = s.subjects.map(x => x.id -> x.name).toMap
     s.classes.flatMap { cls =>
-      val affected = s.lessonLines
-        .filter(l => l.classId == cls.id && l.audience != LessonAudience.WHOLE_CLASS)
+      val mine = s.lessonLines.filter(_.classId == cls.id)
+      val stranded = ClassAllocation.unpairableHours(mine)
+
+      val shared = mine
+        .filter(_.audience != LessonAudience.WHOLE_CLASS)
         .groupBy(_.subjectId)
         .toList
         .filter { (_, lines) =>
@@ -248,15 +269,16 @@ object Validation:
         .map((subjectId, _) => names.getOrElse(subjectId, "?"))
         .sorted
 
-      // One line per class, listing its subjects. The school's own arkusz has
+      // One line per class listing its subjects. The school's own arkusz has
       // nearly a hundred of these; a line each would bury everything else on
       // the page, and beside a class row the list is what is useful anyway.
-      if affected.isEmpty then None
+      if shared.isEmpty || stranded == 0 then None
       else
         Some(Finding(Severity.Warning, cls.name,
-          s"${affected.mkString(", ")}: obie grupy prowadzi ta sama osoba, więc nie mogą " +
-            "odbywać się jednocześnie — zostaną zaplanowane na początku lub końcu dnia, " +
-            "a druga połowa klasy przyjdzie później albo wyjdzie wcześniej",
+          s"${shared.mkString(", ")}: obie grupy prowadzi ta sama osoba. " +
+            s"$stranded godz. z tego nie ma się z czym złożyć w parę, " +
+            "więc tyle razy pół oddziału przyjdzie później albo wyjdzie wcześniej " +
+            "(resztę da się ułożyć parami z innym dzielonym przedmiotem)",
           Some(cls.id)))
     }
 
@@ -271,7 +293,15 @@ object Validation:
     s.crossClassUnits.filter(_.groups.exists(_.teacherId.contains(teacherId))).map(_.hours).sum
 
   /** Everything a teacher stands in front of a class for. */
-  private def teacherHours(s: SchoolSnapshot, teacherId: UUID): Int =
+  /**
+   * Everything a teacher is booked for.
+   *
+   * Public because the report shows this figure and must show the same one:
+   * it used to compute its own, which left out the hours spent supporting
+   * somebody else's lesson and so understated exactly the teachers whose load
+   * is hardest to see.
+   */
+  def teacherHours(s: SchoolSnapshot, teacherId: UUID): Int =
     s.lessonLines.filter(_.teacherId.contains(teacherId)).map(_.hours).sum +
       // Supporting a lesson is time spent teaching it, so it counts against
       // pensum the same way the load ceiling already counts it.
@@ -312,17 +342,6 @@ object Validation:
    * warnings would bury the two that need acting on, and the figures are in
    * the teacher table underneath anyway.
    */
-  private def pensumSummary(s: SchoolSnapshot): List[Finding] =
-    val over = s.teachers.flatMap { teacher =>
-      val taught = teacherHours(s, teacher.id)
-      teacher.pensum.filter(p => p > 0 && taught > p).map(p => taught - p)
-    }
-    if over.isEmpty then Nil
-    else
-      List(Finding(Severity.Warning, "Nadgodziny",
-        s"${over.size} nauczycieli ponad pensum, łącznie ${over.sum} godz. " +
-          s"(najwięcej ${over.max}) — szczegóły w tabeli poniżej"))
-
   private def teacherSubjects(s: SchoolSnapshot): List[Finding] =
     val subjectNames = s.subjects.map(x => x.id -> x.name).toMap
     val teacherNames = s.teachers.map(t => t.id -> s"${t.lastName} ${t.firstName}").toMap

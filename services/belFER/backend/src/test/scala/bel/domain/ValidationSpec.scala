@@ -121,14 +121,64 @@ class ValidationSpec extends AnyFunSuite:
 
   // Overtime is normal and paid, so it is one line with a count rather than a
   // line per teacher — otherwise it buries everything worth acting on.
-  test("teachers over pensum are summarised once, not listed") {
+  // ── One teacher taking both halves of a split ─────────────────────────────
+
+  /**
+   * The warning this replaces said every such subject would be pushed to the
+   * start or end of the day, which read as a certainty and alarmed the
+   * planner. It is not one: two split subjects pair against each other, one
+   * half doing maths while the other does English and then swapped, and the
+   * class's day is full throughout.
+   */
+  test("two split subjects sharing teachers pair up, and are not reported") {
+    val c = cls("1A")
+    val anna = UUID.randomUUID
+    val piotr = UUID.randomUUID
+    val english = UUID.randomUUID
+    val lines = List(
+      line(c.id, List(1, 1), Some(anna), mathsId, LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(anna), mathsId, LessonAudience.GROUP_2),
+      line(c.id, List(1, 1), Some(piotr), english, LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(piotr), english, LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    assert(found.forall(!_.message.contains("obie grupy")), found.map(_.message).toString)
+  }
+
+  /** With nothing to pair against, the hours really do fall to the edges. */
+  test("a lone split subject sharing a teacher is reported, with the hours") {
+    val c = cls("1A")
+    val anna = UUID.randomUUID
+    val lines = List(
+      line(c.id, List(1, 1), Some(anna), mathsId, LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(anna), mathsId, LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    val reported = found.filter(_.message.contains("obie grupy"))
+    assert(reported.sizeIs == 1, found.map(_.message).toString)
+    // Two hours each way, neither with a partner.
+    assert(reported.head.message.contains("4 godz."), reported.head.message)
+  }
+
+  /** Different teachers can be in the room at once, so nothing is stranded. */
+  test("a split taught by two different people is never reported") {
+    val c = cls("1A")
+    val lines = List(
+      line(c.id, List(1, 1), Some(UUID.randomUUID), mathsId, LessonAudience.GROUP_1),
+      line(c.id, List(1, 1), Some(UUID.randomUUID), mathsId, LessonAudience.GROUP_2))
+    val found = Validation.run(snapshot(classes = List(c), lines = lines))
+    assert(found.forall(!_.message.contains("obie grupy")), found.map(_.message).toString)
+  }
+
+  /**
+   * The school says teaching past pensum is ordinary rather than remarkable,
+   * so it is not a finding. The figure is still on the same page, in the
+   * teacher load table, for anyone who wants it.
+   */
+  test("teaching past pensum is not reported as a problem") {
     val c = cls("1A")
     val staff = List.fill(5)(teacher(pensum = Some(18)))
     val lines = staff.flatMap(t => filler(c.id, 20, Some(t.id)))
     val found = Validation.run(snapshot(classes = List(c), teachers = staff, lines = lines))
-    val pensum = found.filter(_.subject == "Nadgodziny")
-    assert(pensum.sizeIs == 1)
-    assert(pensum.head.message.contains("5 nauczycieli"))
+    assert(found.forall(_.subject != "Nadgodziny"), found.map(_.message).toString)
   }
 
   test("a teacher within pensum raises nothing") {
@@ -241,15 +291,19 @@ class ValidationSpec extends AnyFunSuite:
 
   // Supporting a lesson is time spent teaching it. The load ceiling already
   // counted it; pensum did not, so a teacher could be over and not be listed.
-  test("hours spent supporting another teacher count towards pensum") {
+  /**
+   * Supporting somebody else's lesson is time spent teaching it. The report
+   * used to count a teacher's hours itself and leave these out, which
+   * understated exactly the people whose load is hardest to see.
+   */
+  test("hours spent supporting another teacher count towards a teacher's load") {
     val supporter = UUID.randomUUID
     val c = cls("1A")
     val supported = LessonLine(UUID.randomUUID, c.id, mathsId, LessonAudience.WHOLE_CLASS,
       LessonKind.BASE, Some(UUID.randomUUID), Some(supporter), List(1, 1, 1))
-    val found = Validation.run(snapshot(
-      classes = List(c), teachers = List(teacher(supporter, pensum = Some(2))),
-      lines = List(supported)))
-    assert(found.exists(_.subject == "Nadgodziny"), found.map(_.message).toString)
+    val s = snapshot(classes = List(c), teachers = List(teacher(supporter, pensum = Some(2))),
+      lines = List(supported))
+    assert(Validation.teacherHours(s, supporter) === 3)
   }
 
   // Two mis-assigned hours of godzina wychowawcza are one problem, not two.

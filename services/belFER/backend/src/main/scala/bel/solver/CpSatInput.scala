@@ -62,7 +62,7 @@ object CpSatInput:
       val mine = snapshot.lessonLines.filter(_.classId == cls.id)
       val own = ClassAllocation.occupiedHours(mine)
       val cross = snapshot.crossClassUnits.filter(_.classIds.contains(cls.id)).map(_.hours).sum
-      val hours = own + cross + unpairableHours(mine)
+      val hours = own + cross + ClassAllocation.unpairableHours(mine)
 
       val lengths = strategy match
         case "compact" =>
@@ -95,7 +95,7 @@ object CpSatInput:
       val lengths = shape(cls.id)
       val mine = snapshot.lessonLines.filter(_.classId == cls.id)
       val cross = snapshot.crossClassUnits.filter(_.classIds.contains(cls.id)).map(_.hours).sum
-      val hours = ClassAllocation.occupiedHours(mine) + cross + unpairableHours(mine)
+      val hours = ClassAllocation.occupiedHours(mine) + cross + ClassAllocation.unpairableHours(mine)
 
       // One block of a subject a day means a subject wanting four blocks
       // wants four separate days, whatever else the week looks like.
@@ -135,23 +135,6 @@ object CpSatInput:
     yield f"dzień ${d + 1}, lekcja ${p + 1}: $inSchool oddziałów w szkole i tylko $rooms sal"
 
   /** Hours of a split that have nothing in the other half to sit against. */
-  private def unpairableHours(lines: List[LessonLine]): Int =
-    val split = lines.filter(_.audience != LessonAudience.WHOLE_CLASS)
-    val hours = split.groupBy(l => (l.subjectId, l.audience)).view.mapValues(_.map(_.hours).sum).toMap
-    val teachers = split.groupBy(l => (l.subjectId, l.audience)).view.mapValues(_.flatMap(_.teacherId).toSet).toMap
-    val totalFirst = hours.collect { case ((_, LessonAudience.GROUP_1), h) => h }.sum
-    val totalSecond = hours.collect { case ((_, LessonAudience.GROUP_2), h) => h }.sum
-
-    split.map(_.subjectId).distinct.map { subjectId =>
-      val shared = teachers.getOrElse((subjectId, LessonAudience.GROUP_1), Set.empty)
-        .intersect(teachers.getOrElse((subjectId, LessonAudience.GROUP_2), Set.empty))
-      if shared.isEmpty then 0
-      else
-        val first = hours.getOrElse((subjectId, LessonAudience.GROUP_1), 0)
-        val second = hours.getOrElse((subjectId, LessonAudience.GROUP_2), 0)
-        math.max(0, first - (totalSecond - second)) + math.max(0, second - (totalFirst - first))
-    }.sum
-
 
   /**
    * @param timeLimitSeconds the planner's budget. ADR 0001: at school size the

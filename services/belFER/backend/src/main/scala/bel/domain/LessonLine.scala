@@ -121,6 +121,38 @@ object ClassAllocation:
       problems(lines, subjectName).map(_.message)
     )
 
+  /**
+   * Half-hours that cannot be paired with another split subject.
+   *
+   * When one teacher takes both groups of a subject, the two halves cannot sit
+   * in the same slot — so each such hour occupies a slot of the class's day in
+   * which only half the class is present. That is usually free: another split
+   * subject's hours pair against them, one half doing maths while the other
+   * does English, then swapped. What is counted here is the residue that has
+   * nothing to pair with, and only that residue forces half a class to come
+   * later or leave earlier.
+   *
+   * In the domain rather than in the solver because it is a fact about the
+   * week the school has asked for, and the checks want to say it as much as
+   * the search does.
+   */
+  def unpairableHours(lines: List[LessonLine]): Int =
+    val split = lines.filter(_.audience != LessonAudience.WHOLE_CLASS)
+    val hours = split.groupBy(l => (l.subjectId, l.audience)).view.mapValues(_.map(_.hours).sum).toMap
+    val teachers = split.groupBy(l => (l.subjectId, l.audience)).view.mapValues(_.flatMap(_.teacherId).toSet).toMap
+    val totalFirst = hours.collect { case ((_, LessonAudience.GROUP_1), h) => h }.sum
+    val totalSecond = hours.collect { case ((_, LessonAudience.GROUP_2), h) => h }.sum
+
+    split.map(_.subjectId).distinct.map { subjectId =>
+      val shared = teachers.getOrElse((subjectId, LessonAudience.GROUP_1), Set.empty)
+        .intersect(teachers.getOrElse((subjectId, LessonAudience.GROUP_2), Set.empty))
+      if shared.isEmpty then 0
+      else
+        val first = hours.getOrElse((subjectId, LessonAudience.GROUP_1), 0)
+        val second = hours.getOrElse((subjectId, LessonAudience.GROUP_2), 0)
+        math.max(0, first - (totalSecond - second)) + math.max(0, second - (totalFirst - first))
+    }.sum
+
   def problems(lines: List[LessonLine], subjectName: Map[UUID, String]): List[Problem] =
     val bySubject = lines.groupBy(_.subjectId)
 
