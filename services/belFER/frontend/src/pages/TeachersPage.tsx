@@ -78,7 +78,7 @@ export function TeachersPage() {
     },
   });
 
-  const { findingsFor, reloadFindings } = useFindings(school?.id);
+  const { findingsFor, hoursFor, reloadFindings } = useFindings(school?.id);
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -99,8 +99,75 @@ export function TeachersPage() {
     );
   }, [teachers, filter]);
 
+  /**
+   * Staff who teach, and staff who do not.
+   *
+   * The arkusz lists everyone the school employs, and a good number have no
+   * lessons at all — psychologists, pedagogues, the librarian. That is correct
+   * and expected (REQUIREMENTS §8.1), but mixed into one list of eighty they
+   * are indistinguishable from a teacher whose hours somebody forgot to enter,
+   * which is the thing worth spotting. Apart, each list answers its own
+   * question.
+   *
+   * Before the report arrives every teacher reads as having no hours, so the
+   * split waits rather than flashing the whole school into the lower table.
+   */
+  const [teaching, others] = useMemo(() => {
+    if (visible.every((t) => hoursFor(t.id) === null)) return [visible, []];
+    return [
+      visible.filter((t) => (hoursFor(t.id) ?? 0) > 0),
+      visible.filter((t) => (hoursFor(t.id) ?? 0) === 0),
+    ];
+  }, [visible, hoursFor]);
+
   if (gate) return gate;
   if (!school) return <NoSchool title="Nauczyciele" />;
+
+  // One table, rendered for each list. Defined here rather than lifted out
+  // because every row needs this page's handlers, and threading nine props
+  // through a wrapper would say less than it cost.
+  const table = (rows: Teacher[]) => (
+    <table className="w-full text-left text-sm">
+      <thead className="text-neutral-500">
+        <tr>
+          <th className="w-5 pb-2" />
+          <th className="pb-2">Kod</th>
+          <th className="pb-2">Imię</th>
+          <th className="pb-2">Nazwisko</th>
+          <th className="pb-2">Sala własna</th>
+          <th className="pb-2">Dni</th>
+          <th className="pb-2">Lekcji/dzień</th>
+          <th className="pb-2">Pensum</th>
+          <th className="pb-2">Przedmioty</th>
+          <th className="pb-2">Niedostępność</th>
+          <th />
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((teacher) => (
+          <TeacherRow
+            key={teacher.id}
+            teacher={teacher}
+            rooms={rooms}
+            subjects={subjects}
+            slotCount={slotCount}
+            school={school}
+            findings={findingsFor(teacher.id)}
+            expanded={expanded === teacher.id}
+            onToggleExpand={() => setExpanded(expanded === teacher.id ? null : teacher.id)}
+            onSave={(input) => run(() => api.updateTeacher(school.id, teacher.id, input))}
+            onDelete={() =>
+              confirm(
+                `Usunąć nauczyciela ${teacher.firstName} ${teacher.lastName}? ` +
+                  "Zablokowane godziny i przypisane przedmioty zostaną usunięte razem z nim.",
+                () => run(() => api.deleteTeacher(teacher.id)),
+              )
+            }
+          />
+        ))}
+      </tbody>
+    </table>
+  );
 
   return (
     <div className="space-y-4">
@@ -108,7 +175,7 @@ export function TeachersPage() {
       {error && <AlertBanner level="danger" message={error} onDismiss={() => setError(null)} />}
 
       <DataCard
-        title={`Nauczyciele (${teachers.length})`}
+        title={`Nauczyciele (${teaching.length})`}
         actions={
           <div className="flex items-center gap-2">
             <input
@@ -145,52 +212,25 @@ export function TeachersPage() {
             {teachers.length === 0 ? "Brak nauczycieli." : "Nic nie pasuje do wyszukiwania."}
           </p>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="text-neutral-500">
-              <tr>
-                <th className="w-5 pb-2" />
-                <th className="pb-2">Kod</th>
-                <th className="pb-2">Imię</th>
-                <th className="pb-2">Nazwisko</th>
-                <th className="pb-2">Sala własna</th>
-                <th className="pb-2">Dni</th>
-                <th className="pb-2">Lekcji/dzień</th>
-                <th className="pb-2">Pensum</th>
-                <th className="pb-2">Przedmioty</th>
-                <th className="pb-2">Niedostępność</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((teacher) => (
-                <TeacherRow
-                  key={teacher.id}
-                  teacher={teacher}
-                  rooms={rooms}
-                  subjects={subjects}
-                  slotCount={slotCount}
-                  school={school}
-                  findings={findingsFor(teacher.id)}
-                  expanded={expanded === teacher.id}
-                  onToggleExpand={() => setExpanded(expanded === teacher.id ? null : teacher.id)}
-                  onSave={(input) => run(() => api.updateTeacher(school.id, teacher.id, input))}
-                  onDelete={() =>
-                    confirm(
-                      `Usunąć nauczyciela ${teacher.firstName} ${teacher.lastName}? ` +
-                        "Zablokowane godziny i przypisane przedmioty zostaną usunięte razem z nim.",
-                      () => run(() => api.deleteTeacher(teacher.id)),
-                    )
-                  }
-                />
-              ))}
-            </tbody>
-          </table>
+          table(teaching)
         )}
         <p className="mt-3 text-sm text-neutral-500">
           Puste pola „Dni” i „Lekcji/dzień” oznaczają wartość domyślną szkoły
           ({school.settings.defaultTeacherMaxWorkingDays} i {school.settings.defaultTeacherMaxLessonsPerDay}).
         </p>
       </DataCard>
+
+      {others.length > 0 && (
+        <DataCard title={`Pozostali pracownicy (${others.length})`}>
+          <p className="mb-3 text-sm text-neutral-600">
+            Nie prowadzą żadnych zajęć — psycholodzy, pedagodzy i inni, których praca
+            nie jest lekcją w planie. To normalne i nie wymaga poprawki; arkusz wymienia
+            wszystkich zatrudnionych. Warto tu zajrzeć tylko po to, żeby sprawdzić, czy
+            nikt nie trafił tu przez pomyłkę — komuś mogło po prostu zabraknąć przydziału.
+          </p>
+          {table(others)}
+        </DataCard>
+      )}
     </div>
   );
 }

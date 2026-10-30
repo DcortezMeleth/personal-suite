@@ -10,6 +10,10 @@ import { api, type Finding } from "../api/client";
  */
 export function useFindings(schoolId: string | undefined) {
   const [byEntity, setByEntity] = useState<Map<string, Finding[]>>(new Map());
+  // The same report carries how many hours each teacher is booked for, and
+  // the teachers page needs it to tell staff who teach from staff who do not.
+  // Fetching it twice would be two answers that could disagree.
+  const [hours, setHours] = useState<Map<string, number>>(new Map());
 
   const load = useCallback(async () => {
     if (!schoolId) return;
@@ -46,10 +50,12 @@ export function useFindings(schoolId: string | undefined) {
         });
       }
       setByEntity(map);
+      setHours(new Map(report.teachers.map((t) => [t.id, t.allocated])));
     } catch {
       // Findings are an aid, not the point of the screen: if they cannot be
       // fetched the page still works without them.
       setByEntity(new Map());
+      setHours(new Map());
     }
   }, [schoolId]);
 
@@ -57,5 +63,10 @@ export function useFindings(schoolId: string | undefined) {
     load();
   }, [load]);
 
-  return { findingsFor: (id: string) => byEntity.get(id) ?? [], reloadFindings: load };
+  return {
+    findingsFor: (id: string) => byEntity.get(id) ?? [],
+    /** Hours booked, or null before the report has arrived. */
+    hoursFor: (id: string) => hours.get(id) ?? null,
+    reloadFindings: load,
+  };
 }
