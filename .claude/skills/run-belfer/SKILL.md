@@ -12,6 +12,18 @@ port **8081**), **frontend** (Vite dev server, port **3001**). delFIN holds
 The frontend proxies `/api` and `/health` → `localhost:8081`, so open **only**
 `http://localhost:3001`.
 
+> **Check the port is really yours before believing a blank page.** Other
+> containers on this machine have squatted on both 3001 and 3002 — an
+> unrelated `ytzero` served its own app on 3001 for weeks, which looks exactly
+> like belFER failing to load, and a two-day-old `belfer-frontend` container
+> on 3002 served a stale build that looked current. `docker ps` and
+> `lsof -nP -iTCP -sTCP:LISTEN | grep 300` settle it in a second.
+>
+> Vite uses `--strictPort`, so it refuses to start rather than quietly moving:
+> if it started, the port is yours. If something is already answering there,
+> run `./node_modules/.bin/vite --port 3010 --strictPort` and open that
+> instead.
+
 Docker Compose is not the local dev path — it is how the home lab runs, and
 `infra/docker-compose.yml` now carries belFER as well as delFIN. Two things to
 know before reaching for it on a laptop:

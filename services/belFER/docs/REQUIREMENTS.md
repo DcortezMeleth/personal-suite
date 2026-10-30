@@ -338,6 +338,21 @@ room.
 - **Substitutions (zastępstwa) are out of scope** — handled manually outside
   the app.
 
+### 8.1 Staff who teach nothing are not a data fault
+
+The arkusz lists everyone the school employs, and a good number of them have
+no lessons at all: psychologists, pedagogues and others whose work is not a
+timetabled class. In the imported school that is **16 of 75**.
+
+Confirmed with the school: this is correct and expected. Nothing should treat
+it as missing data — no validation warning, no prompt to assign hours — and
+they need **no home room**, because they are never placed in one. They are
+carried because the arkusz carries them and because that is the list the
+school recognises, not because the planner has anything to do with them.
+
+Worth saying out loud, because the obvious reading of "a teacher with zero
+hours" is that somebody forgot to finish the import.
+
 ---
 
 ## 9. Constraints
