@@ -1,6 +1,14 @@
 # 0002 — Soft constraints as weighted penalties, never as extremal quantities
 
-**Status:** Accepted (2026-10-11)
+**Status:** Superseded by [0005](0005-soft-constraints-are-what-fet-will-weigh.md) (2026-10-30)
+
+> Accepted 2026-10-11, for CP-SAT. The mechanism below — every soft
+> constraint as a weighted sum of per-unit penalties, the solver always
+> given an objective — has no counterpart in FET, which takes a weight
+> per constraint and refuses one below 100 on the constraints that matter
+> most. What survives is the reading of CT-20 that the example here was
+> arguing for: a spread between the longest and shortest day is not a
+> thing to state directly, but two bounds on the two ends.
 
 ## Context
 
