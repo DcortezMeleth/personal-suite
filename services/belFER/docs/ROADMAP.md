@@ -10,15 +10,18 @@ sized to be individually committable.
 
 ## Open work
 
-Everything through Phase 4 is built and running; a complete twenty-five-class
-week generates, passes all fifteen rules, and can be read four ways in the
-app. What is left, roughly in the order it is worth doing:
+Everything through Phase 4 is built and running, and Phase 3 is complete
+except for 3.5: a twenty-five-class week is generated from the app, passes all
+fifteen rules, can be read four ways, and the planner can now say what a *good*
+week is rather than only a legal one. Asking for at most four teacher windows
+a week took the school's 331 window-hours down to 183.
+
+What is left, roughly in the order it is worth doing:
 
 | | What | Why it matters |
 |---|---|---|
-| **3.4** | Generate from the app | Generation is `SolveCli` only. The planner can read a plan but cannot make one without a terminal, which is the gap between "it works" and "someone can use it". |
-| **3.3** | Soft constraints | The current week has **331 teacher window-hours** and nothing anywhere *prefers* fewer. With FET generating, these are FET's weighted constraints, not ADR 0002's — see the note in Phase 3. |
 | **5.1** | Move and swap — UC-41 … UC-43 | What the rule checker was built for: tell the planner immediately what a hand edit breaks. |
+| **7** | Re-plan without upheaval — UC-45 | Much smaller than this roadmap assumed. FET takes a weighted `ConstraintActivityPreferredStartingTime` per activity — verified — so seeding a run from the current plan's placements *is* minimal-disruption re-planning, with the weight as the disruption dial. No new solver machinery, a loop in the exporter. |
 | **4.5** | Plan list and history in the UI | `/plans` and "mark current" are served but nothing calls them; the app only ever shows the current plan. |
 | **4.6** | Week-segment view | Where the active assignment set changes, so a planner can see where a plan would have to change. |
 | **2.3** | Re-import with a diff — UC-26 | Import previews and applies; it does not yet diff against what is already there. |
@@ -30,7 +33,17 @@ Also open, and deliberately parked:
   solver is off the critical path under ADR 0004, so this blocks nothing.
 - **3.5 — infeasibility explanation.** Designed around CP-SAT's unsat core.
   FET reports failure differently, so the design needs revisiting before the
-  work is worth starting.
+  work is worth starting. Less pressing than it was: a run that fails now
+  keeps the current plan and reports FET's own complaint verbatim, which is
+  usually the rule that defeated it.
+- **Real home rooms.** The 28 in the database are placeholders assigned to the
+  busiest teachers by `testdata/seed-home-rooms.sql`, pending the school's own
+  mapping. The preference works; it is currently preferring an invented
+  arrangement.
+- **Comparing two settings fairly.** Every plan now records the seed FET was
+  rolled with, so two configurations can be run from the same dice. Nothing
+  does this yet, and this week's 331-to-183 measurement changed the setting
+  and the seed together.
 
 ---
 
@@ -161,18 +174,25 @@ Each subphase is a migration + repository + routes + a page.
 > lesson by hand and wants to be told what it breaks.
 >
 > [ADR 0002](decisions/0002-soft-constraints-as-weighted-penalties.md) shaped
-> 3.3's weights for CP-SAT and is **stale**: FET expresses preferences its own
-> way. Revisit it before starting 3.3.
+> 3.3's weights for CP-SAT and is **superseded by**
+> [ADR 0005](decisions/0005-soft-constraints-are-what-fet-will-weigh.md): FET
+> takes a weight per constraint and refuses one below 100 on the rules that
+> matter most, so a preference and a bound are different things and the
+> interface says which is which.
 
 - ✅ **3.1** The school's own data through the solver, via FET export and
   import — one interval and the assignments active in it (§4.1)
 - ✅ **3.2** Hard constraints — fifteen rules, checked against a finished
   timetable whoever produced it, including CT-21 as the regression guard
-- **3.3** Soft constraints and user-editable weights — CT-18 … CT-20, UC-04.
-  **Open**, and the largest remaining quality gap: 331 teacher window-hours
-- **3.4** Start a run from the app: progress, early stop, configurable
-  timeout, persistence — UC-28 … UC-31, UC-34. **Open**; generation is
-  `SolveCli` only. Marking a plan current (UC-34) is already served
+- ✅ **3.3** Soft constraints and user-editable weights — CT-18 … CT-20,
+  UC-04. Six settings on the Konfiguracja tab, split into bounds and
+  preferences because FET will not weigh the first kind. Measured: 331
+  window-hours to 183, at twenty minutes a run instead of eighty-five seconds
+- ✅ **3.4** Start a run from the app — UC-28 … UC-31, UC-34. Started and
+  polled rather than waited on; a second press joins the run already going.
+  UC-29's progress and UC-30's early stop are *not* built and are not planned:
+  FET reports nothing until it finishes, so there is no progress to show and
+  nothing to stop early that would leave a usable week
 - **3.5** Infeasibility explanation and run comparison — UC-32, UC-33.
   **Needs redesign**: it was shaped around CP-SAT's unsat core
 
