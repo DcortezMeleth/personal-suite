@@ -57,6 +57,12 @@ object FetExport:
     means: Option[LessonRef],
     /** The kind of room it needs, when it needs a particular one. */
     roomKind: Option[UUID],
+    /**
+     * Whether that kind is required or merely wanted. Subjects carry the
+     * flag and the interface has always promised it means something; until
+     * ADR 0005 the exporter wrote every requirement as absolute.
+     */
+    roomHard: Boolean,
     /** Whether a whole class has to fit in the room. */
     wholeClass: Boolean
   )
@@ -199,6 +205,25 @@ object FetExport:
     b ++= constraint("ConstraintTeachersMaxHoursDaily",
       List("Maximum_Hours_Daily" -> snapshot.settings.defaultTeacherMaxLessonsPerDay.toString))
 
+    // ── What the planner has asked for beyond legality — ADR 0005 ─────────
+    //
+    // The weekly gap total is a bound rather than a preference because FET
+    // will not have it any other way, and it is the one with leverage: the
+    // per-day bound above permits five times itself across a week.
+    val tuning = snapshot.settings.optimisation
+    for most <- tuning.maxTeacherGapsPerWeek do
+      b ++= constraint("ConstraintTeachersMaxGapsPerWeek", List("Max_Gaps" -> most.toString))
+
+    // The two ends of a class's day. FET cannot speak about a spread, so the
+    // spread is said as its ends — and only one end will take a weight.
+    for shortest <- tuning.minClassHoursDaily do
+      b ++= constraint("ConstraintStudentsMinHoursDaily",
+        List("Minimum_Hours_Daily" -> shortest.toString, "Allow_Empty_Days" -> "false"))
+    if tuning.wantsClassDay then
+      for longest <- tuning.maxClassHoursDaily do
+        b ++= preference("ConstraintStudentsMaxHoursDaily", tuning.classDayWeight,
+          List("Maximum_Hours_Daily" -> longest.toString))
+
     for t <- snapshot.teachers do
       val name = teachers.getOrElse(t.id, t.code)
       for days <- t.maxWorkingDays if days < snapshot.teachingDays do
@@ -250,24 +275,52 @@ object FetExport:
     // needs it.
     val ordinary = rooms.filter(_.kinds.isEmpty)
     for a <- acts if a.means.isDefined do
-      val allowed = a.roomKind match
-        case Some(kind) =>
-          val fitting = rooms.filter(_.kinds.exists(_.id == kind)).map(roomName)
-          // A requirement no room satisfies is a data fault. Saying "nowhere"
-          // here turns it into an unsolvable week with no explanation;
-          // validation is the place to complain about it.
-          if fitting.nonEmpty then fitting else ordinary.map(roomName)
-        case None =>
-          // A whole class does not fit in a room meant for half of one. The
-          // school keeps three such rooms and they are worth having, but only
-          // for the lessons a split puts in them.
-          val fitting = if a.wholeClass then ordinary.filter(_.fitsWholeClass) else ordinary
-          fitting.map(roomName)
-      if allowed.nonEmpty then
+      val specialist = a.roomKind
+        .map(kind => rooms.filter(_.kinds.exists(_.id == kind)).map(roomName))
+        .getOrElse(Nil)
+      // A whole class does not fit in a room meant for half of one. The school
+      // keeps three such rooms and they are worth having, but only for the
+      // lessons a split puts in them.
+      val plain = (if a.wholeClass then ordinary.filter(_.fitsWholeClass) else ordinary)
+        .map(roomName)
+
+      // Two lists, because the allowed set does two jobs at once: it says
+      // which rooms suit the subject and which are big enough for the class.
+      // Weakening it wholesale would weaken both, and a soft chemistry
+      // requirement would let a whole class into a room for fifteen. So the
+      // hard list stays a hard list — widened to include ordinary rooms when
+      // the requirement is soft — and the preference is stated separately.
+      val (mustBeIn, preferIn) = a.roomKind match
+        // A requirement no room satisfies is a data fault. Saying "nowhere"
+        // here turns it into an unsolvable week with no explanation;
+        // validation is the place to complain about it.
+        case Some(_) if specialist.isEmpty => (plain, Nil)
+        case Some(_) if a.roomHard         => (specialist, Nil)
+        case Some(_)                       => ((specialist ++ plain).distinct, specialist)
+        case None                          => (plain, Nil)
+
+      def rooms_(field: String, names: List[String]) =
+        ("Activity_Id" -> a.id.toString)
+          :: ("Number_of_Preferred_Rooms" -> names.size.toString)
+          :: names.map(field -> _)
+
+      if mustBeIn.nonEmpty then
         b ++= constraint("ConstraintActivityPreferredRooms",
-          ("Activity_Id" -> a.id.toString)
-            :: ("Number_of_Preferred_Rooms" -> allowed.size.toString)
-            :: allowed.map("Preferred_Room" -> _))
+          rooms_("Preferred_Room", mustBeIn))
+      if preferIn.nonEmpty && tuning.wantsSoftRooms then
+        b ++= preference("ConstraintActivityPreferredRooms", tuning.softRoomWeight,
+          rooms_("Preferred_Room", preferIn))
+
+    // A teacher's own room is a preference and never more than one: §5 says a
+    // room means priority rather than possession, and several teachers share.
+    if tuning.wantsHomeRooms then
+      for
+        t <- snapshot.teachers
+        home <- t.homeRoomId
+        room <- rooms.find(_.id == home)
+      do
+        b ++= preference("ConstraintTeacherHomeRoom", tuning.homeRoomWeight,
+          List("Teacher" -> teachers.getOrElse(t.id, t.code), "Room" -> roomName(room)))
 
     b ++= "</Space_Constraints_List>\n\n"
     b ++= "</fet>\n"
@@ -308,6 +361,9 @@ object FetExport:
           means = Some(LessonRef.Line(line.id, block)),
           roomKind = snapshot.subjects.find(_.id == line.subjectId)
             .flatMap(_.requiredRoomKind).map(_.id),
+          // Absent subject means absent requirement; firm is the safe reading.
+          roomHard = snapshot.subjects.find(_.id == line.subjectId)
+            .forall(_.roomRequirementHard),
           wholeClass = line.audience == LessonAudience.WHOLE_CLASS)
         next += 1
 
@@ -335,7 +391,7 @@ object FetExport:
       // the group activities, which do.
       out += Act(anchor, Nil, subject, unit.classIds.toList.flatMap(classes.get).distinct.sorted,
         length, mine, optional, sameTimeAs = None, means = None, roomKind = None,
-        wholeClass = false)
+        roomHard = true, wholeClass = false)
       next += 1
 
       for g <- unit.groups do
@@ -343,6 +399,8 @@ object FetExport:
           optional = false, sameTimeAs = Some(anchor),
           means = Some(LessonRef.CrossClassGroupRef(unit.id, g.id, block)),
           roomKind = unit.requiredRoomKindId,
+          roomHard = snapshot.subjects.find(_.id == unit.subjectId)
+            .forall(_.roomRequirementHard),
           // A cross-class group is part of a class, never a whole one.
           wholeClass = false)
         next += 1
@@ -366,10 +424,25 @@ object FetExport:
         subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
         optional = false, sameTimeAs = None,
         means = Some(LessonRef.Individual(lesson.id, block)),
-        roomKind = individualKind, wholeClass = false)
+        roomKind = individualKind, roomHard = true, wholeClass = false)
       next += 1
 
     out.result()
+
+  /**
+   * A constraint FET is asked to prefer rather than obey.
+   *
+   * Only some will take this. FET refuses a weight below 100 on the gap
+   * constraints and on the daily minimum, and aborts rather than warning —
+   * see ADR 0005 for which is which and what it says when it declines.
+   */
+  private def preference(name: String, weight: Int, fields: List[(String, String)]): String =
+    val b = StringBuilder()
+    b ++= s"\t<$name>\n\t\t<Weight_Percentage>$weight</Weight_Percentage>\n"
+    for (k, v) <- fields do b ++= s"\t\t<$k>${esc(v)}</$k>\n"
+    b ++= "\t\t<Active>true</Active>\n\t\t<Comments></Comments>\n"
+    b ++= s"\t</$name>\n"
+    b.result()
 
   private def constraint(name: String, fields: List[(String, String)]): String =
     val b = StringBuilder()

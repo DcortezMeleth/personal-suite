@@ -49,6 +49,26 @@ export interface SchedulingSettings {
   maxConsecutiveTeacherGaps: number;
   defaultTeacherMaxWorkingDays: number;
   defaultTeacherMaxLessonsPerDay: number;
+  optimisation: Optimisation;
+}
+
+/**
+ * What a good week is, as distinct from a legal one — ADR 0005.
+ *
+ * Two kinds, and FET decides which is which. A bound is absolute and can make
+ * a week impossible; a weight is a strength from 0 to 100 and cannot. Nulls
+ * and zeroes mean "not asked for", which is where a school starts.
+ */
+export interface Optimisation {
+  /** Bound. Free hours a teacher may have across the week. */
+  maxTeacherGapsPerWeek: number | null;
+  /** Bound. The short end of a class's day. */
+  minClassHoursDaily: number | null;
+  /** Preference. The long end, with its strength below. */
+  maxClassHoursDaily: number | null;
+  classDayWeight: number;
+  homeRoomWeight: number;
+  softRoomWeight: number;
 }
 
 export interface School {
@@ -358,6 +378,14 @@ export const api = {
     send<School>("POST", "/schools", { name, years }),
   updateSchool: (id: string, body: { name: string; years: number; settings: SchedulingSettings }) =>
     send<School>("PUT", `/schools/${id}`, body),
+
+  /**
+   * Its own call, because its own screen edits it. Folded into the school
+   * update, the Szkoła page would clear every weight it knows nothing about
+   * each time somebody renamed the school.
+   */
+  updateOptimisation: (id: string, body: Optimisation) =>
+    send<School>("PUT", `/schools/${id}/optimisation`, body),
 
   listTimeSlots: (schoolId: string) => send<TimeSlot[]>("GET", `/schools/${schoolId}/time-slots`),
   replaceTimeSlots: (schoolId: string, slots: TimeSlotInput[]) =>

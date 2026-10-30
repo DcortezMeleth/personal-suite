@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { PageLayout } from "@delfin/ui";
 import { AllocationPage } from "./pages/AllocationPage";
 import { ClassesPage } from "./pages/ClassesPage";
+import { ConfigurationPage } from "./pages/ConfigurationPage";
 import { ImportPage } from "./pages/ImportPage";
 import { PlanPage } from "./pages/PlanPage";
 import { CrossClassPage } from "./pages/CrossClassPage";
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
   { label: "Plan lekcji", href: "/plan" },
   { label: "Import", href: "/import" },
+  { label: "Konfiguracja", href: "/konfiguracja" },
   { label: "Kontrola", href: "/kontrola" },
 ];
 
@@ -42,6 +44,7 @@ export default function App() {
         <Route path="/miedzyoddzialowe" element={<CrossClassPage />} />
         <Route path="/plan" element={<PlanPage />} />
         <Route path="/import" element={<ImportPage />} />
+        <Route path="/konfiguracja" element={<ConfigurationPage />} />
         <Route path="/kontrola" element={<ValidationPage />} />
       </Routes>
     </PageLayout>

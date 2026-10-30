@@ -9,9 +9,15 @@ import java.util.UUID
 
 class SchoolRepository(xa: Transactor[IO]):
 
+  // Column order is the constructor order of School, through SchedulingSettings
+  // and then Optimisation: doobie reads them positionally, so a column moved
+  // here without moving there compiles and then quietly reads the wrong value.
   private val columns =
     fr"""id, name, years, max_consecutive_teacher_gaps,
-         default_teacher_max_working_days, default_teacher_max_lessons_per_day, created_at"""
+         default_teacher_max_working_days, default_teacher_max_lessons_per_day,
+         max_teacher_gaps_per_week, min_class_hours_daily, max_class_hours_daily,
+         class_day_weight, home_room_weight, soft_room_weight,
+         created_at"""
 
   def findAll: IO[List[School]] =
     (fr"SELECT" ++ columns ++ fr"FROM school ORDER BY name")
@@ -27,6 +33,14 @@ class SchoolRepository(xa: Transactor[IO]):
       RETURNING""" ++ columns)
       .query[School].unique.transact(xa)
 
+  /**
+   * The school's own settings, and deliberately not what it optimises for.
+   *
+   * Those have their own screen and their own call below. Writing them here
+   * too would mean the Szkoła page silently clearing every weight the
+   * Konfiguracja page had set, because it does not know they exist and sends
+   * nothing for them — which is exactly what it did once.
+   */
   def update(id: UUID, cmd: UpdateSchool): IO[Option[School]] =
     (fr"""
       UPDATE school SET
@@ -35,6 +49,20 @@ class SchoolRepository(xa: Transactor[IO]):
         max_consecutive_teacher_gaps        = ${cmd.settings.maxConsecutiveTeacherGaps},
         default_teacher_max_working_days    = ${cmd.settings.defaultTeacherMaxWorkingDays},
         default_teacher_max_lessons_per_day = ${cmd.settings.defaultTeacherMaxLessonsPerDay}
+      WHERE id = $id
+      RETURNING""" ++ columns)
+      .query[School].option.transact(xa)
+
+  /** What a good week is, as distinct from a legal one — ADR 0005. */
+  def updateOptimisation(id: UUID, tuning: Optimisation): IO[Option[School]] =
+    (fr"""
+      UPDATE school SET
+        max_teacher_gaps_per_week = ${tuning.maxTeacherGapsPerWeek},
+        min_class_hours_daily     = ${tuning.minClassHoursDaily},
+        max_class_hours_daily     = ${tuning.maxClassHoursDaily},
+        class_day_weight          = ${tuning.classDayWeight},
+        home_room_weight          = ${tuning.homeRoomWeight},
+        soft_room_weight          = ${tuning.softRoomWeight}
       WHERE id = $id
       RETURNING""" ++ columns)
       .query[School].option.transact(xa)

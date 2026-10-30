@@ -49,6 +49,20 @@ class SchoolRoutes(repo: SchoolRepository):
     case GET -> Root / "schools" / UUIDVar(id) / "time-slots" =>
       repo.findTimeSlots(id).flatMap(slots => Ok(slots.asJson))
 
+    // Its own call, because its own screen edits it. Folding it into the
+    // school update would have the Szkoła page clear every weight it knows
+    // nothing about, every time somebody renamed the school.
+    case req @ PUT -> Root / "schools" / UUIDVar(id) / "optimisation" =>
+      req.as[Optimisation].flatMap { tuning =>
+        Optimisation.validate(tuning) match
+          case Left(message) => UnprocessableContent(error(message))
+          case Right(_) =>
+            repo.updateOptimisation(id, tuning).flatMap {
+              case Some(school) => Ok(school.asJson)
+              case None         => NotFound(error("Nie ma takiej szkoły"))
+            }
+      }
+
     case req @ PUT -> Root / "schools" / UUIDVar(id) / "time-slots" =>
       req.as[List[TimeSlotInput]].flatMap { slots =>
         BellSchedule.validate(slots) match
