@@ -117,6 +117,15 @@ export function PlanPage() {
     }
   }, [school, setError]);
 
+  const stop = useCallback(async () => {
+    if (!school) return;
+    try {
+      setRun(await api.cancelGeneration(school.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, [school, setError]);
+
   const generateButton = (
     <button
       type="button"
@@ -125,6 +134,18 @@ export function PlanPage() {
       className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 disabled:opacity-60"
     >
       {running ? `Układanie… ${elapsed} s` : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
+    </button>
+  );
+
+  // Offered only while something is running, because that is the only time it
+  // means anything. A stopped run keeps the plan the school already has.
+  const stopButton = running && (
+    <button
+      type="button"
+      onClick={stop}
+      className="ml-2 rounded border border-neutral-300 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+    >
+      Przerwij
     </button>
   );
 
@@ -137,6 +158,14 @@ export function PlanPage() {
           level="success"
           message={`Ułożono w ${seconds} s — ${run.placed} zajęć, ` +
             `${run.rulesKept} z ${run.rulesTotal} reguł spełnionych.`}
+          onDismiss={() => setRun(null)}
+        />
+      );
+    if (run.status === "cancelled")
+      return (
+        <AlertBanner
+          level="info"
+          message="Układanie przerwane. Plan szkoły pozostał bez zmian."
           onDismiss={() => setRun(null)}
         />
       );
@@ -211,6 +240,7 @@ export function PlanPage() {
             Nie ma jeszcze ułożonego planu.
           </p>
           {generateButton}
+          {stopButton}
           <p className="mt-3 text-xs text-neutral-500">
             Plan jest sprawdzany względem reguł, zanim zostanie zapisany. Taki,
             który je łamie, zostanie pokazany, ale nie stanie się planem szkoły.
@@ -237,7 +267,7 @@ export function PlanPage() {
 
       {outcomeBanner}
 
-      <DataCard title={plan.name} actions={generateButton}>
+      <DataCard title={plan.name} actions={<>{generateButton}{stopButton}</>}>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
           <span>{plan.entries.length} zajęć</span>
           {total > 0 && (

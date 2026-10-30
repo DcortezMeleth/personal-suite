@@ -169,6 +169,15 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
     case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generate" =>
       generation.start(schoolId).flatMap(run => Accepted(view(run).asJson))
 
+    // Stopping one somebody no longer wants. Nothing is salvaged — FET writes
+    // its answer only when it finishes — so this buys back the wait rather
+    // than a worse plan.
+    case DELETE -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generation" =>
+      generation.cancel(schoolId).flatMap {
+        case None      => NotFound(ApiError.body("Nie uruchamiano jeszcze układania"))
+        case Some(run) => Ok(view(run).asJson)
+      }
+
     // What became of it. Also how a reloaded page finds a run still going.
     case GET -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generation" =>
       generation.status(schoolId).flatMap {
@@ -208,6 +217,10 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
 
       case PlanGenerationRuns.State.Failed(message) =>
         base.copy(status = "failed", message = Some(message))
+
+      case PlanGenerationRuns.State.Cancelled =>
+        base.copy(status = "cancelled",
+          message = Some("Układanie przerwane — plan pozostał bez zmian"))
 
       case PlanGenerationRuns.State.Finished(PlanGenerator.Result.NoSchool) =>
         base.copy(status = "failed", message = Some("Nie ma takiej szkoły"))

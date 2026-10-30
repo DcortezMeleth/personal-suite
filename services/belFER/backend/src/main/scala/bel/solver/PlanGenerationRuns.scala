@@ -1,7 +1,8 @@
 package bel.solver
 
-import cats.effect.{IO, Ref}
+import cats.effect.{Fiber, IO, Ref}
 import cats.effect.std.Supervisor
+import cats.syntax.foldable.*
 import java.time.Instant
 import java.util.UUID
 
@@ -34,8 +35,21 @@ object PlanGenerationRuns:
     case Running
     case Finished(result: PlanGenerator.Result)
     case Failed(message: String)
+    /** Stopped by the person who started it, rather than by a fault. */
+    case Cancelled
 
-  case class Run(startedAt: Instant, finishedAt: Option[Instant], state: State):
+  case class Run(
+    startedAt: Instant,
+    finishedAt: Option[Instant],
+    state: State,
+    /**
+     * Kept so the run can be stopped: the fiber is the only handle on a
+     * search already running. Not part of what a screen is told — PlanRoutes
+     * builds its own view — and never compared, which is why `running` asks
+     * the state rather than the whole record.
+     */
+    fiber: Option[Fiber[IO, Throwable, Unit]] = None
+  ):
     def running: Boolean = state == State.Running
 
   def apply(generator: PlanGenerator, supervisor: Supervisor[IO]): IO[PlanGenerationRuns] =
@@ -78,10 +92,32 @@ class PlanGenerationRuns private (
                  }
       run <- decided match
                case Left(going) => IO.pure(going)
-               case Right(started) => supervisor.supervise(run(schoolId)).as(started)
+               case Right(started) =>
+                 supervisor.supervise(run(schoolId)).flatMap { fiber =>
+                   runs.update(_.updatedWith(schoolId)(_.map(_.copy(fiber = Some(fiber)))))
+                     .as(started)
+                 }
     yield run
 
   def status(schoolId: UUID): IO[Option[Run]] = runs.get.map(_.get(schoolId))
+
+  /**
+   * Stop a search somebody no longer wants.
+   *
+   * Nothing is salvaged from it: FET writes its answer only on finishing, so
+   * a search interrupted halfway has produced no week to keep. What this buys
+   * is the half hour back — the freedom to change a setting and try again
+   * rather than waiting out a run already known to be wrong.
+   *
+   * Cancelling unwinds FetRunner's hold on the process, which kills it. That
+   * lands within a second because the wait there is sliced; one long blocking
+   * wait could not have been interrupted at all.
+   */
+  def cancel(schoolId: UUID): IO[Option[Run]] =
+    runs.get.map(_.get(schoolId)).flatMap {
+      case Some(run) if run.running => run.fiber.traverse_(_.cancel) *> status(schoolId)
+      case other                    => IO.pure(other)
+    }
 
   private def run(schoolId: UUID): IO[Unit] =
     generate(schoolId).attempt.flatMap { outcome =>
@@ -92,6 +128,10 @@ class PlanGenerationRuns private (
         // being reachable the way configuration says it is.
         case Left(error) =>
           State.Failed(Option(error.getMessage).getOrElse(error.getClass.getName))
-      IO(Instant.now).flatMap(at =>
-        runs.update(_.updatedWith(schoolId)(_.map(_.copy(finishedAt = Some(at), state = state)))))
-    }
+      settle(schoolId, state)
+    }.onCancel(settle(schoolId, State.Cancelled))
+
+  private def settle(schoolId: UUID, state: State): IO[Unit] =
+    IO(Instant.now).flatMap(at =>
+      runs.update(_.updatedWith(schoolId)(_.map(_.copy(
+        finishedAt = Some(at), state = state, fiber = None)))))

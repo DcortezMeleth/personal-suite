@@ -334,7 +334,7 @@ export interface RuleResult {
  * not kept. A plan only becomes the school's when it passes.
  */
 export interface Generation {
-  status: "running" | "saved" | "rejected" | "failed";
+  status: "running" | "saved" | "rejected" | "failed" | "cancelled";
   startedAt: string;
   finishedAt: string | null;
   tookMillis: number | null;
@@ -460,6 +460,10 @@ export const api = {
 
   generationStatus: (schoolId: string) =>
     send<Generation>("GET", `/schools/${schoolId}/plans/generation`),
+
+  /** Stops a run. Nothing is kept from it — FET answers only on finishing. */
+  cancelGeneration: (schoolId: string) =>
+    send<Generation>("DELETE", `/schools/${schoolId}/plans/generation`),
 
   currentPlan: (schoolId: string) => send<Timetable>("GET", `/schools/${schoolId}/plans/current`),
   plan: (schoolId: string, planId: string) =>

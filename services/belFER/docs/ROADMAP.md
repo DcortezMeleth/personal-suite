@@ -189,10 +189,12 @@ Each subphase is a migration + repository + routes + a page.
   preferences because FET will not weigh the first kind. Measured: 331
   window-hours to 183, at twenty minutes a run instead of eighty-five seconds
 - ✅ **3.4** Start a run from the app — UC-28 … UC-31, UC-34. Started and
-  polled rather than waited on; a second press joins the run already going.
-  UC-29's progress and UC-30's early stop are *not* built and are not planned:
-  FET reports nothing until it finishes, so there is no progress to show and
-  nothing to stop early that would leave a usable week
+  polled rather than waited on; a second press joins the run already going
+  rather than searching twice. UC-29 is met in the only sense FET allows: the
+  button counts the seconds and survives a reload, but there is no percentage
+  and no best-score, because FET says nothing at all until it finishes.
+  UC-30 stops the run and kills the process within a second — what it cannot
+  do is keep a partial week, since FET writes its answer only on finishing
 - **3.5** Infeasibility explanation and run comparison — UC-32, UC-33.
   **Needs redesign**: it was shaped around CP-SAT's unsat core
 

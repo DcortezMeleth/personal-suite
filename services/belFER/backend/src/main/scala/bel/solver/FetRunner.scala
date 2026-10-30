@@ -148,7 +148,7 @@ object FetRunner:
 
     started.use { p =>
       for
-        finished <- IO.blocking(p.waitFor(config.timeout.toMillis, TimeUnit.MILLISECONDS))
+        finished <- awaitExit(p, config.timeout)
         said     <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
         _        <- IO.raiseUnless(finished)(RuntimeException(
                       s"fet-cl nie skończył w ${config.timeout.toMinutes} min — przerwano." +
@@ -162,6 +162,26 @@ object FetRunner:
                       s"fet-cl zakończył się kodem $code:\n${said.takeRight(2000)}"))
       yield ()
     }
+
+  /**
+   * Wait for the process, in slices.
+   *
+   * One long `waitFor` would be simpler and would make the run impossible to
+   * abandon: `IO.blocking` cannot be cancelled, so asking to stop a search
+   * would hang until the search finished anyway — half an hour, by the
+   * timeout. Short waits put a cancellation point between each, so stopping
+   * lands within a second and the resource above then kills the process.
+   */
+  private def awaitExit(process: java.lang.Process, within: FiniteDuration): IO[Boolean] =
+    def waitFrom(left: FiniteDuration): IO[Boolean] =
+      if left <= Duration.Zero then IO.pure(false)
+      else
+        val slice = left.min(1.second)
+        IO.blocking(process.waitFor(slice.toMillis, TimeUnit.MILLISECONDS)).flatMap {
+          case true  => IO.pure(true)
+          case false => waitFrom(left - slice)
+        }
+    waitFrom(within)
 
 
 

@@ -99,6 +99,45 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
     }
     assert(first.running && second.running, "each press begins a run of its own")
 
+  /**
+   * Stopping has to reach the search, not merely relabel it. The fiber is the
+   * only handle on a run already going, which is why the registry keeps it.
+   */
+  test("a run can be stopped, and says it was"):
+    val after = withRuns_cancelled
+    assert(after.map(_.state) === Some(PlanGenerationRuns.State.Cancelled), after.toString)
+    assert(after.flatMap(_.finishedAt).isDefined, "a stopped run says when it stopped")
+    assert(after.exists(!_.running))
+
+  private def withRuns_cancelled =
+    (for
+      reached <- Deferred[IO, Unit]
+      result <- Supervisor[IO].use { s =>
+                  // Never finishes on its own, so only cancellation ends it.
+                  PlanGenerationRuns.from(_ => reached.complete(()) *> IO.never, s).flatMap { runs =>
+                    for
+                      _     <- runs.start(school)
+                      _     <- reached.get
+                      _     <- runs.cancel(school)
+                      _     <- until(runs.status(school).map(_.exists(!_.running)))
+                      after <- runs.status(school)
+                    yield after
+                  }
+                }
+     yield result).unsafeRunSync()
+
+  test("stopping something already finished changes nothing"):
+    val after = withRuns(_ => IO.pure(saved)) { runs =>
+      for
+        _      <- runs.start(school)
+        _      <- until(runs.status(school).map(_.exists(!_.running)))
+        before <- runs.status(school)
+        _      <- runs.cancel(school)
+        after  <- runs.status(school)
+      yield (before, after)
+    }
+    assert(after._1.map(_.state) === after._2.map(_.state))
+
   test("a generation that throws is reported, not lost"):
     val after = withRuns(_ => IO.raiseError(RuntimeException("fet-cl: not found"))) { runs =>
       runs.start(school) *>
