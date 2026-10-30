@@ -67,16 +67,25 @@ window-hours in the current week — and it is exactly the thing FET will not
 let us ask for gently. So it is asked for firmly: the planner sets a maximum,
 and tightening it is how the number comes down.
 
-Three separate numbers, because they are three separate things and conflating
-them is how the export came to approximate one with another:
+**Two numbers, for three ideas.** The ideas are distinct and worth naming,
+because the export already quietly approximates one with another:
 
 - **the longest run** of free hours a teacher may sit through — REQUIREMENTS
-  §9.1 rule 16, and what `PlanCheck` R15 verifies. FET cannot express a run
-  length at all; the export approximates it with a per-day count, which is
-  stricter and so safe, and the comment at that line says so.
+  §9.1 rule 16, and what `PlanCheck` R15 verifies.
 - **how many free hours in a day**, which is what FET actually counts.
-- **how many in a week**, which is the one with leverage: two a day across
-  five days permits ten, and the school averages four and a half.
+- **how many in a week**, the one with leverage: two a day across five days
+  permits ten, and the school averages four and a half.
+
+FET cannot express a run length at all, so the first is sent as the second —
+"at most two in the day" standing in for "at most two in a row", which is
+stricter and therefore safe. That approximation stays, and deliberately does
+*not* become its own setting. Giving the per-day count a value of its own
+would leave the run length with nothing representing it in the search at all:
+FET would be told only about daily totals, and R15 would start failing on
+weeks FET thought were fine. One setting that is honest about standing for
+two beats two settings of which one does nothing.
+
+So the planner sets a longest run, and separately a weekly total.
 
 **A bound that proves impossible keeps the current plan and says so.** The run
 fails, nothing is saved, the week the school is running stays the week the
