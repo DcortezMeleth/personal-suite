@@ -82,9 +82,11 @@ services:
       # compose edit.
       BELFER_FET_COMMAND: "fet-cl --inputfile={dir}/school.fet --outputdir={dir}/out"
       BELFER_FET_WORK_ROOT: /var/tmp/belfer-fet
-      # Thirty minutes of search. Nothing waits on it — the run is started and
-      # polled — so this only has to stop a wedged fet-cl pinning the service.
-      BELFER_FET_TIMEOUT: 30 minutes
+      # No bound: the run is started and polled, and whoever started it can
+      # stop it from the page. A clock giving up on their behalf would throw
+      # away a search that might have finished a minute later. Set a duration
+      # here if belFER is ever driven by something that is not watching.
+      BELFER_FET_TIMEOUT: "0"
     ports:
       - "8081:8081"
     depends_on:

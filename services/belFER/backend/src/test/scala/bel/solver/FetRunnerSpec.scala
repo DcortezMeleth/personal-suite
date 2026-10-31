@@ -41,7 +41,18 @@ class FetRunnerSpec extends AnyFunSuite:
     val (outcome, took, _) = runWith(List("sh", "-c", "sleep 20"), 2.seconds)
     assert(took < 8.seconds, s"gave up after $took, which is not a two-second bound")
     assert(outcome.isLeft)
-    assert(outcome.left.exists(_.getMessage.contains("nie skończył")), outcome.toString)
+    assert(outcome.left.exists(_.getMessage.contains("Nie skończył")), outcome.toString)
+
+  /**
+   * Zero means no bound. The run is started and polled, so the person who
+   * started it decides when it has gone on long enough — a clock deciding for
+   * them discards a search that might have finished a minute later.
+   */
+  test("a timeout of zero lets the run take as long as it takes"):
+    val (outcome, took, _) = runWith(List("sh", "-c", "sleep 3"), Duration.Zero)
+    assert(took >= 3.seconds, s"gave up after $took, which is a bound rather than none")
+    // It then fails for the honest reason: a sleep writes no timetable.
+    assert(outcome.left.exists(!_.getMessage.contains("Nie skończył")), outcome.toString)
 
   /**
    * Giving up has to kill the process, not merely stop waiting for it. An

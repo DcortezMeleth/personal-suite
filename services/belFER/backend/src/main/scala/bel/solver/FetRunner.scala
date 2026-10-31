@@ -30,7 +30,8 @@ object FetRunner:
    */
   case class Config(
     command: List[String],
-    timeout: FiniteDuration = 30.minutes,
+    /** Zero or less means no bound: the person watching decides. */
+    timeout: FiniteDuration = Duration.Zero,
     /**
      * Where the file is written for FET to read.
      *
@@ -150,18 +151,39 @@ object FetRunner:
       for
         finished <- awaitExit(p, config.timeout)
         said     <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
+        // No log tail here: FET prints nothing at all while it searches, so
+        // everything it has said by now is the start-up dialogs, and pasting
+        // those under "it did not finish" buries the one sentence that matters.
         _        <- IO.raiseUnless(finished)(RuntimeException(
-                      s"fet-cl nie skończył w ${config.timeout.toMinutes} min — przerwano." +
-                      (if said.nonEmpty then s"\n${said.takeRight(2000)}" else "")))
+                      s"Nie skończył w ${config.timeout.toMinutes} min i został przerwany. " +
+                      "Poluzuj twarde ograniczenia albo zdejmij limit czasu."))
         code     <- IO.blocking(p.exitValue())
         // FET reports a failure to lay out the week in its exit code, and says
         // which rule defeated it on the way out. Carrying that through verbatim
         // is better than translating it: it is FET's vocabulary and a person
         // reading it is better served by the original.
         _        <- IO.raiseWhen(code != 0)(RuntimeException(
-                      s"fet-cl zakończył się kodem $code:\n${said.takeRight(2000)}"))
+                      s"fet-cl zakończył się kodem $code:\n${complaint(said)}"))
       yield ()
     }
+
+  /**
+   * What FET actually said, with its doorway talk removed.
+   *
+   * It opens by announcing that the file claims a newer format, and again
+   * that gap constraints are not optimised for speed, each as a dialog it
+   * then answers itself. All of that is printed before the search starts and
+   * none of it is why a run failed — but it is two hundred words, and pasted
+   * in front of the real complaint it is all anybody reads.
+   *
+   * Everything after the last answered dialog is the run proper.
+   */
+  private def complaint(said: String): String =
+    val marker = "Pressing default button"
+    val proper = said.lastIndexOf(marker) match
+      case -1 => said
+      case at => said.drop(said.indexOf('\n', at) + 1)
+    proper.trim.takeRight(2000)
 
   /**
    * Wait for the process, in slices.
@@ -173,10 +195,11 @@ object FetRunner:
    * lands within a second and the resource above then kills the process.
    */
   private def awaitExit(process: java.lang.Process, within: FiniteDuration): IO[Boolean] =
+    val unbounded = within <= Duration.Zero
     def waitFrom(left: FiniteDuration): IO[Boolean] =
-      if left <= Duration.Zero then IO.pure(false)
+      if !unbounded && left <= Duration.Zero then IO.pure(false)
       else
-        val slice = left.min(1.second)
+        val slice = if unbounded then 1.second else left.min(1.second)
         IO.blocking(process.waitFor(slice.toMillis, TimeUnit.MILLISECONDS)).flatMap {
           case true  => IO.pure(true)
           case false => waitFrom(left - slice)

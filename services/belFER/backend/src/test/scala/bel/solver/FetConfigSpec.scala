@@ -73,4 +73,7 @@ class FetConfigSpec extends AnyFunSuite:
     assert(shipped.command.nonEmpty)
     assert(shipped.command.mkString(" ").contains("{dir}"),
       "the working directory has to reach the command somehow")
-    assert(shipped.timeout.toSeconds > 0)
+    // Zero: no bound, because the run is polled and the person watching can
+    // stop it. A clock giving up on their behalf would throw away a search
+    // that might have finished a minute later.
+    assert(shipped.timeout.toSeconds === 0)
