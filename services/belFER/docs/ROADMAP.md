@@ -28,6 +28,30 @@ What is left, roughly in the order it is worth doing:
 
 Also open, and deliberately parked:
 
+- **A student taught with a class that is not their own.** Found in the first
+  real arkusz and not yet modelled: one girl attends some of her lessons with
+  a different class. It is a single case and the school handles it by hand, so
+  nothing is blocked — but the data model has no way to say it, which means
+  the generated week quietly disagrees with the real one in that one place.
+  Worth understanding before deciding whether to model it: how many lessons,
+  whether it is a whole subject or particular hours, and whether it recurs
+  between semesters. Ask the school before designing anything.
+
+- **Found testing the first real import, and waiting on a backend restart:**
+  - *Zajęcia z wychowawcą with nobody assigned is not reported.* The check
+    asks whether the line's teacher differs from the wychowawca, and an
+    absent teacher differs from nobody — so a class where the hour belongs to
+    no one passes silently. Three cases to tell apart: taught by someone
+    else, taught by no one, no wychowawca at all.
+  - *Tuition assignments cannot be edited.* "Obowiązki nauczyciela
+    wspomagającego" came in as thirty hours of phantom tuition and had to be
+    deleted in SQL. The planner should be able to do that herself, which
+    means the read-only tuition page gains add, edit and delete — and a
+    decision about what identifies a plan when a person creates one, since
+    the import identifies them by class and ordinal and records no student.
+  - *The importer recreates both.* Until it learns to skip that pseudo-
+    subject, the next import undoes the cleanup.
+
 - **The `--all-days` cut-transfer contradiction.** Reproduction and current
   understanding are in `SOLVER_EVALUATION.md`. Now low-priority: our own
   solver is off the critical path under ADR 0004, so this blocks nothing.

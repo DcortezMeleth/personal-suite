@@ -150,11 +150,11 @@ export function ValidationPage() {
                     <td className="py-1 text-neutral-700">{t.name}</td>
                     <td className="py-1">{t.allocated}</td>
                     <td className="py-1 text-neutral-500">{t.pensum ?? "—"}</td>
-                    <td
-                      className={`py-1 ${
-                        diff === null ? "" : diff > 0 ? "text-warning-600" : "text-neutral-400"
-                      }`}
-                    >
+                    {/* Plain, not amber. Teaching past pensum is ordinary in
+                        this school and colouring it made a normal week look
+                        like a page of problems; the number is here for anyone
+                        who wants it and says nothing on its own. */}
+                    <td className="py-1 text-neutral-500">
                       {diff === null ? "" : diff > 0 ? `+${diff}` : diff}
                     </td>
                   </tr>

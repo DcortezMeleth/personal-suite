@@ -132,8 +132,10 @@ export function TeachersPage() {
         <tr>
           <th className="w-5 pb-2" />
           <th className="pb-2">Kod</th>
-          <th className="pb-2">Imię</th>
+          {/* Surname first: it is what the list is read and sorted by, and a
+              column of forenames is a column nobody scans. */}
           <th className="pb-2">Nazwisko</th>
+          <th className="pb-2">Imię</th>
           <th className="pb-2">Sala własna</th>
           <th className="pb-2">Dni</th>
           <th className="pb-2">Lekcji/dzień</th>
@@ -271,6 +273,28 @@ function TeacherRow(props: {
     setDraft({ ...draft, unavailability: cellsToBlocks(next, props.slotCount) });
   };
 
+  const everyHour = Array.from({ length: props.slotCount }, (_, i) => i + 1);
+  const wholeDayBlocked = (day: number) =>
+    everyHour.every((position) => cells.has(cellKey(day, position)));
+
+  /**
+   * A whole day at once, because that is the common case: about fifteen of
+   * this school's teachers work somewhere else on a given day, and marking
+   * eight boxes one at a time is eight chances to miss one.
+   *
+   * Clears the day when it is already full, so the same control undoes it.
+   */
+  const toggleDay = (day: number) => {
+    const next = new Set(cells);
+    const clearing = wholeDayBlocked(day);
+    for (const position of everyHour) {
+      const key = cellKey(day, position);
+      if (clearing) next.delete(key);
+      else next.add(key);
+    }
+    setDraft({ ...draft, unavailability: cellsToBlocks(next, props.slotCount) });
+  };
+
   const toggleSubject = (id: string) =>
     setDraft({
       ...draft,
@@ -291,10 +315,10 @@ function TeacherRow(props: {
           <input className={field} value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
         </td>
         <td className="py-2 pr-2">
-          <input className={field} value={draft.firstName} onChange={(e) => setDraft({ ...draft, firstName: e.target.value })} />
+          <input className={field} value={draft.lastName} onChange={(e) => setDraft({ ...draft, lastName: e.target.value })} />
         </td>
         <td className="py-2 pr-2">
-          <input className={field} value={draft.lastName} onChange={(e) => setDraft({ ...draft, lastName: e.target.value })} />
+          <input className={field} value={draft.firstName} onChange={(e) => setDraft({ ...draft, firstName: e.target.value })} />
         </td>
         <td className="py-2 pr-2">
           <select
@@ -398,9 +422,24 @@ function TeacherRow(props: {
                       <thead>
                         <tr>
                           <th className="w-8" />
-                          {DAYS.map((day) => (
-                            <th key={day} className="px-2 pb-1 text-xs font-medium text-neutral-500">
-                              {day}
+                          {DAYS.map((day, dayIndex) => (
+                            <th key={day} className="px-2 pb-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleDay(dayIndex + 1)}
+                                title={
+                                  wholeDayBlocked(dayIndex + 1)
+                                    ? "Odblokuj cały dzień"
+                                    : "Zablokuj cały dzień"
+                                }
+                                className={`w-full rounded px-1 py-0.5 text-xs font-medium transition-colors ${
+                                  wholeDayBlocked(dayIndex + 1)
+                                    ? "bg-danger-50 text-danger-600"
+                                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                                }`}
+                              >
+                                {day}
+                              </button>
                             </th>
                           ))}
                         </tr>

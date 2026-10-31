@@ -32,7 +32,7 @@ export function ClassesPage() {
     },
   });
 
-  const { findingsFor, reloadFindings } = useFindings(school?.id);
+  const { findingsFor, hoursFor, reloadFindings } = useFindings(school?.id);
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -130,6 +130,7 @@ export function ClassesPage() {
                   year={year}
                   classes={byYear.get(year) ?? []}
                   teachers={teachers}
+                  teaches={(id) => (hoursFor(id) ?? 0) > 0}
                   findingsFor={findingsFor}
                   onSave={(id, input) => run(() => api.updateClass(school.id, id, input))}
                   onDelete={(id, name) =>
@@ -149,6 +150,7 @@ function ClassYear(props: {
   year: number;
   classes: SchoolClass[];
   teachers: Teacher[];
+  teaches: (id: string) => boolean;
   findingsFor: (id: string) => Finding[];
   onSave: (id: string, input: SchoolClassInput) => void;
   onDelete: (id: string, name: string) => void;
@@ -165,6 +167,7 @@ function ClassYear(props: {
           key={cls.id}
           cls={cls}
           teachers={props.teachers}
+          teaches={props.teaches}
           findings={props.findingsFor(cls.id)}
           onSave={(input) => props.onSave(cls.id, input)}
           onDelete={() => props.onDelete(cls.id, cls.name)}
@@ -177,6 +180,7 @@ function ClassYear(props: {
 function ClassRow(props: {
   cls: SchoolClass;
   teachers: Teacher[];
+  teaches: (id: string) => boolean;
   findings: Finding[];
   onSave: (input: SchoolClassInput) => void;
   onDelete: () => void;
@@ -219,7 +223,14 @@ function ClassRow(props: {
           onChange={(e) => setDraft({ ...draft, homeroomTeacherId: e.target.value || null })}
         >
           <option value="">—</option>
-          {props.teachers.map((teacher) => (
+          {/* Staff with no assignments are not candidates: a good number of
+              the arkusz's people teach nothing at all — psychologists, the
+              librarian — and they outnumber the plausible answers.
+              Whoever is already chosen stays listed regardless, or the
+              select would show a blank for a value that is set. */}
+          {props.teachers
+            .filter((t) => props.teaches(t.id) || t.id === draft.homeroomTeacherId)
+            .map((teacher) => (
             <option key={teacher.id} value={teacher.id}>
               {teacher.lastName} {teacher.firstName}
             </option>

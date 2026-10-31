@@ -26,20 +26,6 @@ export function useFindings(schoolId: string | undefined) {
       };
       for (const finding of [...report.blocking, ...report.warnings]) add(finding);
 
-      // Pensum overruns reach the Kontrola page as a single aggregate line,
-      // because 37 of them at full length buried the warnings that mattered.
-      // Beside the teacher's own row there is no such crowd, so the per-teacher
-      // figure is reconstructed here from the load table the aggregate points at.
-      for (const teacher of report.teachers) {
-        if (teacher.pensum === null || teacher.pensum <= 0) continue;
-        if (teacher.allocated <= teacher.pensum) continue;
-        add({
-          severity: "Warning",
-          subject: teacher.name,
-          message: `${teacher.allocated} godz. przy pensum ${teacher.pensum} — ${teacher.allocated - teacher.pensum} nadgodzin`,
-          entityId: teacher.id,
-        });
-      }
       for (const cls of report.classes) {
         if (cls.occupied <= cls.capacity) continue;
         add({
