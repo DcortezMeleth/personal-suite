@@ -16,6 +16,21 @@ import { TimetableGrid } from "../components/TimetableGrid";
 
 type View = "oddzial" | "nauczyciel" | "sala" | "szkola";
 
+/**
+ * Seconds as hh:mm:ss.
+ *
+ * A raw count of seconds is fine while a run takes ninety of them and
+ * unreadable by the time it takes twelve hundred — and asking FET for few
+ * teacher windows puts it there routinely. Always both colons, even under a
+ * minute, so the width never changes and the button does not twitch once a
+ * second while somebody is watching it.
+ */
+function asClock(seconds: number): string {
+  const whole = Math.max(0, Math.floor(seconds));
+  const parts = [Math.floor(whole / 3600), Math.floor((whole % 3600) / 60), whole % 60];
+  return parts.map((n) => String(n).padStart(2, "0")).join(":");
+}
+
 const VIEWS: { id: View; label: string }[] = [
   { id: "oddzial", label: "Oddziały" },
   { id: "nauczyciel", label: "Nauczyciele" },
@@ -131,9 +146,9 @@ export function PlanPage() {
       type="button"
       onClick={generate}
       disabled={running}
-      className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 disabled:opacity-60"
+      className="rounded bg-primary-500 px-4 py-2 tabular-nums text-white hover:bg-primary-600 disabled:opacity-60"
     >
-      {running ? `Układanie… ${elapsed} s` : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
+      {running ? `Układanie… ${asClock(elapsed)}` : plan ? "Ułóż plan na nowo" : "Ułóż plan"}
     </button>
   );
 
@@ -151,12 +166,12 @@ export function PlanPage() {
 
   const outcomeBanner = (() => {
     if (!run || run.status === "running") return null;
-    const seconds = ((run.tookMillis ?? 0) / 1000).toFixed(1);
+    const took = asClock((run.tookMillis ?? 0) / 1000);
     if (run.status === "saved")
       return (
         <AlertBanner
           level="success"
-          message={`Ułożono w ${seconds} s — ${run.placed} zajęć, ` +
+          message={`Ułożono w ${took} — ${run.placed} zajęć, ` +
             `${run.rulesKept} z ${run.rulesTotal} reguł spełnionych.`}
           onDismiss={() => setRun(null)}
         />
