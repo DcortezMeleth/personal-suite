@@ -13,30 +13,50 @@ import { ValidationPage } from "./pages/ValidationPage";
 import { TeachersPage } from "./pages/TeachersPage";
 
 // The interface is Polish, because the people using it are.
-const NAV_ITEMS = [
-  { label: "Szkoła", href: "/" },
-  { label: "Przedmioty i sale", href: "/zasoby" },
-  { label: "Nauczyciele", href: "/nauczyciele" },
-  { label: "Oddziały", href: "/oddzialy" },
-  { label: "Przydziały", href: "/przydzialy" },
-  { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
-  { label: "Nauczanie indywidualne", href: "/indywidualne" },
-  { label: "Plan lekcji", href: "/plan" },
-  { label: "Import", href: "/import" },
-  { label: "Konfiguracja", href: "/konfiguracja" },
-  { label: "Kontrola", href: "/kontrola" },
+//
+// Grouped and down the side rather than across the top: eleven pages, several
+// of them phrases, outgrew a row. The order is the order of the work — data
+// arrives, gets assigned, becomes a plan — so the sidebar reads as the job
+// rather than as an alphabet.
+const NAV_GROUPS = [
+  {
+    label: "Dane szkoły",
+    items: [
+      { label: "Import", href: "/import" },
+      { label: "Szkoła", href: "/" },
+      { label: "Przedmioty i sale", href: "/zasoby" },
+      { label: "Nauczyciele", href: "/nauczyciele" },
+      { label: "Oddziały", href: "/oddzialy" },
+    ],
+  },
+  {
+    label: "Przydziały",
+    items: [
+      { label: "Przydziały", href: "/przydzialy" },
+      { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
+      { label: "Nauczanie indywidualne", href: "/indywidualne" },
+    ],
+  },
+  {
+    label: "Plan",
+    items: [
+      { label: "Kontrola", href: "/kontrola" },
+      { label: "Konfiguracja", href: "/konfiguracja" },
+      { label: "Plan lekcji", href: "/plan" },
+    ],
+  },
 ];
 
 export default function App() {
   const { pathname } = useLocation();
 
-  const navItems = NAV_ITEMS.map((item) => ({
-    ...item,
-    active: item.href === pathname,
+  const navGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.map((item) => ({ ...item, active: item.href === pathname })),
   }));
 
   return (
-    <PageLayout title="belFER" navItems={navItems}>
+    <PageLayout title="belFER" navGroups={navGroups}>
       <Routes>
         <Route path="/" element={<SchoolPage />} />
         <Route path="/zasoby" element={<ResourcesPage />} />

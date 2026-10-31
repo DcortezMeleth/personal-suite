@@ -1,5 +1,6 @@
 export { AppHeader } from "./components/AppHeader";
 export { PageLayout } from "./components/PageLayout";
+export { SideNav } from "./components/SideNav";
 export { DataCard } from "./components/DataCard";
 export { AlertBanner } from "./components/AlertBanner";
 export { ConfirmDialog } from "./components/ConfirmDialog";
@@ -14,6 +15,7 @@ export { colors, typography } from "./theme/tokens";
 // that none of them were reachable.
 export type { AppHeaderProps, NavItem } from "./components/AppHeader";
 export type { PageLayoutProps } from "./components/PageLayout";
+export type { SideNavProps, NavGroup } from "./components/SideNav";
 export type { DataCardProps } from "./components/DataCard";
 export type { AlertBannerProps, AlertLevel } from "./components/AlertBanner";
 export type { ConfirmDialogProps } from "./components/ConfirmDialog";
