@@ -55,6 +55,26 @@ class FetTuningSpec extends AnyFunSuite:
     assert(!xml.contains("ConstraintTeacherHomeRoom"))
   }
 
+  /**
+   * The run length and the daily count are different rules, and the export
+   * used to send the first as the second with no way to separate them. At one
+   * that forbids teaching first, third and fifth period — two single gaps,
+   * adjacent to nothing, legal by the rule being stood in for — which is a
+   * week no human timetable satisfies either.
+   */
+  test("the daily gap count falls back to the run length, and can be set apart"):
+    def dailyGapsIn(tuning: Optimisation) =
+      val base = school(tuning, mathsOnly, oneLesson)
+      val xml = FetExport(
+        base.copy(settings = base.settings.copy(maxConsecutiveTeacherGaps = 1)), rooms).xml
+      raw"<ConstraintTeachersMaxGapsPerDay>\s*<Weight_Percentage>\d+</Weight_Percentage>\s*<Max_Gaps>(\d+)".r
+        .findFirstMatchIn(xml).map(_.group(1).toInt)
+
+    assert(dailyGapsIn(Optimisation()) === Some(1),
+      "unset, the run length stands in as it always has")
+    assert(dailyGapsIn(Optimisation(maxTeacherGapsPerDay = Some(3))) === Some(3),
+      "set, it is a rule of its own")
+
   /** FET aborts on a weighted gap rule, so this one must go out absolute. */
   test("the weekly gap limit is written as a bound, at full strength") {
     val xml = FetExport(

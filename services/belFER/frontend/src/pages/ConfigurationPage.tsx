@@ -132,6 +132,21 @@ export function ConfigurationPage() {
         </p>
 
         <Row
+          label="Maks. okienek nauczyciela dziennie"
+          help="FET liczy okienka w ciągu dnia — nie najdłuższy ciąg pod rząd, o którym mówi
+                reguła na zakładce „Szkoła”. Puste pole oznacza, że w jego miejsce idzie
+                właśnie ta reguła, co jest znacznie ostrzejsze, niż się wydaje: przy wartości
+                1 zabrania nauczycielowi uczyć na 1., 3. i 5. lekcji, choć to dwa osobne
+                okienka, nie pod rząd. Jeśli układanie się nie udaje, zacznij od poluzowania
+                tego pola. Ciąg okienek sprawdzamy i tak na gotowym planie (reguła R15)."
+        >
+          <Optional
+            value={draft.maxTeacherGapsPerDay}
+            onChange={(maxTeacherGapsPerDay) => patch({ maxTeacherGapsPerDay })}
+          />
+        </Row>
+
+        <Row
           label="Maks. okienek nauczyciela w tygodniu"
           help="Największa dźwignia na okienka — limit dzienny poniżej pozwala na pięć razy
                 tyle w tygodniu. Pusto oznacza brak limitu. Uwaga: FET ostrzega, że ta reguła

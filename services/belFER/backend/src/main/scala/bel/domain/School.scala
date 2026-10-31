@@ -30,6 +30,10 @@ case class SchedulingSettings(
 )
 
 /**
+ * @param maxTeacherGapsPerDay bound. Free hours a teacher may have in one day
+ *   — what FET actually counts. Unset, the run length stands in for it, which
+ *   is how the export has always worked and is much stricter than the rule it
+ *   stands for: at one it forbids teaching first, third and fifth period.
  * @param maxTeacherGapsPerWeek bound. Free hours a teacher may have across the
  *   week. The one with leverage — `maxConsecutiveTeacherGaps` of two already
  *   permits ten across five days, and this school averages four and a half.
@@ -44,6 +48,7 @@ case class SchedulingSettings(
  *   unaffected and stay at full strength.
  */
 case class Optimisation(
+  maxTeacherGapsPerDay: Option[Int] = None,
   maxTeacherGapsPerWeek: Option[Int] = None,
   minClassHoursDaily: Option[Int] = None,
   maxClassHoursDaily: Option[Int] = None,
@@ -62,13 +67,14 @@ object Optimisation:
   /** Every field optional, for the same reason as above. */
   given Decoder[Optimisation] = Decoder.instance { c =>
     for
+      daily    <- c.getOrElse[Option[Int]]("maxTeacherGapsPerDay")(None)
       gaps     <- c.getOrElse[Option[Int]]("maxTeacherGapsPerWeek")(None)
       shortest <- c.getOrElse[Option[Int]]("minClassHoursDaily")(None)
       longest  <- c.getOrElse[Option[Int]]("maxClassHoursDaily")(None)
       dayWeight <- c.getOrElse[Int]("classDayWeight")(0)
       homeRoom <- c.getOrElse[Int]("homeRoomWeight")(0)
       softRoom <- c.getOrElse[Int]("softRoomWeight")(0)
-    yield Optimisation(gaps, shortest, longest, dayWeight, homeRoom, softRoom)
+    yield Optimisation(daily, gaps, shortest, longest, dayWeight, homeRoom, softRoom)
   }
 
   def validate(o: Optimisation): Either[String, Unit] =
@@ -81,7 +87,9 @@ object Optimisation:
     } match
       case Some(problem) => Left(problem)
       case None =>
-        if o.maxTeacherGapsPerWeek.exists(_ < 0) then
+        if o.maxTeacherGapsPerDay.exists(_ < 0) then
+          Left("Maksymalna liczba okienek dziennie nie może być ujemna")
+        else if o.maxTeacherGapsPerWeek.exists(_ < 0) then
           Left("Maksymalna liczba okienek w tygodniu nie może być ujemna")
         else if o.minClassHoursDaily.exists(_ < 0) then
           Left("Najkrótszy dzień oddziału nie może być ujemny")

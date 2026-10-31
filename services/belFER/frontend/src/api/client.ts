@@ -60,6 +60,12 @@ export interface SchedulingSettings {
  * and zeroes mean "not asked for", which is where a school starts.
  */
 export interface Optimisation {
+  /**
+   * Bound. Free hours a teacher may have in one day — what FET actually
+   * counts. Unset, the run length from the Szkoła page stands in for it,
+   * which is far stricter than the rule it stands for.
+   */
+  maxTeacherGapsPerDay: number | null;
   /** Bound. Free hours a teacher may have across the week. */
   maxTeacherGapsPerWeek: number | null;
   /** Bound. The short end of a class's day. */

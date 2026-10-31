@@ -15,7 +15,8 @@ class SchoolRepository(xa: Transactor[IO]):
   private val columns =
     fr"""id, name, years, max_consecutive_teacher_gaps,
          default_teacher_max_working_days, default_teacher_max_lessons_per_day,
-         max_teacher_gaps_per_week, min_class_hours_daily, max_class_hours_daily,
+         max_teacher_gaps_per_day, max_teacher_gaps_per_week,
+         min_class_hours_daily, max_class_hours_daily,
          class_day_weight, home_room_weight, soft_room_weight,
          created_at"""
 
@@ -57,6 +58,7 @@ class SchoolRepository(xa: Transactor[IO]):
   def updateOptimisation(id: UUID, tuning: Optimisation): IO[Option[School]] =
     (fr"""
       UPDATE school SET
+        max_teacher_gaps_per_day  = ${tuning.maxTeacherGapsPerDay},
         max_teacher_gaps_per_week = ${tuning.maxTeacherGapsPerWeek},
         min_class_hours_daily     = ${tuning.minClassHoursDaily},
         max_class_hours_daily     = ${tuning.maxClassHoursDaily},

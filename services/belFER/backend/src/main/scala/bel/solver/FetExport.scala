@@ -197,11 +197,25 @@ object FetExport:
     // thirty-two teacher-days with somebody sitting through three free hours.
     // Not its answer being poor, our question being incomplete.
     //
-    // "At most two free hours in a row" has no counterpart here; FET counts a
-    // day's gaps rather than its longest run of them. At most two in the day
-    // is the nearest thing and is stricter, which is the safe direction.
+    // Two different rules, and only one of them is FET's.
+    //
+    // The school's rule is a run length — at most N free hours in a row — and
+    // FET has no way to say that: it counts a day's gaps, never the longest
+    // stretch of them. So unless the planner says otherwise, the run length is
+    // sent as a daily count, which is stricter and therefore never produces a
+    // week that breaks the real rule.
+    //
+    // Stricter is not free. At one, "no more than one gap in the day" forbids
+    // a teacher teaching first, third and fifth period — two separate single
+    // gaps, adjacent to nothing, entirely legal by the rule being stood in
+    // for. Tightening the run length that far asks for a week no human
+    // timetable satisfies either, so the daily count can now be set on its
+    // own and the run length left to PlanCheck R15, which can check it
+    // properly because it reads a finished week.
     b ++= constraint("ConstraintTeachersMaxGapsPerDay",
-      List("Max_Gaps" -> snapshot.settings.maxConsecutiveTeacherGaps.toString))
+      List("Max_Gaps" -> snapshot.settings.optimisation.maxTeacherGapsPerDay
+        .getOrElse(snapshot.settings.maxConsecutiveTeacherGaps).toString))
+
     b ++= constraint("ConstraintTeachersMaxHoursDaily",
       List("Maximum_Hours_Daily" -> snapshot.settings.defaultTeacherMaxLessonsPerDay.toString))
 
