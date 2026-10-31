@@ -5,6 +5,7 @@ import { ClassesPage } from "./pages/ClassesPage";
 import { ConfigurationPage } from "./pages/ConfigurationPage";
 import { ImportPage } from "./pages/ImportPage";
 import { PlanPage } from "./pages/PlanPage";
+import { TuitionPage } from "./pages/TuitionPage";
 import { CrossClassPage } from "./pages/CrossClassPage";
 import { ResourcesPage } from "./pages/ResourcesPage";
 import { SchoolPage } from "./pages/SchoolPage";
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { label: "Oddziały", href: "/oddzialy" },
   { label: "Przydziały", href: "/przydzialy" },
   { label: "Zajęcia międzyoddziałowe", href: "/miedzyoddzialowe" },
+  { label: "Nauczanie indywidualne", href: "/indywidualne" },
   { label: "Plan lekcji", href: "/plan" },
   { label: "Import", href: "/import" },
   { label: "Konfiguracja", href: "/konfiguracja" },
@@ -42,6 +44,7 @@ export default function App() {
         <Route path="/oddzialy" element={<ClassesPage />} />
         <Route path="/przydzialy" element={<AllocationPage />} />
         <Route path="/miedzyoddzialowe" element={<CrossClassPage />} />
+        <Route path="/indywidualne" element={<TuitionPage />} />
         <Route path="/plan" element={<PlanPage />} />
         <Route path="/import" element={<ImportPage />} />
         <Route path="/konfiguracja" element={<ConfigurationPage />} />

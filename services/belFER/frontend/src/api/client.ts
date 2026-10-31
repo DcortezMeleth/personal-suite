@@ -373,6 +373,35 @@ export interface ValidationReport {
   teachers: TeacherLoad[];
 }
 
+/**
+ * Nauczanie indywidualne: one student taught alone.
+ *
+ * Identified by class and an ordinal within it, never by name — the hours are
+ * the school's business and the student is not. They matter because they book
+ * a teacher: five hours of tuition is five fewer for everything else.
+ */
+export interface TuitionLesson {
+  subject: string;
+  teacher: string | null;
+  blocks: number[];
+  hours: number;
+}
+
+export interface TuitionPlan {
+  id: string;
+  className: string;
+  ordinal: number;
+  hours: number;
+  lessons: TuitionLesson[];
+}
+
+export interface TuitionSummary {
+  plans: number;
+  hours: number;
+  teachers: number;
+  byClass: TuitionPlan[];
+}
+
 export const api = {
   // /health sits at the root rather than under /api, so that a readiness probe
   // does not depend on the API routes being wired up.
@@ -455,6 +484,9 @@ export const api = {
 
   listPlans: (schoolId: string) => send<PlanSummary[]>("GET", `/schools/${schoolId}/plans`),
   /** Starts a run, or joins the one already going. */
+  individualPlans: (schoolId: string) =>
+    send<TuitionSummary>("GET", `/schools/${schoolId}/individual-plans`),
+
   startGeneration: (schoolId: string) =>
     send<Generation>("POST", `/schools/${schoolId}/plans/generate`),
 
