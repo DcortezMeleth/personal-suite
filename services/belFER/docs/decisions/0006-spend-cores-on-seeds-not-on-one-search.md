@@ -91,3 +91,68 @@ finished run writes `timetables/school/`; an interrupted one writes
 `school-current/` and `school-highest/` beside it. Taking the first
 `*_activities.xml` from a directory walk was choosing between them by
 filesystem order. They are ranked explicitly now.
+
+---
+
+## Postscript, 2026-11-01 — what was actually blocking the school
+
+The diagnosis this ADR built was used the same day, and it found something
+this record should not lose.
+
+The run was never blocked by the gap limits. Removing them entirely leaves the
+wall at the same activity, 432 of 1331. What moves it is the rule in §2.5 that
+optional subjects sit at the edge of a day, which the exporter writes as
+`ConstraintActivityEndsStudentsDay` on all 26 religia and etyka activities.
+
+**`ConstraintActivityBeginsStudentsDay` exists, and we were not using it.** The
+comment at the top of `FetExport` asserted that FET "has no way to say 'or
+begins it'". That is false, and was false when written: the constraint is in
+the 6.8.5 binary we already run, which can be read straight out of it —
+
+```
+grep -aoE "Constraint[A-Za-z]{3,60}" /usr/bin/fet-cl | sort -u   # 288 names
+```
+
+Measured on the real school, same data, same settings, 2 minutes each:
+
+| Edge encoding | Activities placed |
+|---|---|
+| All *ends students day* — what we ship | **432** of 1331 |
+| All *begins students day* | **1089** |
+| Mixed per activity | 432 – 1079, erratic |
+| Rule removed entirely | 1052 – 1127 |
+
+Six seeds on *begins* converge around 1110 and differ from one another, which
+is a search working rather than a search stuck.
+
+Why the asymmetry is inference rather than measurement: we constrain students
+to have no gaps but never force a class's day to start at the first hour, so
+"begins the students' day" lets every class start at a different hour and one
+religia teacher can open many days. "Ends the day" has to fit around each
+class's total length instead.
+
+**Neither encoding is the rule.** The school's rule is *first or last*, a
+disjunction FET cannot state. "Always first" is a sound strict reading — a
+pupil who skips simply arrives a lesson later — and is worth two and a half
+times as much as the one we ship.
+
+Two ways out, both open at the time of writing:
+
+1. **Race the encodings.** The portfolio above already races seeds; the
+   encoding is one more dimension to race. The disjunction FET will not state
+   becomes something we search for.
+2. **Model the cohorts, and delete the rule.** The FET manual's own
+   recommendation, and the reason the edge constraint exists at all: it is for
+   when "not all students of a group visit this activity". A pupil may attend
+   religia, etyka, both or neither — four cohorts — and FET's student
+   divisions are built to express exactly that. With them,
+   `ConstraintStudentsSetMaxGapsPerDay`, which we already emit, enforces the
+   real rule per cohort, and FET may put religia mid-day whenever the cohorts
+   allow. It needs one new input from the school: cohort sizes per class.
+   Counts, never identities.
+
+Blocked on the second: whether the school holds those numbers.
+
+And a caveat against reading the table too warmly. 1089 is not a timetable.
+There is a second wall past the first and it has not been identified. *Begins*
+turns impossible into hard.

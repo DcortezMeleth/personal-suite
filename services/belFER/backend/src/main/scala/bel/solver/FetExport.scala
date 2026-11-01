@@ -20,12 +20,19 @@ import java.util.UUID
  * the student structure is years containing groups, which is a class
  * containing its two halves.
  *
- * One rule does not survive the crossing. FET can say an activity ends a
- * class's day and it can say an activity sits at a given hour, but it has no
- * way to say "first or last, whichever suits" — so optional subjects are
- * exported as ending the day, which is stricter than the school is. Worth
- * knowing when reading the answer: a timetable FET cannot find under that
- * reading might still exist under ours.
+ * One rule does not survive the crossing. The school's is "first or last,
+ * whichever suits", and FET states neither disjunctions nor "last" in any form
+ * it can combine — so optional subjects are exported as ending the day, which
+ * is stricter than the school is. Worth knowing when reading the answer: a
+ * timetable FET cannot find under that reading might still exist under ours.
+ *
+ * This comment used to claim FET had no way to say "or begins it". That was
+ * wrong: `ConstraintActivityBeginsStudentsDay` is in the 6.8.5 binary we run
+ * and always has been. It matters more than a correction — measured on the
+ * real school, ending the day places 432 activities of 1331 and beginning it
+ * places 1089, because nothing forces a class's day to start at the first
+ * hour, so "begins" lets each class start at an hour of its own. Still not the
+ * rule, but a far better half of it. See the postscript to ADR 0006.
  */
 object FetExport:
 
