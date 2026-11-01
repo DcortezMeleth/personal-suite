@@ -39,6 +39,25 @@ For a laptop, keep running the backend with `bazel run` as below and let it
 reach FET through the container — which is what `belfer.fet.command` defaults
 to.
 
+> **Size colima before expecting speed from generation.** It defaults to
+> **2 CPUs and 2 GiB** regardless of the machine, so an M1 Pro with 8
+> performance cores gives FET two of them. Generation races several searches
+> on different random seeds (ADR 0006) and that allowance is what caps it:
+>
+> ```bash
+> colima list                                 # CPUS / MEMORY columns
+> colima stop && colima start --cpu 8 --memory 8
+> ```
+>
+> The resize restarts the VM, so every container stops. Ones with
+> `--restart unless-stopped` come back by themselves; check with `docker ps`
+> and `docker inspect <name> --format '{{.HostConfig.RestartPolicy.Name}}'`
+> first if anything else is running.
+>
+> Then match the worker count to it — `BELFER_FET_WORKERS=6` leaves a little
+> room. Workers beyond the VM's CPU count do not help: each search is a whole
+> single-threaded FET process.
+
 ## 1. Postgres
 
 Shared launchd Postgres (`homebrew.mxcl.postgresql@14`), normally already up.

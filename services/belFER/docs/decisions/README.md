@@ -32,6 +32,7 @@ current system is described by REQUIREMENTS.md and the code.
 | [0003](0003-plan-days-then-place-and-learn-from-what-fails.md) | Plan the days, place them, learn from the failures | Accepted |
 | [0004](0004-generate-with-fet-verify-with-our-own-rules.md) | Generate with FET, verify with our own rules | Accepted |
 | [0005](0005-soft-constraints-are-what-fet-will-weigh.md) | Soft constraints are whatever FET will weigh | Accepted |
+| [0006](0006-spend-cores-on-seeds-not-on-one-search.md) | Spend cores on seeds, not on one search | Accepted |
 
 Decisions taken before this log existed are recorded in `TECH_STACK.md` and in
 `REQUIREMENTS.md` §2; they have not been back-filled.

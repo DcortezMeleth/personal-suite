@@ -87,6 +87,12 @@ services:
       # away a search that might have finished a minute later. Set a duration
       # here if belFER is ever driven by something that is not watching.
       BELFER_FET_TIMEOUT: "0"
+      # FET's generation is single-threaded and takes no flag for cores, so
+      # the only way to spend more than one on a timetable is to search it
+      # several times over on different dice and keep the first week that
+      # comes back. See ADR 0006. Match this to the cores this host actually
+      # gives the container, not to the cores the host has.
+      BELFER_FET_WORKERS: "${BELFER_FET_WORKERS:-4}"
     ports:
       - "8081:8081"
     depends_on:
