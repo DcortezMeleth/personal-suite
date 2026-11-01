@@ -34,6 +34,27 @@ object FetRunner:
     /** Zero or less means no bound: the person watching decides. */
     timeout: FiniteDuration = Duration.Zero,
     /**
+     * How many searches to run at once, each on its own dice.
+     *
+     * FET's generation is single-threaded — there is no flag for cores or
+     * memory, and the whole option list is input, output and formatting — so
+     * the only way to spend a second core on one timetable is to search it
+     * twice over with different random seeds and keep whichever finishes.
+     *
+     * This is worth much more than the cores it costs. The search is a
+     * randomised backtracking one, and those have heavy-tailed runtimes: the
+     * same school that wedged for fifteen hours on one seed reaches the same
+     * place in three seconds on another and then either sails past or sticks
+     * again, depending entirely on the order the dice chose. Racing several
+     * cuts off the bad tail rather than dividing the average.
+     *
+     * Four by default, which is a compromise rather than a measurement. Set
+     * it to the number of cores whatever runs FET actually has — on a laptop
+     * that is the container runtime's allowance, not the host's, and the two
+     * are routinely very different.
+     */
+    workers: Int = 4,
+    /**
      * Where the file is written for FET to read.
      *
      * Not the system temporary directory, which on macOS is under /var/folders
@@ -71,6 +92,11 @@ object FetRunner:
       Config(
         command = command,
         timeout = FiniteDuration(fet.getDuration("timeout").toMillis, MILLISECONDS),
+        // Optional, because a configuration written before this existed is
+        // still a valid one and should keep working. Bounded at both ends:
+        // each worker is a whole FET process, so a mistyped number here is a
+        // machine brought to its knees rather than a setting that reads oddly.
+        workers = (if fet.hasPath("workers") then fet.getInt("workers") else 4).max(1).min(16),
         workRoot = Path.of(fet.getString("work-root")))
 
   case class Outcome(result: FetImport.Result, report: PlanCheck.Report, millis: Long,

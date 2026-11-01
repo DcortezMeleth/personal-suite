@@ -667,6 +667,16 @@ object SolveCli extends IOApp:
   private def report(result: PlanGenerator.Result): IO[ExitCode] = result match
     case PlanGenerator.Result.NoSchool =>
       IO.println("Nie ma takiej szkoły").as(ExitCode(1))
+    // Reachable from here only on a Ctrl-C that the shell turns into a
+    // SIGTERM the searches see; printed rather than swallowed, because where
+    // it got stuck is the reason to have been watching.
+    case PlanGenerator.Result.Stopped(diagnosis, millis) =>
+      for
+        _ <- IO.println(f"przerwane po ${millis / 1000.0}%.1f s")
+        _ <- diagnosis.traverse_(d =>
+               IO.println(s"  umieszczono ${d.placed} z ${d.total}" +
+                 d.blocking.fold("")(what => s", dalej nie przeszło: $what")))
+      yield ExitCode(1)
     case PlanGenerator.Result.Rejected(r, placed, unplaced, millis) =>
       for
         _ <- IO.println(f"ułożone w ${millis / 1000.0}%.1f s, $placed zajęć, $unplaced bez godziny")

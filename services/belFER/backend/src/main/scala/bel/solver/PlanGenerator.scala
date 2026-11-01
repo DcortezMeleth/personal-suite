@@ -2,7 +2,8 @@ package bel.solver
 
 import bel.domain.*
 import bel.repository.{PlanRepository, SnapshotLoader}
-import cats.effect.IO
+import cats.effect.{Deferred, IO, Ref}
+import cats.syntax.parallel.*
 import java.util.UUID
 
 /**
@@ -52,6 +53,73 @@ object PlanGenerator:
      */
     case Stopped(diagnosis: Option[FetRunner.Diagnosis], millis: Long)
 
+  /**
+   * Run several searches at once and keep whichever gets there first.
+   *
+   * Over any search at all rather than over FET specifically, because what is
+   * worth pinning down here is the race — that the first good week wins, that
+   * the losers are cancelled, that one broken search does not sink the rest,
+   * that a hopeless school still reports the attempt which got furthest — and
+   * none of that should need FET installed to check.
+   *
+   * The first sound and complete week completes the deferred, which wins the
+   * race and cancels everything still going; cancelling a search unwinds its
+   * hold on its process, which kills it.
+   */
+  def race(workers: Int, control: FetRunner.Control,
+           search: FetRunner.Control => IO[FetRunner.Outcome]): IO[FetRunner.Outcome] =
+    val many = workers.max(1)
+    if many == 1 then search(control)
+    else
+      for
+        // Each search keeps its own high-water mark; the screen wants the best
+        // of them, and it must not go backwards because one worker happened to
+        // report after another that was further along.
+        best  <- Ref[IO].of(0)
+        also  <- Ref[IO].of(List.empty[FetRunner.Outcome])
+        broke <- Ref[IO].of(List.empty[Throwable])
+        won   <- Deferred[IO, FetRunner.Outcome]
+        watch  = (p: FetRunner.Progress) =>
+                   best.modify(was => if p.placed > was then (p.placed, true) else (was, false))
+                     .flatMap(IO.whenA(_)(control.onProgress(p)))
+        // One search failing is not the generation failing: others are still
+        // going, and what broke is usually local to the process — a container
+        // that would not start, a workspace that could not be written. The
+        // failure is kept for the one case where it is the answer, which is
+        // every search failing.
+        one    = search(control.copy(onProgress = watch)).attempt.flatMap {
+                   case Right(o) if o.report.sound && o.result.complete => won.complete(o).void
+                   case Right(o)    => also.update(o :: _)
+                   case Left(error) => broke.update(error :: _)
+                 }
+        // Whichever happens first: somebody wins, or they all give up.
+        ended <- List.fill(many)(one).parSequence_.race(won.get)
+        out   <- ended match
+                   case Right(winner) => IO.pure(winner)
+                   case Left(_)       => bestOfTheRest(also, broke)
+      yield out
+
+  /**
+   * What to report when no search produced a usable week.
+   *
+   * The one that placed the most got furthest before sticking, so its account
+   * of what defeated it is the least speculative. A stopped search outranks
+   * the rest regardless: somebody asked for that and is waiting to be told
+   * about it, not about a sibling that happened to fail differently.
+   */
+  private def bestOfTheRest(also: Ref[IO, List[FetRunner.Outcome]],
+                            broke: Ref[IO, List[Throwable]]): IO[FetRunner.Outcome] =
+    for
+      all     <- also.get
+      errors  <- broke.get
+      stopped  = all.filter(_.stopped)
+      pick     = (if stopped.nonEmpty then stopped else all)
+                   .maxByOption(o => o.diagnosis.map(_.placed).getOrElse(o.result.placed.size))
+      // Every search failed, so the failure is the answer after all.
+      outcome <- IO.fromOption(pick)(errors.headOption.getOrElse(
+                   RuntimeException("Żadne z układań nie zwróciło wyniku")))
+    yield outcome
+
 class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunner.Config):
 
   import PlanGenerator.Result
@@ -73,9 +141,31 @@ class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunne
   def generateFrom(schoolId: UUID, snapshot: SchoolSnapshot, rooms: List[Room],
                    control: FetRunner.Control = FetRunner.Control()): IO[Result] =
     for
-      outcome <- FetRunner(snapshot, rooms, fet, control = control)
+      outcome <- race(snapshot, rooms, control)
       result  <- keepIfSound(schoolId, rooms, outcome)
     yield result
+
+  /**
+   * Search the same week several times over, on different dice, and keep
+   * whichever gets there first.
+   *
+   * This is the only way to spend more than one core on one timetable: FET's
+   * generation is single-threaded and takes no flag for cores or memory. It
+   * is also worth far more than the cores it costs, because a randomised
+   * backtracking search has a heavy-tailed runtime — the seed decides the
+   * order activities are tried in, and so decides whether this particular
+   * week is three seconds of work or fifteen hours of thrashing. Racing
+   * several cuts the bad tail off instead of dividing the average.
+   *
+   * The first sound and complete week wins and the rest are cancelled, which
+   * unwinds their hold on their processes and kills them. If none wins, the
+   * fallback is the one that got furthest, so a school that cannot be laid
+   * out at all still reports the best account of why.
+   */
+  private def race(snapshot: SchoolSnapshot, rooms: List[Room],
+                   control: FetRunner.Control): IO[FetRunner.Outcome] =
+    PlanGenerator.race(fet.workers, control, c =>
+      FetRunner(snapshot, rooms, fet, control = c))
 
   private def keepIfSound(schoolId: UUID, rooms: List[Room],
                           outcome: FetRunner.Outcome): IO[Result] =
