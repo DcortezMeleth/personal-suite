@@ -77,9 +77,9 @@ object PlanView:
    *
    * One shape for all of them rather than a union, because the screen asks
    * the same question repeatedly and wants the same answer back each time
-   * with more of it filled in. `status` is "running", "saved", "rejected" or
-   * "failed" — FET answering is not the same as FET answering well, and a
-   * week that breaks a rule is shown rather than kept.
+   * with more of it filled in. `status` is "running", "saved", "rejected",
+   * "stopped", "cancelled" or "failed" — FET answering is not the same as FET
+   * answering well, and a week that breaks a rule is shown rather than kept.
    */
   case class Generation(
     status: String,
@@ -179,9 +179,11 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
     case POST -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generate" =>
       generation.start(schoolId).flatMap(run => Accepted(view(run).asJson))
 
-    // Stopping one somebody no longer wants. Nothing is salvaged — FET writes
-    // its answer only when it finishes — so this buys back the wait rather
-    // than a worse plan.
+    // Stopping one somebody no longer wants. Asked for rather than imposed:
+    // FET answers SIGTERM by writing down how far it got and which lesson it
+    // could not get past, so the run settles carrying that rather than
+    // vanishing. No plan comes of it — a week missing half its lessons is not
+    // a worse week, it is not one — and the school's own plan is untouched.
     case DELETE -> Root / "schools" / UUIDVar(schoolId) / "plans" / "generation" =>
       generation.cancel(schoolId).flatMap {
         case None      => NotFound(ApiError.body("Nie uruchamiano jeszcze układania"))
@@ -236,6 +238,22 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
 
       case PlanGenerationRuns.State.Finished(PlanGenerator.Result.NoSchool) =>
         base.copy(status = "failed", message = Some("Nie ma takiej szkoły"))
+
+      // Stopped on purpose, which is not a failure and is not nothing either:
+      // FET says how far it got and which lesson it could not get past, and
+      // that is the answer somebody stopping a stuck run came for.
+      case PlanGenerationRuns.State.Finished(
+             PlanGenerator.Result.Stopped(diagnosis, millis)) =>
+        val where = diagnosis.map { d =>
+          val got = s"Przerwano po umieszczeniu ${d.placed} z ${d.total} zajęć."
+          d.blocking.fold(got)(what => s"$got Dalej nie przeszło: $what.")
+        }
+        base.copy(
+          status = "stopped",
+          tookMillis = Some(millis),
+          message = Some(where.getOrElse("Układanie przerwane — plan pozostał bez zmian.")),
+          placedSoFar = diagnosis.map(_.placed).orElse(base.placedSoFar),
+          activities = diagnosis.map(_.total).orElse(base.activities))
 
       case PlanGenerationRuns.State.Finished(
              PlanGenerator.Result.Rejected(report, placed, unplaced, millis)) =>

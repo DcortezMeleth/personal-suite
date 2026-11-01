@@ -39,16 +39,28 @@ object PlanGenerator:
      */
     case Rejected(report: PlanCheck.Report, placed: Int, unplaced: Int, millis: Long)
     case Saved(plan: Plan, report: PlanCheck.Report, placed: Int, millis: Long)
+    /**
+     * Called off by the person who started it.
+     *
+     * No plan comes of this, and that is not a shortcoming being worked
+     * around. FET builds a week by placing activities one at a time, so what
+     * it has when interrupted is a partial assignment — a few hundred of a
+     * thousand lessons — and a timetable missing half its lessons is not a
+     * worse timetable, it is not one. What is worth keeping is its account of
+     * where it got stuck, which is the thing a person stopping a run actually
+     * wants to know.
+     */
+    case Stopped(diagnosis: Option[FetRunner.Diagnosis], millis: Long)
 
 class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunner.Config):
 
   import PlanGenerator.Result
 
   def generate(schoolId: UUID,
-               onProgress: FetRunner.Progress => IO[Unit] = _ => IO.unit): IO[Result] =
+               control: FetRunner.Control = FetRunner.Control()): IO[Result] =
     loader.loadWithRooms(schoolId).flatMap {
       case None                    => IO.pure(Result.NoSchool)
-      case Some((snapshot, rooms)) => generateFrom(schoolId, snapshot, rooms, onProgress)
+      case Some((snapshot, rooms)) => generateFrom(schoolId, snapshot, rooms, control)
     }
 
   /**
@@ -59,16 +71,18 @@ class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunne
    * having it loaded again underneath, which would silently ignore the flags.
    */
   def generateFrom(schoolId: UUID, snapshot: SchoolSnapshot, rooms: List[Room],
-                   onProgress: FetRunner.Progress => IO[Unit] = _ => IO.unit): IO[Result] =
+                   control: FetRunner.Control = FetRunner.Control()): IO[Result] =
     for
-      outcome <- FetRunner(snapshot, rooms, fet, onProgress = onProgress)
+      outcome <- FetRunner(snapshot, rooms, fet, control = control)
       result  <- keepIfSound(schoolId, rooms, outcome)
     yield result
 
   private def keepIfSound(schoolId: UUID, rooms: List[Room],
                           outcome: FetRunner.Outcome): IO[Result] =
     val placed = outcome.result.placed.size
-    if !outcome.report.sound || !outcome.result.complete then
+    if outcome.stopped then
+      IO.pure(Result.Stopped(outcome.diagnosis, outcome.millis))
+    else if !outcome.report.sound || !outcome.result.complete then
       IO.pure(Result.Rejected(outcome.report, placed, outcome.result.unplaced, outcome.millis))
     else
       for

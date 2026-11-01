@@ -190,6 +190,17 @@ export function PlanPage() {
           onDismiss={() => setRun(null)}
         />
       );
+    // Stopping a stuck run is how you find out why it was stuck: FET says
+    // how far it got and which lesson defeated it. Shown as information
+    // rather than as a failure, because stopping it was the right call.
+    if (run.status === "stopped")
+      return (
+        <AlertBanner
+          level="info"
+          message={`${run.message ?? "Układanie przerwane."} Plan szkoły pozostał bez zmian.`}
+          onDismiss={() => setRun(null)}
+        />
+      );
     if (run.status === "cancelled")
       return (
         <AlertBanner

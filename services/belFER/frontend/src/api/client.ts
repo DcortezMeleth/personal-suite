@@ -340,7 +340,7 @@ export interface RuleResult {
  * not kept. A plan only becomes the school's when it passes.
  */
 export interface Generation {
-  status: "running" | "saved" | "rejected" | "failed" | "cancelled";
+  status: "running" | "saved" | "rejected" | "failed" | "cancelled" | "stopped";
   startedAt: string;
   finishedAt: string | null;
   tookMillis: number | null;

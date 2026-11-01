@@ -75,7 +75,11 @@ object FetRunner:
 
   case class Outcome(result: FetImport.Result, report: PlanCheck.Report, millis: Long,
                      /** What it was rolled with, so the week can be had again. */
-                     seed: FetSeed)
+                     seed: FetSeed,
+                     /** Whether somebody called it off rather than it ending. */
+                     stopped: Boolean = false,
+                     /** Where it got to, when it did not get all the way. */
+                     diagnosis: Option[Diagnosis] = None)
 
   /**
    * How far FET has got, while it is still going.
@@ -100,6 +104,33 @@ object FetRunner:
   case class Progress(placed: Int, total: Int)
 
   /**
+   * What a caller gives a run so it can watch it and call it off.
+   *
+   * `stopAsked` is polled once a second rather than handed a signal, because
+   * the wait already wakes once a second and a poll needs no extra machinery
+   * on either side. Defaults make an unwatched run — the command line's —
+   * read exactly as it did before.
+   */
+  case class Control(
+    onProgress: Progress => IO[Unit] = _ => IO.unit,
+    stopAsked: IO[Boolean] = IO.pure(false))
+
+  /** How the search ended. */
+  private enum Ending:
+    case Finished, TimedOut, Stopped
+
+  /**
+   * Where a search that did not finish got to, in FET's own words.
+   *
+   * FET writes `logs/difficult_activities.txt` when it is interrupted: how
+   * many of its difficulty-ordered activities it placed, and the next one —
+   * the one it could not get past. That names a teacher, a subject and a
+   * class, which is the first thing worth knowing about a run that will not
+   * converge, and is far more use than the partial timetable beside it.
+   */
+  case class Diagnosis(placed: Int, total: Int, blocking: Option[String])
+
+  /**
    * Lay out the school, read the answer back, and check it.
    *
    * The checking is not optional and does not live behind a flag. A timetable
@@ -107,19 +138,26 @@ object FetRunner:
    */
   def apply(snapshot: SchoolSnapshot, rooms: List[Room], config: Config,
             seed: Option[FetSeed] = None,
-            onProgress: Progress => IO[Unit] = _ => IO.unit): IO[Outcome] =
+            control: Control = Control()): IO[Outcome] =
     workspace(config.workRoot).use { dir =>
       val written = FetExport(snapshot, rooms)
       for
         dice <- seed.fold(FetSeed.random)(IO.pure)
         _ <- IO.blocking(Files.writeString(dir.resolve("school.fet"), written.xml))
         started <- IO.monotonic
-        _ <- run(config, dir, dice, written.activities, onProgress)
-        xml <- readAnswer(dir)
+        ending <- run(config, dir, dice, written.activities, control)
         done <- IO.monotonic
-        result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
+        stopped = ending == Ending.Stopped
+        // A stopped search has usually written a partial week, but it may
+        // have been called off before it wrote anything at all, so absence is
+        // an outcome here rather than a fault. A finished one must have left
+        // the file, and still says so if it has not.
+        xml <- if stopped then readAnswerIfAny(dir) else readAnswer(dir).map(Some(_))
+        diagnosis <- readDiagnosis(dir, written.activities)
+        result = xml.fold(FetImport.Result(Nil, written.means.size))(
+          FetImport(_, written.means, FetExport.dayNames(snapshot.teachingDays)))
         report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed, rooms), rooms)
-      yield Outcome(result, report, (done - started).toMillis, dice)
+      yield Outcome(result, report, (done - started).toMillis, dice, stopped, diagnosis)
     }
 
   private def workspace(root: Path): Resource[IO, Path] =
@@ -153,7 +191,7 @@ object FetRunner:
    * one queues behind it.
    */
   private def run(config: Config, dir: Path, seed: FetSeed,
-                  total: Int, onProgress: Progress => IO[Unit]): IO[Unit] =
+                  total: Int, control: Control): IO[Ending] =
     // The seed goes on the end, where trailing flags work for both shapes the
     // command takes — fet-cl directly, or docker run wrapping it.
     val argv = config.command.map(_.replace("{dir}", dir.toString)) ++ seed.args
@@ -174,22 +212,28 @@ object FetRunner:
 
     started.use { p =>
       for
-        finished <- awaitExit(p, config.timeout, dir, total, onProgress)
-        said     <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
+        ending <- awaitExit(p, config.timeout, dir, total, control)
+        said   <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
         // No log tail here: FET prints nothing at all while it searches, so
         // everything it has said by now is the start-up dialogs, and pasting
         // those under "it did not finish" buries the one sentence that matters.
-        _        <- IO.raiseUnless(finished)(RuntimeException(
-                      s"Nie skończył w ${config.timeout.toMinutes} min i został przerwany. " +
-                      "Poluzuj twarde ograniczenia albo zdejmij limit czasu."))
-        code     <- IO.blocking(p.exitValue())
+        _      <- IO.raiseWhen(ending == Ending.TimedOut)(RuntimeException(
+                    s"Nie skończył w ${config.timeout.toMinutes} min i został przerwany. " +
+                    "Poluzuj twarde ograniczenia albo zdejmij limit czasu."))
+        code   <- IO.blocking(p.exitValue())
         // FET reports a failure to lay out the week in its exit code, and says
         // which rule defeated it on the way out. Carrying that through verbatim
         // is better than translating it: it is FET's vocabulary and a person
         // reading it is better served by the original.
-        _        <- IO.raiseWhen(code != 0)(RuntimeException(
-                      s"fet-cl zakończył się kodem $code:\n${complaint(said)}"))
-      yield ()
+        //
+        // A search we stopped ourselves exits zero, having written what it
+        // had, so there is nothing to raise about — but the check is written
+        // against the ending rather than the code, because relying on FET's
+        // exit code to tell a stop from a success would be relying on it not
+        // to be zero when it is.
+        _      <- IO.raiseWhen(ending == Ending.Finished && code != 0)(RuntimeException(
+                    s"fet-cl zakończył się kodem $code:\n${complaint(said)}"))
+      yield ending
     }
 
   /**
@@ -220,26 +264,53 @@ object FetRunner:
    * lands within a second and the resource above then kills the process.
    */
   private def awaitExit(process: java.lang.Process, within: FiniteDuration,
-                        dir: Path, total: Int,
-                        onProgress: Progress => IO[Unit]): IO[Boolean] =
+                        dir: Path, total: Int, control: Control): IO[Ending] =
     val unbounded = within <= Duration.Zero
-    def waitFrom(left: FiniteDuration, said: Int): IO[Boolean] =
-      if !unbounded && left <= Duration.Zero then IO.pure(false)
+    def waitFrom(left: FiniteDuration, said: Int): IO[Ending] =
+      if !unbounded && left <= Duration.Zero then IO.pure(Ending.TimedOut)
       else
         val slice = if unbounded then 1.second else left.min(1.second)
         IO.blocking(process.waitFor(slice.toMillis, TimeUnit.MILLISECONDS)).flatMap {
-          case true  => IO.pure(true)
+          case true  => IO.pure(Ending.Finished)
           case false =>
-            // Between slices is also where progress is picked up, because the
-            // slices already exist and a second is the right grain for a
-            // number a person is watching.
-            furthest(dir).flatMap { reached =>
-              val fresh = reached.exists(_ != said)
-              IO.whenA(fresh)(onProgress(Progress(reached.get, total)))
-                .as(reached.getOrElse(said))
-            }.flatMap(now => waitFrom(left - slice, now))
+            control.stopAsked.flatMap {
+              case true  => askItToStop(process)
+              case false =>
+                // Between slices is also where progress is picked up, because
+                // the slices already exist and a second is the right grain for
+                // a number a person is watching.
+                furthest(dir).flatMap { reached =>
+                  val fresh = reached.exists(_ != said)
+                  IO.whenA(fresh)(control.onProgress(Progress(reached.get, total)))
+                    .as(reached.getOrElse(said))
+                }.flatMap(now => waitFrom(left - slice, now))
+            }
         }
     waitFrom(within, -1)
+
+  /**
+   * Stop the search and let it write down where it got to.
+   *
+   * FET's own documentation is explicit about this and we were not using it:
+   * on SIGTERM it writes the current timetable, the furthest one it reached
+   * and its account of what defeated it, and then exits — cleanly, with
+   * status zero. SIGINT, by contrast, stops it dead and writes nothing.
+   *
+   * `destroy` is SIGTERM on every platform we run on, and the signal reaches
+   * FET through `docker run`, which proxies signals to the process it starts.
+   * Measured on the real school: it lands in about two seconds.
+   *
+   * The wait afterwards is what makes this worth doing at all — returning
+   * before FET has written would delete the workspace out from under it. The
+   * bound is generous because the only thing it protects against is a FET
+   * that has stopped answering, and the resource that holds the process will
+   * kill it outright anyway.
+   */
+  private def askItToStop(process: java.lang.Process): IO[Ending] =
+    IO.blocking {
+      process.destroy()
+      process.waitFor(60, TimeUnit.SECONDS)
+    }.as(Ending.Stopped)
 
   /**
    * How many activities FET has placed at its best so far.
@@ -265,16 +336,60 @@ object FetRunner:
   /**
    * FET writes a directory of timetables, in several shapes, named after the
    * input file. The one with the placements in it is the activities list.
+   *
+   * Which one, though, is not a question this used to ask. A finished run
+   * leaves `timetables/school/`; an interrupted one leaves two more beside
+   * it — `school-current/`, where it happened to be, and `school-highest/`,
+   * the furthest it ever reached. Taking the first match out of a directory
+   * walk was picking between those by filesystem order, which is to say
+   * arbitrarily. They are now ranked: the finished week if there is one, else
+   * the best partial week, and only then where it happened to stop.
    */
   private def readAnswer(dir: Path): IO[String] =
-    IO.blocking {
-      val found = Files.walk(dir.resolve("out"))
-        .filter(p => p.getFileName.toString.endsWith("_activities.xml"))
-        .findFirst()
-      if !found.isPresent then
-        throw RuntimeException("fet-cl nie zostawił pliku z rozkładem zajęć")
-      Files.readString(found.get)
+    readAnswerIfAny(dir).flatMap {
+      case Some(xml) => IO.pure(xml)
+      case None      => IO.raiseError(RuntimeException("fet-cl nie zostawił pliku z rozkładem zajęć"))
     }
+
+  private def readAnswerIfAny(dir: Path): IO[Option[String]] =
+    IO.blocking {
+      val timetables = dir.resolve("out").resolve("timetables")
+      if !Files.isDirectory(timetables) then None
+      else
+        // Lower sorts first, and a run that finished has only the first kind.
+        def rank(p: Path): Int =
+          val name = p.getParent.getFileName.toString
+          if name.endsWith("-highest") then 1 else if name.endsWith("-current") then 2 else 0
+        val found = Files.walk(timetables)
+          .filter(p => p.getFileName.toString.endsWith("_activities.xml"))
+          .sorted((a, b) => rank(a) - rank(b))
+          .findFirst()
+        if found.isPresent then Some(Files.readString(found.get)) else None
+    }
+
+  /**
+   * Where a search that did not finish got to, in FET's own words.
+   *
+   * Written only when FET is interrupted, which is exactly when it is wanted.
+   * The headline counts the activities it placed; the line after names the one
+   * it could not — a teacher, a subject and a class, in the names we gave it.
+   *
+   * Everything here is best-effort. A diagnosis that cannot be read is a
+   * diagnosis we do without, never a run that fails for want of one.
+   */
+  private val Managed = """scheduled correctly the first (\d+)""".r
+  private val Blocking = """(?m)^Id: (.+)$""".r
+
+  private def readDiagnosis(dir: Path, total: Int): IO[Option[Diagnosis]] =
+    IO.blocking {
+      val file = dir.resolve("out").resolve("logs").resolve("difficult_activities.txt")
+      if !Files.exists(file) then None
+      else
+        val said = Files.readString(file)
+        Managed.findFirstMatchIn(said).map(m =>
+          Diagnosis(m.group(1).toInt, total,
+            Blocking.findFirstMatchIn(said).map(_.group(1).trim)))
+    }.handleError(_ => None)
 
   /**
    * The placements, in the shape the database keeps them.

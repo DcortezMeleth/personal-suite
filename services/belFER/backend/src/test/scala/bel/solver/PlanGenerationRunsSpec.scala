@@ -101,21 +101,33 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
     assert(first.running && second.running, "each press begins a run of its own")
 
   /**
-   * Stopping has to reach the search, not merely relabel it. The fiber is the
-   * only handle on a run already going, which is why the registry keeps it.
+   * Stopping has to reach the search, not merely relabel it.
+   *
+   * It is asked for rather than imposed: the registry raises a flag, the
+   * search reads it and winds itself up. That is what lets FET write down
+   * where it got to, and it is the part worth pinning — a stop that does not
+   * reach the search would leave the run saying "running" for ever.
    */
-  test("a run can be stopped, and says it was"):
+  test("a run can be stopped, and the search is the one that sees it"):
     val after = withRuns_cancelled
-    assert(after.map(_.state) === Some(PlanGenerationRuns.State.Cancelled), after.toString)
+    assert(after.map(_.state) === Some(
+      PlanGenerationRuns.State.Finished(stoppedAt432)), after.toString)
     assert(after.flatMap(_.finishedAt).isDefined, "a stopped run says when it stopped")
     assert(after.exists(!_.running))
+
+  private val stoppedAt432 = PlanGenerator.Result.Stopped(
+    Some(FetRunner.Diagnosis(432, 1331, Some("Kowalska Anna - Matematyka - 1A"))), millis = 7)
 
   private def withRuns_cancelled =
     (for
       reached <- Deferred[IO, Unit]
       result <- Supervisor[IO].use { s =>
-                  // Never finishes on its own, so only cancellation ends it.
-                  PlanGenerationRuns.from((_, _) => reached.complete(()) *> IO.never, s).flatMap { runs =>
+                  // Stands in for FET: runs until asked to stop, then reports
+                  // where it got to, exactly as the real search does.
+                  val search = (_: UUID, control: FetRunner.Control) =>
+                    reached.complete(()) *>
+                      until(control.stopAsked).as(stoppedAt432)
+                  PlanGenerationRuns.from(search, s).flatMap { runs =>
                     for
                       _     <- runs.start(school)
                       _     <- reached.get
@@ -175,8 +187,8 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
       gate   <- Deferred[IO, Unit]
       result <- Supervisor[IO].use { s =>
                   PlanGenerationRuns.from(
-                    (_, note) =>
-                      note(FetRunner.Progress(432, 1331)) *> gate.get.as(saved), s)
+                    (_, control) =>
+                      control.onProgress(FetRunner.Progress(432, 1331)) *> gate.get.as(saved), s)
                     .flatMap { runs =>
                       for
                         _       <- runs.start(school)

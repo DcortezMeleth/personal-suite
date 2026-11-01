@@ -2,7 +2,6 @@ package bel.solver
 
 import cats.effect.{Fiber, IO, Ref}
 import cats.effect.std.Supervisor
-import cats.syntax.foldable.*
 import java.time.Instant
 import java.util.UUID
 
@@ -51,6 +50,12 @@ object PlanGenerationRuns:
      */
     progress: Option[FetRunner.Progress] = None,
     /**
+     * Set when somebody has asked this run to stop. The search reads it once
+     * a second and winds itself up; the run then settles as `Stopped` with
+     * whatever FET managed to say about where it got to.
+     */
+    stopping: Boolean = false,
+    /**
      * Kept so the run can be stopped: the fiber is the only handle on a
      * search already running. Not part of what a screen is told — PlanRoutes
      * builds its own view — and never compared, which is why `running` asks
@@ -71,12 +76,12 @@ object PlanGenerationRuns:
    * exception becomes a reported failure rather than a lost fiber — and none
    * of that should need FET installed to check.
    */
-  def from(generate: (UUID, FetRunner.Progress => IO[Unit]) => IO[PlanGenerator.Result],
+  def from(generate: (UUID, FetRunner.Control) => IO[PlanGenerator.Result],
            supervisor: Supervisor[IO]): IO[PlanGenerationRuns] =
     Ref[IO].of(Map.empty[UUID, Run]).map(new PlanGenerationRuns(generate, supervisor, _))
 
 class PlanGenerationRuns private (
-  generate: (UUID, FetRunner.Progress => IO[Unit]) => IO[PlanGenerator.Result],
+  generate: (UUID, FetRunner.Control) => IO[PlanGenerator.Result],
   supervisor: Supervisor[IO],
   runs: Ref[IO, Map[UUID, PlanGenerationRuns.Run]]
 ):
@@ -112,23 +117,27 @@ class PlanGenerationRuns private (
   /**
    * Stop a search somebody no longer wants.
    *
-   * Nothing is salvaged from it: FET writes its answer only on finishing, so
-   * a search interrupted halfway has produced no week to keep. What this buys
-   * is the half hour back — the freedom to change a setting and try again
-   * rather than waiting out a run already known to be wrong.
+   * This used to cancel the fiber, which unwound FetRunner's hold on the
+   * process and killed it — correct, and wasteful. FET answers SIGTERM by
+   * writing down the furthest week it reached and its account of what
+   * defeated it, and killing the fiber threw all of that away along with the
+   * workspace it was written in.
    *
-   * Cancelling unwinds FetRunner's hold on the process, which kills it. That
-   * lands within a second because the wait there is sliced; one long blocking
-   * wait could not have been interrupted at all.
+   * So the stop is asked for rather than imposed: the flag goes up, the
+   * search reads it within the second, and the run settles as `Stopped`
+   * carrying the diagnosis. Cancelling the fiber remains what happens if the
+   * server goes down, and still kills the process; it is simply no longer the
+   * ordinary path.
    */
   def cancel(schoolId: UUID): IO[Option[Run]] =
-    runs.get.map(_.get(schoolId)).flatMap {
-      case Some(run) if run.running => run.fiber.traverse_(_.cancel) *> status(schoolId)
-      case other                    => IO.pure(other)
-    }
+    runs.updateAndGet(_.updatedWith(schoolId)(_.map(run =>
+      if run.running then run.copy(stopping = true) else run))).map(_.get(schoolId))
 
   private def run(schoolId: UUID): IO[Unit] =
-    generate(schoolId, note(schoolId)).attempt.flatMap { outcome =>
+    val control = FetRunner.Control(
+      onProgress = note(schoolId),
+      stopAsked = runs.get.map(_.get(schoolId).exists(_.stopping)))
+    generate(schoolId, control).attempt.flatMap { outcome =>
       val state = outcome match
         case Right(result) => State.Finished(result)
         // The message is what the planner is shown, so it says what failed
