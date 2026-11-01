@@ -156,3 +156,62 @@ Blocked on the second: whether the school holds those numbers.
 And a caveat against reading the table too warmly. 1089 is not a timetable.
 There is a second wall past the first and it has not been identified. *Begins*
 turns impossible into hard.
+
+---
+
+## Second postscript, 2026-11-01 — the wall behind the first one
+
+With attendance modelled the week reaches 1090 activities of 1331 and stops.
+The same ablation method found what stops it, and this time the answer is not
+a constraint we chose badly. It is the school's arithmetic.
+
+Seven constraint families were removed one at a time from the real export.
+Dropping room preferences, one-block-per-day, the cross-class same-time
+coupling, the daily hour cap or the teacher gap limits changes nothing worth
+reporting. Dropping **`ConstraintStudentsSetMaxGapsPerDay`** — "a class never
+has a gap", hard constraint 13 — completes the timetable: 1331 of 1331.
+
+It is not a fix. Measured on that completed week, the classes carry **252
+gap-hours between them**, six to fifteen each, which is not a worse timetable
+so much as one no school would hang in a corridor.
+
+**The reason is capacity.** Counting the hours that actually occupy a class —
+its own lessons, one of each pair of halves, and its share of every
+cross-class unit — the second years carry 37 and 38 hours of a 40-slot week.
+Verified twice, from the database and by counting occupied hours in the file
+FET reads, because the first attempt said 44 and was wrong: it charged a class
+once per group of a PE unit rather than once per unit, which is the exact
+mistake the comment above the cross-class export warns about.
+
+At 38 hours, with a cap of eight lessons a day and no gaps permitted, a class
+has exactly one shape: 8/8/8/8/6. Four days with every slot filled and no
+slack anywhere — and only then do PE alignment, the attendance cohorts,
+one-subject-per-day and fifteen teachers' restricted availability get their
+turn.
+
+REQUIREMENTS called this before any code was written, under "Secondary risk —
+feasibility, not optimality": *"38 weekly hours into 40 slots, with no class
+gaps and every day starting at slot 1, leaves almost no slack … the first real
+runs are likely to come back infeasible."* It was right, and it is worth
+saying plainly that the remaining difficulty is the school's timetable being
+95% full under a hard contiguity rule rather than anything the exporter is
+doing wrong.
+
+**Where slack can come from**, in the order they are worth trying:
+
+1. **Block shapes.** The arkusz states hours and never their shape, so an
+   import is almost all single lessons — 1331 activities where a week with its
+   doubles paired is 1065. It does not reduce the hours, but it reduces how
+   many independent decisions make them up, and days pack more cleanly. Worth
+   32% → 58% on its own, measured while the attendance wall was still in
+   place.
+2. **A ninth slot.** Capacity 40 → 45, and the second years stop being forced
+   into perfectly packed days. A question for the school rather than for us.
+3. **Gaps where they are needed.** The fallback, and the one to reach for last:
+   a class gap is a window for everybody in the class, which is the thing the
+   rule exists to prevent.
+
+A note against reaching for the first of those too confidently: the ablation
+figures other than the completion were read while the runs were still going,
+so they rank nothing against each other. Only "this one completes and the
+others do not" is load-bearing.
