@@ -26,8 +26,12 @@ function send<T>(method: string, path: string, body?: unknown): Promise<T> {
 }
 
 // 204 responses have no body, so they cannot go through unwrap's json().
-async function sendNoContent(method: string, path: string): Promise<void> {
-  const response = await fetch(`${BASE}${path}`, { method });
+async function sendNoContent(method: string, path: string, body?: unknown): Promise<void> {
+  const response = await fetch(`${BASE}${path}`, {
+    method,
+    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   if (!response.ok) {
     let message = `${response.status} ${response.statusText}`;
     try {
@@ -133,6 +137,20 @@ export interface SubjectInput {
   optional: boolean;
   requiredRoomKindId: string | null;
   roomRequirementHard: boolean;
+}
+
+/**
+ * How many of a class attend one optional subject.
+ *
+ * `attending === null` means nobody has said, which is not the same as nobody
+ * attending: unsaid leaves the solver on the blunter rule that forces the
+ * lesson to the end of the day, and zero is a real answer meaning the subject
+ * is not taught in that class this year.
+ */
+export interface Attendance {
+  classId: string;
+  subjectId: string;
+  attending: number | null;
 }
 
 export interface UnavailabilityBlock {
@@ -453,6 +471,12 @@ export const api = {
   listSubjects: (schoolId: string) => send<Subject[]>("GET", `/schools/${schoolId}/subjects`),
   createSubject: (schoolId: string, input: SubjectInput) =>
     send<Subject>("POST", `/schools/${schoolId}/subjects`, input),
+  listAttendance: (schoolId: string) =>
+    send<Attendance[]>("GET", `/schools/${schoolId}/attendance`),
+
+  setAttendance: (schoolId: string, entry: Attendance) =>
+    sendNoContent("PUT", `/schools/${schoolId}/attendance`, entry),
+
   updateSubject: (id: string, input: SubjectInput) => send<Subject>("PUT", `/subjects/${id}`, input),
   deleteSubject: (id: string) => sendNoContent("DELETE", `/subjects/${id}`),
 

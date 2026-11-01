@@ -45,6 +45,18 @@ case class SchoolSnapshot(
   /** One student taught alone — hours that book a teacher like any other. */
   individualPlans: List[IndividualPlan] = Nil,
   teacherSubjects: Map[UUID, Set[UUID]],
+  /**
+   * How many of a class attend each optional subject, by (class, subject).
+   *
+   * What makes the week legal rather than merely tidy. A subject only part of
+   * a class attends leaves the rest free for that hour, and a pupil left free
+   * mid-day has a window the school does not allow. Told these counts, the
+   * solver sees the pupils who are not in the lesson and keeps its own no-gaps
+   * promise to them; told nothing, it has to be ordered to put the lesson at
+   * the end of the day, which is stricter than the school is and was what made
+   * this school's week impossible. See ADR 0006.
+   */
+  optionalAttendance: Map[(UUID, UUID), Int] = Map.empty,
   roomsOfKind: Map[UUID, Int],
   totalRooms: Int,
   homeroomSubjectCode: String = "zaj. z wych."

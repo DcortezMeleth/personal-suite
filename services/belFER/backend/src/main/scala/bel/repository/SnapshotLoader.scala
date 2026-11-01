@@ -19,7 +19,8 @@ class SnapshotLoader(
   lines: LessonLineRepository,
   crossClass: CrossClassUnitRepository,
   rooms: RoomRepository,
-  individual: IndividualPlanRepository
+  individual: IndividualPlanRepository,
+  attendance: OptionalAttendanceRepository
 ):
 
   def load(schoolId: UUID): IO[Option[SchoolSnapshot]] =
@@ -47,6 +48,7 @@ class SnapshotLoader(
           plans       <- individual.findAll(schoolId)
           allRooms    <- rooms.findRooms(schoolId)
           kinds       <- rooms.findKinds(schoolId)
+          attending   <- attendance.forSchool(schoolId)
         yield Some((SchoolSnapshot(
           settings = school.settings,
           slotsPerDay = slots,
@@ -58,6 +60,7 @@ class SnapshotLoader(
           crossClassUnits = units,
           individualPlans = plans,
           teacherSubjects = allTeachers.map(t => t.id -> t.subjectIds.toSet).toMap,
+          optionalAttendance = attending,
           // Counted from the rooms already in hand rather than asked for one
           // query per kind: findRooms attaches each room's kinds, and the
           // assignment table is keyed on (room, kind) so a room counts once.

@@ -56,6 +56,46 @@ object FetExport:
                       */
                      activities: Int)
 
+  /**
+   * The names of the attendance cohorts in a class, with their sizes.
+   *
+   * Empty unless the school has said who attends what, because "nobody
+   * attends" and "nobody has said" are different answers and only the second
+   * should leave the blunter rule in place. A cohort nobody is in is dropped:
+   * an empty subgroup is a subgroup FET has to carry for nothing.
+   *
+   * The remainder — those attending none of the optional subjects — is the
+   * cohort that matters, because they are the ones who would otherwise be left
+   * waiting while the rest of the class is in a lesson.
+   */
+  private def attendanceCohorts(snapshot: SchoolSnapshot, cls: SchoolClass,
+                                size: Int): List[(String, Int)] =
+    val named = optionalCohortLabels(snapshot, cls)
+    if named.isEmpty then Nil
+    else
+      val taken = named.map(_._3).sum
+      // Past the class size means somebody has been counted twice — a pupil
+      // attending two of them, which this school says does not happen. Kontrola
+      // reports it; here it simply cannot go negative.
+      val rest = (size - taken).max(0)
+      named.map((_, label, n) => (label, n)) ++ (if rest > 0 then List(NoneLabel -> rest) else Nil)
+
+  /** Optional subjects this class attends, as (subject, label, how many). */
+  private def optionalCohortLabels(snapshot: SchoolSnapshot,
+                                   cls: SchoolClass): List[(UUID, String, Int)] =
+    snapshot.subjects.filter(_.optional).sortBy(_.name).zipWithIndex.flatMap { (subject, i) =>
+      snapshot.optionalAttendance.get((cls.id, subject.id))
+        .filter(_ > 0)
+        .map(n => (subject.id, s"o$i", n))
+    }
+
+  /** Those attending none of them, who must not be made to wait. */
+  private val NoneLabel = "ox"
+
+  /** What the group naming a subject's attenders in a class is called. */
+  private def cohortGroup(cls: SchoolClass, subjectId: UUID): String =
+    s"${cls.name}~${subjectId.toString.take(8)}"
+
   /** The day names this file will use, which is how FET answers back. */
   def dayNames(teachingDays: Int): List[String] = SchoolWeek.names(teachingDays)
 
@@ -81,7 +121,18 @@ object FetExport:
      */
     roomHard: Boolean,
     /** Whether a whole class has to fit in the room. */
-    wholeClass: Boolean
+    wholeClass: Boolean,
+    /**
+     * Whether the school has said who attends this, for every class in it.
+     *
+     * When it has, the activity is addressed to those pupils and the rest of
+     * the class is visibly free, so FET's own no-gaps rule keeps them from
+     * waiting and the blunter "ends the day" rule is not written at all. When
+     * it has not — or has for only some of a cross-class unit's classes — the
+     * fallback stays, because a pupil nobody has accounted for must not be
+     * quietly allowed a window.
+     */
+    cohortKnown: Boolean = false
   )
 
   def apply(snapshot: SchoolSnapshot, rooms: List[Room]): Written =
@@ -127,18 +178,47 @@ object FetExport:
     // A class is a year and its two halves are groups, which is how FET says
     // "these two cannot both be somewhere else at once, and either of them
     //  clashes with anything the whole class does".
+    //
+    // Where the school has said who attends religia and who attends etyka,
+    // each half is divided again by that, and a group is written per optional
+    // subject naming the pupils who sit in it. This is the whole point of the
+    // exercise: FET then sees the pupils who are *not* in the lesson, applies
+    // the no-gaps rule it already has to them, and will not leave them waiting
+    // — which is the school's actual rule. Proved against FET directly before
+    // this was written: pin such a lesson to the middle of a day and FET calls
+    // the timetable impossible. See ADR 0006.
     b ++= "<Students_List>\n"
     for cls <- snapshot.classes.sortBy(_.name) do
       val size = cls.studentCount.getOrElse(30)
+      val cohorts = attendanceCohorts(snapshot, cls, size)
       b ++= s"\t<Year>\n\t\t<Name>${esc(cls.name)}</Name>\n"
       b ++= s"\t\t<Number_of_Students>$size</Number_of_Students>\n\t\t<Comments></Comments>\n"
+
+      def subgroup(name: String, n: Int, indent: String): Unit =
+        b ++= s"$indent<Subgroup>\n$indent\t<Name>${esc(name)}</Name>\n"
+        b ++= s"$indent\t<Number_of_Students>$n</Number_of_Students>\n"
+        b ++= s"$indent\t<Comments></Comments>\n$indent</Subgroup>\n"
+
       for half <- List(1, 2) do
-        b ++= s"\t\t<Group>\n\t\t\t<Name>${esc(cls.name)}/$half</Name>\n"
+        val halfName = s"${cls.name}/$half"
+        b ++= s"\t\t<Group>\n\t\t\t<Name>${esc(halfName)}</Name>\n"
         b ++= s"\t\t\t<Number_of_Students>${size / 2}</Number_of_Students>\n"
         b ++= "\t\t\t<Comments></Comments>\n"
-        b ++= s"\t\t\t<Subgroup>\n\t\t\t\t<Name>${esc(cls.name)}/${half}s</Name>\n"
-        b ++= s"\t\t\t\t<Number_of_Students>${size / 2}</Number_of_Students>\n"
-        b ++= "\t\t\t\t<Comments></Comments>\n\t\t\t</Subgroup>\n"
+        if cohorts.isEmpty then subgroup(s"${halfName}s", size / 2, "\t\t\t")
+        else
+          for (label, whole) <- cohorts do
+            // Halved, because the division by attendance cuts across the
+            // division by language group rather than replacing it.
+            subgroup(s"${halfName}s-$label", (whole / 2).max(1), "\t\t\t")
+        b ++= "\t\t</Group>\n"
+
+      // One group per optional subject, naming only those who attend it.
+      for (subjectId, label, _) <- optionalCohortLabels(snapshot, cls) do
+        val members = List(1, 2).map(half => s"${cls.name}/${half}s-$label")
+        b ++= s"\t\t<Group>\n\t\t\t<Name>${esc(cohortGroup(cls, subjectId))}</Name>\n"
+        b ++= s"\t\t\t<Number_of_Students>${members.size}</Number_of_Students>\n"
+        b ++= "\t\t\t<Comments></Comments>\n"
+        for m <- members do subgroup(m, 1, "\t\t\t")
         b ++= "\t\t</Group>\n"
       b ++= "\t</Year>\n"
     b ++= "</Students_List>\n\n"
@@ -204,9 +284,19 @@ object FetExport:
           :: group.map(a => "Activity_Id" -> a.id.toString)
           ::: List("MinDays" -> "1", "Consecutive_If_Same_Day" -> "true"))
 
-    // Religia and etyka sit at the edge of a day. FET can say "ends the day";
-    // it has no way to say "or begins it", so this is the stricter reading.
-    for a <- acts if a.optional do
+    // Religia and etyka sit at the edge of a day — but only as a fallback, and
+    // only where nobody has said who attends them.
+    //
+    // It is the stricter reading of the school's rule, which is "first or
+    // last, whichever suits": FET states neither a disjunction nor "last" in a
+    // form it can combine. Where the attendance is known the rule is not
+    // needed at all, because the cohorts say who is free and FET's own no-gaps
+    // promise covers them — so it is dropped there rather than piled on top,
+    // which would forbid the mid-day hour that suits everybody.
+    //
+    // Measured on the real school: this rule on every optional activity places
+    // 432 activities of 1331 and never moves again. Cohorts instead: 1079.
+    for a <- acts if a.optional && !a.cohortKnown do
       b ++= constraint("ConstraintActivityEndsStudentsDay", List("Activity_Id" -> a.id.toString))
 
     // What a teacher's week may look like. None of this was exported the first
@@ -371,10 +461,19 @@ object FetExport:
       scala.collection.mutable.Map.empty[(UUID, UUID, LessonAudience), Int]
 
     for line <- snapshot.lessonLines do
-      val who = line.audience match
+      // A lesson only part of the class attends is addressed to the pupils who
+      // attend it, where the school has said who they are. That is what lets
+      // FET see the others as free and keep them out of a mid-day wait — and
+      // it is strictly better than ordering the lesson to the end of the day,
+      // because an hour that suits everybody stays available.
+      val cohort = snapshot.classes.find(_.id == line.classId)
+        .filter(_ => line.audience == LessonAudience.WHOLE_CLASS)
+        .filter(c => snapshot.optionalAttendance.get((c.id, line.subjectId)).exists(_ > 0))
+        .map(c => cohortGroup(c, line.subjectId))
+      val who = cohort.getOrElse(line.audience match
         case LessonAudience.WHOLE_CLASS => classes.getOrElse(line.classId, "?")
         case LessonAudience.GROUP_1     => classes.getOrElse(line.classId, "?") + "/1"
-        case LessonAudience.GROUP_2     => classes.getOrElse(line.classId, "?") + "/2"
+        case LessonAudience.GROUP_2     => classes.getOrElse(line.classId, "?") + "/2")
       val staff = (line.teacherId.toList ++ line.supportTeacherId.toList).flatMap(teachers.get)
       val subject = subjects.getOrElse(line.subjectId, "?")
       // Spreading is per subject and audience, not per line. A class's
@@ -395,7 +494,8 @@ object FetExport:
           // Absent subject means absent requirement; firm is the safe reading.
           roomHard = snapshot.subjects.find(_.id == line.subjectId)
             .forall(_.roomRequirementHard),
-          wholeClass = line.audience == LessonAudience.WHOLE_CLASS)
+          wholeClass = line.audience == LessonAudience.WHOLE_CLASS,
+          cohortKnown = cohort.isDefined)
         next += 1
 
     // A cross-class block is two different things at once and has to be said
@@ -420,9 +520,19 @@ object FetExport:
       // The occupancy activity stands for every participating class at once,
       // so it has no single lesson to name; the classes learn their hour from
       // the group activities, which do.
-      out += Act(anchor, Nil, subject, unit.classIds.toList.flatMap(classes.get).distinct.sorted,
+      // Addressed to the pupils who attend, class by class, where the school
+      // has said who they are — so that the rest of each class is visibly free
+      // and FET will not strand them mid-day.
+      val busy = unit.classIds.toList.flatMap(id => snapshot.classes.find(_.id == id)).map(c =>
+        if snapshot.optionalAttendance.get((c.id, unit.subjectId)).exists(_ > 0)
+        then cohortGroup(c, unit.subjectId) else c.name)
+      out += Act(anchor, Nil, subject, busy.distinct.sorted,
         length, mine, optional, sameTimeAs = None, means = None, roomKind = None,
-        roomHard = true, wholeClass = false)
+        roomHard = true, wholeClass = false,
+        // Every class in the unit, or none of them: one activity carries one
+        // rule, and a class nobody has accounted for would lose its fallback.
+        cohortKnown = unit.classIds.nonEmpty && unit.classIds.forall(id =>
+          snapshot.optionalAttendance.get((id, unit.subjectId)).exists(_ > 0)))
       next += 1
 
       for g <- unit.groups do

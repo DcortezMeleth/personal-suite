@@ -3,7 +3,7 @@ package bel
 import bel.api.*
 import bel.db.Database
 import bel.solver.{FetRunner, PlanGenerationRuns, PlanGenerator}
-import bel.repository.{SnapshotLoader, CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
+import bel.repository.{SnapshotLoader, OptionalAttendanceRepository, CrossClassUnitRepository, ImportRepository, IndividualPlanRepository, PlanRepository, LessonLineRepository, RoomRepository, SchoolClassRepository, SchoolRepository, SubjectRepository, TeacherRepository}
 import cats.effect.*
 import cats.effect.std.Supervisor
 import cats.syntax.semigroupk.*
@@ -34,6 +34,7 @@ object Main extends IOApp.Simple:
         val lineRepo    = LessonLineRepository(xa)
         val peRepo      = CrossClassUnitRepository(xa)
         val individualRepo = IndividualPlanRepository(xa)
+        val attendanceRepo = OptionalAttendanceRepository(xa)
         val planRepo    = PlanRepository(xa)
         val importRepo  = ImportRepository(xa)
 
@@ -42,7 +43,7 @@ object Main extends IOApp.Simple:
         // the screens read afterwards.
         val loader = SnapshotLoader(
           schoolRepo, classRepo, teacherRepo, subjectRepo, lineRepo, peRepo,
-          roomRepo, individualRepo)
+          roomRepo, individualRepo, attendanceRepo)
 
         // FET is a separate program, reached however this machine reaches it.
         val generator = PlanGenerator(loader, planRepo, FetRunner.Config.from(config))
@@ -62,6 +63,7 @@ object Main extends IOApp.Simple:
               ImportRoutes(importRepo, schoolRepo).routes <+>
               ValidationRoutes(loader).routes <+>
               IndividualPlanRoutes(loader).routes <+>
+              AttendanceRoutes(attendanceRepo).routes <+>
               PlanRoutes(planRepo, loader, generation).routes
 
             EmberServerBuilder

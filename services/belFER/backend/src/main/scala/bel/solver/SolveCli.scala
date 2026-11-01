@@ -118,7 +118,8 @@ object SolveCli extends IOApp:
       val loader = SnapshotLoader(
         SchoolRepository(xa), SchoolClassRepository(xa), TeacherRepository(xa),
         SubjectRepository(xa), LessonLineRepository(xa), CrossClassUnitRepository(xa),
-        RoomRepository(xa), IndividualPlanRepository(xa))
+        RoomRepository(xa), IndividualPlanRepository(xa),
+                    OptionalAttendanceRepository(xa))
 
       for
         loaded   <- loader.loadWithRooms(schoolId)
@@ -656,7 +657,8 @@ object SolveCli extends IOApp:
                   SnapshotLoader(
                     SchoolRepository(xa), SchoolClassRepository(xa), TeacherRepository(xa),
                     SubjectRepository(xa), LessonLineRepository(xa), CrossClassUnitRepository(xa),
-                    RoomRepository(xa), IndividualPlanRepository(xa)),
+                    RoomRepository(xa), IndividualPlanRepository(xa),
+                    OptionalAttendanceRepository(xa)),
                   PlanRepository(xa),
                   FetRunner.Config.from(ConfigFactory.load()))
                   .generateFrom(schoolId, snapshot, rooms)
