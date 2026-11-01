@@ -214,17 +214,30 @@ Each subphase is a migration + repository + routes + a page.
   window-hours to 183, at twenty minutes a run instead of eighty-five seconds
 - ✅ **3.4** Start a run from the app — UC-28 … UC-31, UC-34. Started and
   polled rather than waited on; a second press joins the run already going
-  rather than searching twice. UC-29 is met in the only sense FET allows: the
-  button counts the seconds and survives a reload, but there is no percentage
-  and no best-score, because FET says nothing at all until it finishes.
-  UC-30 stops the run and kills the process within a second — what it cannot
-  do is keep a partial week, since FET writes its answer only on finishing
+  rather than searching twice. UC-29 now reports real progress — "432 of
+  1331 placed" — read from the log FET keeps as it searches; it is a
+  high-water mark rather than a position, which is what makes a wedged run
+  look wedged. UC-30 stops by asking rather than killing, so FET writes down
+  where it got stuck. See ADR 0006, which also records why UC-30 cannot mean
+  what it says: FET builds a week one lesson at a time, so an interrupted
+  search holds a partial assignment rather than a worse timetable
 - **3.5** Infeasibility explanation and run comparison — UC-32, UC-33.
-  **Needs redesign**: it was shaped around CP-SAT's unsat core
+  **Half of UC-32 arrived with 3.4**: a stopped run reports how far FET got
+  and which lesson it could not get past, in FET's own words. What is still
+  missing is the same for a run that fails on its own, and UC-33
 
 > 3.5 is not polish. The school's instance is solvable — FET proves it — so
 > an infeasible run means a mistake somewhere in ~500 assignment rows, and a
 > bare "no solution" leaves the planner nothing to act on.
+
+> **Measured 2026-11-01, and it changes what to try next.** With gaps limited
+> to 3 a day and 3 a week, six searches on six different seeds all stop at the
+> same place: five at activity 432 of 1331 and one at 350. The wall is
+> therefore *not* the dice — FET's difficulty ordering is computed from the
+> data, and every seed meets the same lesson. Racing seeds buys nothing on an
+> instance like this, which is exactly the case the diagnosis exists to
+> identify. The lever here is the constraint: 4 gaps a week has produced a
+> plan before, 3 has not.
 
 ---
 
