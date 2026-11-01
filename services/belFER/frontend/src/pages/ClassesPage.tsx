@@ -115,7 +115,7 @@ export function ClassesPage() {
           <table className="w-full text-left text-sm">
             <thead className="text-neutral-500">
               <tr>
-                <th className="pb-2">Oddział</th>
+                <th className="w-28 pb-2">Oddział</th>
                 <th className="pb-2">Profil</th>
                 <th className="pb-2">Wychowawca</th>
                 <th className="pb-2">Uczniów</th>
@@ -157,9 +157,18 @@ function ClassYear(props: {
 }) {
   return (
     <>
+      {/* A banded header rather than a line of grey text: with four roczniki
+          and thirty-odd oddziały the eye needs somewhere to stop, and the
+          count saves scrolling a block to find out how long it is. */}
       <tr>
-        <td colSpan={6} className="pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <td
+          colSpan={6}
+          className="bg-neutral-100 px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+        >
           Rocznik {props.year}
+          <span className="ml-2 font-normal normal-case tracking-normal text-neutral-400">
+            {props.classes.length}
+          </span>
         </td>
       </tr>
       {props.classes.map((cls) => (
@@ -199,14 +208,20 @@ function ClassRow(props: {
 
   return (
     <tr className="border-t border-neutral-200">
-      <td className="py-2 pr-2 font-medium text-neutral-700">
-        {draft.year}
-        <FindingMark findings={props.findings} />
-        <input
-          className={`${field} ml-1 inline-block w-14`}
-          value={draft.letter}
-          onChange={(e) => setDraft({ ...draft, letter: e.target.value })}
-        />
+      {/* "1A" is one name, so the year and the letter sit on one line. They
+          used to be inline content in a cell with no width of its own, and
+          with five full-width inputs competing for the table the column was
+          squeezed until the year wrapped above the letter. */}
+      <td className="py-2 pr-2">
+        <div className="flex items-center gap-1 whitespace-nowrap">
+          <span className="font-medium text-neutral-700">{draft.year}</span>
+          <input
+            className={`${field} w-14 shrink-0`}
+            value={draft.letter}
+            onChange={(e) => setDraft({ ...draft, letter: e.target.value })}
+          />
+          <FindingMark findings={props.findings} />
+        </div>
       </td>
       <td className="py-2 pr-2">
         <input
