@@ -12,9 +12,10 @@ import scala.jdk.CollectionConverters.*
  * FET, as a process.
  *
  * One file in, one directory out, no service and no state — which is most of
- * why depending on it is tolerable. The whole school takes about three
- * seconds, so this is something a person waits for rather than a job with
- * progress to report.
+ * why depending on it is tolerable. It is emphatically a job rather than a
+ * call: the real school has been measured at three seconds and at fifteen
+ * hours from the same data, depending on the rules asked for and on the dice,
+ * so it reports progress and can be stopped.
  *
  * The command is configurable because the way it is reached differs by
  * machine and should not be a code change. On the home lab FET is a package
@@ -77,20 +78,43 @@ object FetRunner:
                      seed: FetSeed)
 
   /**
+   * How far FET has got, while it is still going.
+   *
+   * FET places activities one at a time in a difficulty order it decides for
+   * itself, backtracking when it gets stuck, and it records every new furthest
+   * point in `logs/max_placed_activities.txt`. That file is the progress
+   * signal: it is written as the search runs, it needs no flag, and it is
+   * bounded — one line per new maximum, so never more lines than there are
+   * activities.
+   *
+   * `--verbose=true` reports the same thing in the output stream and was the
+   * obvious candidate until it was measured: on the real school it writes
+   * about four kilobytes a second, which is two hundred megabytes over a night
+   * and unbounded after that, for nothing this file does not already say.
+   *
+   * Note that `placed` goes up and never down even though the search itself
+   * backtracks constantly. It is a high-water mark, not a position, which is
+   * the honest thing to show: a run wedged for an hour sits at the same number
+   * rather than flickering.
+   */
+  case class Progress(placed: Int, total: Int)
+
+  /**
    * Lay out the school, read the answer back, and check it.
    *
    * The checking is not optional and does not live behind a flag. A timetable
    * nobody has held against the rules is not a timetable, it is a file.
    */
   def apply(snapshot: SchoolSnapshot, rooms: List[Room], config: Config,
-            seed: Option[FetSeed] = None): IO[Outcome] =
+            seed: Option[FetSeed] = None,
+            onProgress: Progress => IO[Unit] = _ => IO.unit): IO[Outcome] =
     workspace(config.workRoot).use { dir =>
       val written = FetExport(snapshot, rooms)
       for
         dice <- seed.fold(FetSeed.random)(IO.pure)
         _ <- IO.blocking(Files.writeString(dir.resolve("school.fet"), written.xml))
         started <- IO.monotonic
-        _ <- run(config, dir, dice)
+        _ <- run(config, dir, dice, written.activities, onProgress)
         xml <- readAnswer(dir)
         done <- IO.monotonic
         result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
@@ -128,7 +152,8 @@ object FetRunner:
    * run nobody is waiting for any more keeps a container alive, and the next
    * one queues behind it.
    */
-  private def run(config: Config, dir: Path, seed: FetSeed): IO[Unit] =
+  private def run(config: Config, dir: Path, seed: FetSeed,
+                  total: Int, onProgress: Progress => IO[Unit]): IO[Unit] =
     // The seed goes on the end, where trailing flags work for both shapes the
     // command takes — fet-cl directly, or docker run wrapping it.
     val argv = config.command.map(_.replace("{dir}", dir.toString)) ++ seed.args
@@ -149,7 +174,7 @@ object FetRunner:
 
     started.use { p =>
       for
-        finished <- awaitExit(p, config.timeout)
+        finished <- awaitExit(p, config.timeout, dir, total, onProgress)
         said     <- IO.blocking(if Files.exists(log) then Files.readString(log) else "")
         // No log tail here: FET prints nothing at all while it searches, so
         // everything it has said by now is the start-up dialogs, and pasting
@@ -194,17 +219,46 @@ object FetRunner:
    * timeout. Short waits put a cancellation point between each, so stopping
    * lands within a second and the resource above then kills the process.
    */
-  private def awaitExit(process: java.lang.Process, within: FiniteDuration): IO[Boolean] =
+  private def awaitExit(process: java.lang.Process, within: FiniteDuration,
+                        dir: Path, total: Int,
+                        onProgress: Progress => IO[Unit]): IO[Boolean] =
     val unbounded = within <= Duration.Zero
-    def waitFrom(left: FiniteDuration): IO[Boolean] =
+    def waitFrom(left: FiniteDuration, said: Int): IO[Boolean] =
       if !unbounded && left <= Duration.Zero then IO.pure(false)
       else
         val slice = if unbounded then 1.second else left.min(1.second)
         IO.blocking(process.waitFor(slice.toMillis, TimeUnit.MILLISECONDS)).flatMap {
           case true  => IO.pure(true)
-          case false => waitFrom(left - slice)
+          case false =>
+            // Between slices is also where progress is picked up, because the
+            // slices already exist and a second is the right grain for a
+            // number a person is watching.
+            furthest(dir).flatMap { reached =>
+              val fresh = reached.exists(_ != said)
+              IO.whenA(fresh)(onProgress(Progress(reached.get, total)))
+                .as(reached.getOrElse(said))
+            }.flatMap(now => waitFrom(left - slice, now))
         }
-    waitFrom(within)
+    waitFrom(within, -1)
+
+  /**
+   * How many activities FET has placed at its best so far.
+   *
+   * It keeps a line per new maximum in `logs/max_placed_activities.txt`, of
+   * the form "At time 0 h 0 m 3 s, FET reached 432 activities placed". The
+   * last one is the high-water mark. Absent until the search proper starts,
+   * and unreadable for an instant while FET appends to it, so every failure
+   * here is simply "no news yet" rather than a fault — this is a progress
+   * number, and no run should fail because one could not be read.
+   */
+  private val Reached = """FET reached (\d+) activities placed""".r
+
+  private def furthest(dir: Path): IO[Option[Int]] =
+    IO.blocking {
+      val file = dir.resolve("out").resolve("logs").resolve("max_placed_activities.txt")
+      if !Files.exists(file) then None
+      else Reached.findAllMatchIn(Files.readString(file)).map(_.group(1).toInt).maxOption
+    }.handleError(_ => None)
 
 
 

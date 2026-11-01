@@ -352,6 +352,13 @@ export interface Generation {
   broken: RuleResult[];
   notChecked: string[];
   message: string | null;
+  /**
+   * How far FET has got, while it is still going. A high-water mark rather
+   * than a position — it backtracks constantly — so it climbs and then sits
+   * still, which is itself the signal worth showing.
+   */
+  placedSoFar: number | null;
+  activities: number | null;
 }
 
 /** A teacher's idle hours in the finished week, for the ones who have any. */

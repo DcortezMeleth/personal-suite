@@ -33,7 +33,8 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
   /** Runs a body with a supervisor, the way Main does. */
   private def withRuns[A](generate: UUID => IO[PlanGenerator.Result])
                          (body: PlanGenerationRuns => IO[A]): A =
-    Supervisor[IO].use(s => PlanGenerationRuns.from(generate, s).flatMap(body)).unsafeRunSync()
+    Supervisor[IO].use(s =>
+      PlanGenerationRuns.from((id, _) => generate(id), s).flatMap(body)).unsafeRunSync()
 
   /** Waits for a condition rather than sleeping a guessed amount. */
   private def until(check: IO[Boolean]): IO[Unit] =
@@ -76,7 +77,7 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
       counter <- IO.ref(0)
       result <- Supervisor[IO].use { s =>
                   PlanGenerationRuns.from(
-                    _ => counter.update(_ + 1) *> gate.get.as(saved), s).flatMap { runs =>
+                    (_, _) => counter.update(_ + 1) *> gate.get.as(saved), s).flatMap { runs =>
                     for
                       first  <- runs.start(school)
                       second <- runs.start(school)
@@ -114,7 +115,7 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
       reached <- Deferred[IO, Unit]
       result <- Supervisor[IO].use { s =>
                   // Never finishes on its own, so only cancellation ends it.
-                  PlanGenerationRuns.from(_ => reached.complete(()) *> IO.never, s).flatMap { runs =>
+                  PlanGenerationRuns.from((_, _) => reached.complete(()) *> IO.never, s).flatMap { runs =>
                     for
                       _     <- runs.start(school)
                       _     <- reached.get
@@ -162,3 +163,29 @@ class PlanGenerationRunsSpec extends AnyFunSuite:
     }
     assert(a.isDefined)
     assert(b.isEmpty, "one school's run is not another's")
+
+  /**
+   * The search reports how far it has got; the screen asks at its own pace.
+   * What has to hold is that the last thing said is what the next question
+   * gets back — a run wedged at the same number is the signal, so it must not
+   * be lost between polls.
+   */
+  test("progress reported by the search is there for whoever asks next"):
+    val seen = (for
+      gate   <- Deferred[IO, Unit]
+      result <- Supervisor[IO].use { s =>
+                  PlanGenerationRuns.from(
+                    (_, note) =>
+                      note(FetRunner.Progress(432, 1331)) *> gate.get.as(saved), s)
+                    .flatMap { runs =>
+                      for
+                        _       <- runs.start(school)
+                        _       <- until(runs.status(school).map(_.exists(_.progress.isDefined)))
+                        running <- runs.status(school)
+                        _       <- gate.complete(())
+                        _       <- until(runs.status(school).map(_.exists(!_.running)))
+                      yield running
+                    }
+                }
+     yield result).unsafeRunSync()
+    assert(seen.flatMap(_.progress) === Some(FetRunner.Progress(432, 1331)))

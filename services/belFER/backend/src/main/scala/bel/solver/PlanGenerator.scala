@@ -44,10 +44,11 @@ class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunne
 
   import PlanGenerator.Result
 
-  def generate(schoolId: UUID): IO[Result] =
+  def generate(schoolId: UUID,
+               onProgress: FetRunner.Progress => IO[Unit] = _ => IO.unit): IO[Result] =
     loader.loadWithRooms(schoolId).flatMap {
       case None                    => IO.pure(Result.NoSchool)
-      case Some((snapshot, rooms)) => generateFrom(schoolId, snapshot, rooms)
+      case Some((snapshot, rooms)) => generateFrom(schoolId, snapshot, rooms, onProgress)
     }
 
   /**
@@ -57,10 +58,10 @@ class PlanGenerator(loader: SnapshotLoader, plans: PlanRepository, fet: FetRunne
    * before laying anything out; it hands in what it narrowed rather than
    * having it loaded again underneath, which would silently ignore the flags.
    */
-  def generateFrom(schoolId: UUID, snapshot: SchoolSnapshot,
-                   rooms: List[Room]): IO[Result] =
+  def generateFrom(schoolId: UUID, snapshot: SchoolSnapshot, rooms: List[Room],
+                   onProgress: FetRunner.Progress => IO[Unit] = _ => IO.unit): IO[Result] =
     for
-      outcome <- FetRunner(snapshot, rooms, fet)
+      outcome <- FetRunner(snapshot, rooms, fet, onProgress = onProgress)
       result  <- keepIfSound(schoolId, rooms, outcome)
     yield result
 

@@ -37,7 +37,17 @@ object FetExport:
    * can no longer name. Keeping the mapping is what makes the round trip a
    * round trip rather than a one-way export.
    */
-  case class Written(xml: String, means: Map[Int, LessonRef])
+  case class Written(xml: String, means: Map[Int, LessonRef],
+                     /**
+                      * How many activities the file asks FET to place.
+                      *
+                      * More than `means.size`: a cross-class unit also gets an
+                      * occupancy activity standing for every participating class,
+                      * which means nothing on its own and so is not read back. The
+                      * count here is FET's, because it is what FET's own progress is
+                      * measured against.
+                      */
+                     activities: Int)
 
   /** The day names this file will use, which is how FET answers back. */
   def dayNames(teachingDays: Int): List[String] = SchoolWeek.names(teachingDays)
@@ -338,7 +348,7 @@ object FetExport:
 
     b ++= "</Space_Constraints_List>\n\n"
     b ++= "</fet>\n"
-    Written(b.result(), means)
+    Written(b.result(), means, acts.size)
 
   /** Every block of every lesson line, and every class's share of every unit. */
   private def activities(snapshot: SchoolSnapshot, subjects: Map[UUID, String],

@@ -43,6 +43,14 @@ object PlanGenerationRuns:
     finishedAt: Option[Instant],
     state: State,
     /**
+     * How far FET has got, while it is still going.
+     *
+     * Kept on the run rather than asked of FET, because the screen polls at
+     * its own pace and the search reports at its own; the last thing said is
+     * the right answer to give whenever the question comes.
+     */
+    progress: Option[FetRunner.Progress] = None,
+    /**
      * Kept so the run can be stopped: the fiber is the only handle on a
      * search already running. Not part of what a screen is told — PlanRoutes
      * builds its own view — and never compared, which is why `running` asks
@@ -63,12 +71,12 @@ object PlanGenerationRuns:
    * exception becomes a reported failure rather than a lost fiber — and none
    * of that should need FET installed to check.
    */
-  def from(generate: UUID => IO[PlanGenerator.Result],
+  def from(generate: (UUID, FetRunner.Progress => IO[Unit]) => IO[PlanGenerator.Result],
            supervisor: Supervisor[IO]): IO[PlanGenerationRuns] =
     Ref[IO].of(Map.empty[UUID, Run]).map(new PlanGenerationRuns(generate, supervisor, _))
 
 class PlanGenerationRuns private (
-  generate: UUID => IO[PlanGenerator.Result],
+  generate: (UUID, FetRunner.Progress => IO[Unit]) => IO[PlanGenerator.Result],
   supervisor: Supervisor[IO],
   runs: Ref[IO, Map[UUID, PlanGenerationRuns.Run]]
 ):
@@ -120,7 +128,7 @@ class PlanGenerationRuns private (
     }
 
   private def run(schoolId: UUID): IO[Unit] =
-    generate(schoolId).attempt.flatMap { outcome =>
+    generate(schoolId, note(schoolId)).attempt.flatMap { outcome =>
       val state = outcome match
         case Right(result) => State.Finished(result)
         // The message is what the planner is shown, so it says what failed
@@ -130,6 +138,10 @@ class PlanGenerationRuns private (
           State.Failed(Option(error.getMessage).getOrElse(error.getClass.getName))
       settle(schoolId, state)
     }.onCancel(settle(schoolId, State.Cancelled))
+
+  /** Record how far the search has got, for whoever asks next. */
+  private def note(schoolId: UUID)(progress: FetRunner.Progress): IO[Unit] =
+    runs.update(_.updatedWith(schoolId)(_.map(_.copy(progress = Some(progress)))))
 
   private def settle(schoolId: UUID, state: State): IO[Unit] =
     IO(Instant.now).flatMap(at =>

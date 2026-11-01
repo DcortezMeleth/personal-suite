@@ -95,7 +95,17 @@ object PlanView:
     /** Rules this check cannot speak to, so "15 of 15" is not read as "all". */
     notChecked: List[String],
     /** Why it failed, when it did. */
-    message: Option[String]
+    message: Option[String],
+    /**
+     * How far the search has got, while it is still going.
+     *
+     * A high-water mark rather than a position — FET backtracks constantly —
+     * so it climbs and then sits still, which is itself the useful signal: a
+     * run stuck on the same number for an hour is not slow, it is wedged.
+     */
+    placedSoFar: Option[Int],
+    /** What that is out of. */
+    activities: Option[Int]
   )
 
   case class Summary(
@@ -200,7 +210,9 @@ class PlanRoutes(plans: PlanRepository, loader: SnapshotLoader,
       finishedAt = run.finishedAt.map(_.toString),
       tookMillis = None, planId = None, placed = None, unplaced = None,
       rulesKept = None, rulesTotal = None,
-      broken = Nil, notChecked = Nil, message = None)
+      broken = Nil, notChecked = Nil, message = None,
+      placedSoFar = run.progress.map(_.placed),
+      activities = run.progress.map(_.total))
 
     def withReport(status: String, report: PlanCheck.Report, placed: Int,
                    unplaced: Int, millis: Long, planId: Option[UUID]) =

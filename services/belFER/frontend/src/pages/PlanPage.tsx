@@ -154,6 +154,20 @@ export function PlanPage() {
 
   // Offered only while something is running, because that is the only time it
   // means anything. A stopped run keeps the plan the school already has.
+  // "432 z 1331" is worth more than the clock beside it: FET places activities
+  // in its own difficulty order and this is how far it has ever got, so a
+  // number that climbs is a search working and a number sitting still for an
+  // hour is a search wedged. The two read very differently and used to look
+  // identical.
+  const progress = running && run?.placedSoFar != null && run.activities != null && (
+    <p className="mt-2 text-sm tabular-nums text-neutral-600">
+      Umieszczono {run.placedSoFar} z {run.activities} zajęć
+      <span className="ml-1 text-neutral-400">
+        ({Math.round((run.placedSoFar / run.activities) * 100)}%)
+      </span>
+    </p>
+  );
+
   const stopButton = running && (
     <button
       type="button"
@@ -256,6 +270,7 @@ export function PlanPage() {
           </p>
           {generateButton}
           {stopButton}
+          {progress}
           <p className="mt-3 text-xs text-neutral-500">
             Plan jest sprawdzany względem reguł, zanim zostanie zapisany. Taki,
             który je łamie, zostanie pokazany, ale nie stanie się planem szkoły.
@@ -283,6 +298,7 @@ export function PlanPage() {
       {outcomeBanner}
 
       <DataCard title={plan.name} actions={<>{generateButton}{stopButton}</>}>
+        {progress}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
           <span>{plan.entries.length} zajęć</span>
           {total > 0 && (
