@@ -238,6 +238,15 @@ disruption.
 Each is a minimal fixture. Hard cases must be **rejected** (scored as a hard
 violation); soft cases must be **penalised but accepted**.
 
+> **Out of date against [RULES.md](RULES.md) v1.0.**
+> - CT-12 is **withdrawn**: a class may start later than slot 1.
+> - CT-10 and CT-15 are now cases of S2, "no student ever has a window". A half
+>   or a non-attender left idle at the edge of the day is accepted; left idle
+>   mid-day, it is rejected.
+> - CT-18 to CT-20 are switched off for now.
+> - New cases are owed for S4's whole-class/half link and for S5, halves stay
+>   level.
+
 | ID | Fixture | Expected |
 |---|---|---|
 | **CT-01** | One teacher, two classes, same slot | reject |

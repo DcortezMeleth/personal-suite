@@ -10,6 +10,12 @@ Last updated 2026-11-21.
 
 ## Where we are
 
+> **2026-11-21: the ninth slot is ruled out.** The school day does not run past
+> eight lessons. The only configuration below that ever completed is therefore
+> not available. The rules this document measures against are now in
+> [RULES.md](RULES.md); its coverage section lists where FET is told less, or
+> more, than those rules.
+
 The school's instance **can be laid out** — but only with a ninth lesson slot,
 and the result is not yet correct for the pupils who skip religia.
 
@@ -28,10 +34,11 @@ So the state is: **a timetable exists, and we cannot yet promise it is legal.**
 
 - 25 classes, ~80 teachers, 1331 activities, 5 days × 8 slots = 40
 - Second years carry **37–38 occupied hours of 40** — 95% full
-- At 38 hours with no gaps and 8 lessons a day there is exactly one shape:
-  **8/8/8/8/6**, four days filled to the last slot, before PE alignment,
-  optional-subject edges, one-subject-per-day and ~15 teachers' restricted
-  availability get a say
+- At 38 hours with no gaps and 8 lessons a day there are two shapes, ignoring
+  the order of days: **8/8/8/8/6** and **8/8/8/7/7**. That is still very
+  little room, before PE alignment, optional-subject edges,
+  one-subject-per-day and ~15 teachers' restricted availability get a say.
+  (This line said "exactly one shape" until 2026-11-21. That was wrong.)
 - `REQUIREMENTS` predicted this before any code existed, under "Secondary risk
   — feasibility, not optimality", and was right
 
@@ -147,8 +154,8 @@ under-reports how many pupils a religia lesson needs to seat.
    contradict each other. Reproduce it in the smallest possible file first.
    Until it is settled the cohort model promises something it does not
    deliver — though it remains a large feasibility gain regardless.
-2. **Ask the school about a ninth slot.** It is the only thing measured to
-   complete the week. A question for the school, not a setting we should pick.
+2. ~~**Ask the school about a ninth slot.**~~ Answered 2026-11-21: no. The
+   school day does not run past eight lessons.
 3. **Correct the cohort student counts** so room capacity is right.
 4. **Block shapes.** The arkusz states hours and never their shape, so an
    import is almost all single lessons — 1331 activities where a week with its

@@ -357,6 +357,12 @@ hours" is that somebody forgot to finish the import.
 
 ## 9. Constraints
 
+> **Superseded by [RULES.md](RULES.md)** (v1.0, 2026-11-21), which is now the
+> source of truth for rules and carries a changelog. This section is kept as
+> the record of what was first gathered. In particular, rule 12 below is
+> **withdrawn**, and rules 10, 13 and 15 are now a single rule: no student
+> ever has a window.
+
 ### 9.1 Hard constraints
 
 1. A class, group, or PE group is never double-booked.
