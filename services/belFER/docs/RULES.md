@@ -387,11 +387,11 @@ defaults (5 and 8).
 **G8. A setting outside this spec was on — fixed 2026-11-21.** The shortest
 class day was set to 4 and sent to FET as a hard rule. It is now cleared.
 
-**G9. The legacy CP-SAT solver** (the `solve` CLI; the app does not use it).
-The "starts at slot 1" rule is gone from it, and its religia edge rule now means
-"first or last of the class's own day" rather than "at slot 1, or last". It
-still has no attendance groups, no whole-class link for S4, and no S5. It is to
-be brought in line with this file before CP-SAT is reconsidered.
+**G9. The legacy CP-SAT solver — removed 2026-11-21.** The last commit with it
+is `2a9a1a4`. If it is brought back, this is what it lacked: attendance
+groups, S4's whole-class link, S5, and P2. Its "starts at slot 1" rule had
+already been taken out, and its religia edge rule already meant "first or last
+of the class's own day".
 
 **G10. Exporter off-by-one — fixed 2026-11-21 (RUNLOG R4).** The first individual-tuition lesson reuses the
 group number of the last cross-class unit. FET is therefore told to keep that
@@ -407,7 +407,8 @@ Found 2026-11-21; see RUNLOG.
   lessons? Today they book only the teacher and a room. Deferred 2026-11-21.
 - **Reconsider CP-SAT against FET** once the rules here are settled. ADR 0004
   compared the two on different rule sets: CP-SAT was carrying "starts at slot
-  1", which FET could not express. See SOLVER_EVALUATION's addendum.
+  1", which FET could not express. See SOLVER_EVALUATION's addendum. The code
+  was removed on 2026-11-21 and is in git history (G9).
 - **Specialist rooms beyond PE**, if the school needs them later.
 - **Support teachers (*nauczyciel wspomagający*): none in the data.** T1 and
   the model cover them (a second teacher on a lesson line), but the arkusz's
@@ -434,6 +435,7 @@ Found 2026-11-21; see RUNLOG.
   moot while the daily setting is 1.
 - **P1:** recorded that no teacher has a home room in today's data.
 - **TODO added:** support teachers, absent from the data.
+- **G9 closed:** the legacy CP-SAT solver is removed, kept in git history.
 
 ### 1.2 — 2026-11-21
 

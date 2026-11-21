@@ -54,9 +54,9 @@ Also open, and deliberately parked:
   - *The importer recreates both.* Until it learns to skip that pseudo-
     subject, the next import undoes the cleanup.
 
-- **The `--all-days` cut-transfer contradiction.** Reproduction and current
-  understanding are in `SOLVER_EVALUATION.md`. Now low-priority: our own
-  solver is off the critical path under ADR 0004, so this blocks nothing.
+- ~~**The `--all-days` cut-transfer contradiction.**~~ Moot: our CP-SAT
+  solver was removed on 2026-11-21 (last commit `2a9a1a4`). The write-up stays
+  in `SOLVER_EVALUATION.md`.
 - **3.5 — infeasibility explanation.** Designed around CP-SAT's unsat core.
   FET reports failure differently, so the design needs revisiting before the
   work is worth starting. Less pressing than it was: a run that fails now

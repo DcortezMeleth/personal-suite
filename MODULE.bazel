@@ -90,35 +90,6 @@ maven.install(
         "org.typelevel:literally_3:1.1.0",
         "org.typelevel:cats-parse_3:1.1.0",
         "org.typelevel:keypool_3:0.4.11",
-        # Constraint solver for belFER's timetable generation. Pure Java, so no
-        # Scala version suffix — and belFER's solver module is Java too, which
-        # keeps Timefold's annotation- and JavaBean-driven API away from
-        # Scala 3 entirely.
-        #
-        # Held at 1.x deliberately. 2.x drops SolverConfig.withDomainAccessType
-        # and moves DomainAccessType into impl, so SolverFactory.create always
-        # asks for AUTO — which does not fall back to reflection, it throws
-        # ClassNotFoundException: io.quarkus.gizmo2.Expr. Reaching 2.x therefore
-        # means either taking on Gizmo runtime bytecode generation, which the
-        # spike avoided on purpose for the sealed image, or calling the impl
-        # constructor DefaultSolverFactory(config, FORCE_REFLECTION) and owning
-        # an unsupported API. That is a Phase 3 decision, not a version bump.
-        # ── Solver evaluation (services/belFER/solver-poc) ────────────────────
-        # OR-Tools won the Phase 3 comparison, and then ADR 0004 replaced it
-        # with FET. It is still built, as //services/belFER/backend:cpsat_lib
-        # and the solve binary, but deliberately not from belfer_lib — so it
-        # stays out of the server image, which is where it sat unloaded until
-        # the libraries were separated. The candidates it beat are gone; see
-        # services/belFER/docs/SOLVER_EVALUATION.md for what they scored.
-        "com.google.ortools:ortools-java:9.15.6755",
-        # The solver itself is a native binary. ortools-java depends on every
-        # platform's artifact, so all of them arrive whatever is asked for and
-        # the Loader picks at runtime — these two are listed only to pin the
-        # versions the build resolves.
-        "com.google.ortools:ortools-darwin-x86-64:9.15.6755",
-        "com.google.ortools:ortools-linux-x86-64:9.15.6755",
-        "com.google.ortools:ortools-linux-aarch64:9.15.6755",
-        "com.google.protobuf:protobuf-java:4.33.1",
         # Named rather than left to the resolver: logback and log4cats each
         # bring their own floor, and pinning it keeps one answer in the lock
         # file instead of whichever the graph happened to settle on.

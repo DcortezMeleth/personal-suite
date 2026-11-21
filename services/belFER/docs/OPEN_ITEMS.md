@@ -91,9 +91,10 @@ From ROADMAP "Open work", in its order:
 
 ## 4. Engine
 
-1. **CP-SAT is removed** (2026-11-21). The last commit with it is `2a9a1a4`;
-   retrieve it from there to reconsider it. RULES keeps the exact CP-SAT
-   formulation of S5, and G9 lists what it lacked.
+1. **CP-SAT is removed** (2026-11-21), with the solver spike
+   (`services/belFER/solver-poc`) and OR-Tools in the build. The last commit
+   with them is `2a9a1a4`; retrieve it from there to reconsider it. RULES
+   keeps the exact CP-SAT formulation of S5, and G9 lists what it lacked.
 2. **Optional experiment:** teacher free periods at most 1 a week, to find
    where the limit is. Not to be adopted without asking the school.
 
