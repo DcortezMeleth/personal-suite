@@ -72,6 +72,8 @@ is in `out/logs/difficult_activities.txt`.
 | R6 | 2026-11-21 | 1331 | teacher free periods ≤1 a day (was 2) | **complete**, 60 s and 37 s, 2 of 2 seeds; **17 of 17 rules** | **yes — first week that keeps every checked rule** |
 | R7 | 2026-11-21 | 1331 | + teacher free periods ≤3 a week (was 4) | **complete**, 86 s and 75 s, 2 of 2 seeds; 17 of 17 rules | **yes — avg 2.4 free periods a week** |
 | R8 | 2026-11-21 | 1331 | + class days: longest − shortest ≤ 2 (by script) | **complete**, 198 s and 253 s, 2 of 2 seeds; 17 of 17 rules; 0 of 25 classes over | **yes — not yet in the app** |
+| R9 | 2026-11-21 | 1331 | R7 + class days ≤ 3 (by script), the planner's limit | **complete**, 132 s and 105 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | baseline for R10 |
+| R10 | 2026-11-21 | 1331 | R9 + teacher free periods ≤2 a week (was 3) | **complete**, 144 s and 183 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | **yes — avg 1.6–1.7 free periods a week** |
 
 ---
 
@@ -425,6 +427,63 @@ Even class days (RULES P2), given to FET for the first time.
   exporter, a check in `PlanCheck`), then re-run to confirm the app's own
   file does what the script did.
 
+## R9 — 2026-11-21-r9-class-spread-3
+
+- **Rules:** 1.2 · **App:** `7ee9d22`, plus `add_spread.py` · **Engine:** FET
+  7.12.1
+- **Changed:** the planner set the class-day limit at **longest − shortest ≤
+  3** ("fine for now"), not R8's 2. Built from **R7's** file, so R10 can be
+  read against it with one change.
+  - The script now picks, per class, the range of day lengths that keeps the
+    most layouts, rather than a fixed formula. At 2 it reproduces R8's file
+    byte for byte.
+
+  | Classes | Day length |
+  |---|---|
+  | 16 | 5–8 |
+  | 7 (all of 4th year, 28–30 hours) | 4–7 |
+  | 2 (38 hours: 2A, 2H) | 6–8 |
+
+  - Most classes keep every allowed layout. The 4th year loses most: at 30
+    hours, 4F keeps 101 of 151, because it gets 4–7 and loses the layouts
+    with an 8.
+- **Input:** sha256 `f2970f014710ec64…`. R7's file plus 25 minimum-day
+  constraints and 7 lowered maximums.
+- **Settings:** as R7. Same two seeds, 30-minute limit.
+- **Result:** **complete on both seeds, in 132 s and 105 s.**
+- **Checks:** 17 of 17. Class days by script: no class over 3. Teacher free
+  periods avg 2.37 and 2.38, max 3.
+- **Verdict:** at 3 the rule costs about half what it did at 2 (R8).
+
+## R10 — 2026-11-21-r10-gaps-week-2
+
+- **Rules:** 1.2 · **App:** `7ee9d22`, plus `add_spread.py` · **Engine:** FET
+  7.12.1
+- **Changed (data):** teacher free periods **at most 2 a week**
+  (`max_teacher_gaps_per_week` 3 → 2), on top of R9.
+- **Input:** sha256 `f6a9184d543d6d64…`. The only difference from R9's file is
+  that one value. `app.fet` in the run directory is the app's export before
+  the script.
+- **Settings:** as R9. Same two seeds, 30-minute limit.
+- **Result:** **complete on both seeds, in 144 s and 183 s.**
+- **Checks:** 17 of 17 on both weeks. Class days by script: no class over 3.
+- **Teacher free periods a week:**
+
+  | Week | Avg | Median | Min | Max | Total | At the cap |
+  |---|---|---|---|---|---|---|
+  | R9 seed a | 2.37 | 3 | 0 | 3 | 149 | 41 of 63 |
+  | R9 seed b | 2.38 | 3 | 0 | 3 | 150 | 41 of 63 |
+  | R10 seed a | 1.60 | 2 | 0 | 2 | 101 | 43 of 63 |
+  | R10 seed b | 1.70 | 2 | 0 | 2 | 107 | 51 of 63 |
+
+  Checked by hand for the busiest teacher (32 lessons): one free period on
+  each of two days, none on the other three.
+- **Verdict:** **2 a week is doable**, at about 30–80 s more search than R9.
+  Since R5 the total has fallen from about 210 free periods a week to about
+  105, and no teacher has more than 2.
+- **Next:** build the class-day rule into the app (queue item 2). Whether 1 a
+  week is worth a run is the planner's call.
+
 ---
 
 ## Queue
@@ -433,9 +492,9 @@ In order. Each is one change, so its effect can be read on its own.
 
 1. **Home-lab image** (see R5). Build it natively on an x86-64 host, or switch
    it to upstream's prebuilt x86-64 binary.
-2. **Even class days (P2) in the app.** A setting for the spread, the
-   per-class range in the exporter, a check in `PlanCheck`. R8 did it by
-   script.
+2. **Even class days (P2) in the app,** at longest − shortest ≤ 3 (R9). A
+   setting for the limit, the per-class range in the exporter, a check in
+   `PlanCheck`. R8–R10 did it by script.
    - ~~Teacher windows (G5)~~: settled for now by "at most 1 a day" (R6),
      which rules out two in a row.
 3. **The students' no-gaps rule per week rather than per day.** It no longer
