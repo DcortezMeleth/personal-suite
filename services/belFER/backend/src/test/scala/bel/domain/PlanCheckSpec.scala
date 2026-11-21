@@ -143,6 +143,29 @@ class PlanCheckSpec extends AnyFunSuite:
       at(a.id, 0, 0, audience = LessonAudience.GROUP_2))
     assert(broken(PlanCheck(s, week)).contains("R16"))
 
+  test("a class whose days are too uneven is caught, when the school asks"):
+    val a = cls("1A")
+    val lines = List(line(a.id, blocks = List.fill(10)(1)))
+    def asking(spread: Int) = school(List(a), lines)
+      .copy(settings = settings.copy(optimisation = Optimisation(maxClassDaySpread = Some(spread))))
+    // Six lessons on Monday, one on each other day: 6 against 1.
+    val lopsided = (0 until 6).map(h => at(a.id, 0, h)).toList ++ (1 to 4).map(d => at(a.id, d, 0))
+    val even = (0 until 5).flatMap(d => List(at(a.id, d, 0), at(a.id, d, 1))).toList
+
+    assert(!PlanCheck(school(List(a), lines), lopsided).rules.exists(_.code == "R17"),
+      "not asked for, not checked")
+    assert(broken(PlanCheck(asking(3), lopsided)).contains("R17"))
+    assert(!broken(PlanCheck(asking(5), lopsided)).contains("R17"))
+    assert(!broken(PlanCheck(asking(0), even)).contains("R17"))
+
+  test("an empty day is the shortest day"):
+    val a = cls("1A")
+    val s = school(List(a), List(line(a.id, blocks = List.fill(8)(1))))
+      .copy(settings = settings.copy(optimisation = Optimisation(maxClassDaySpread = Some(1))))
+    // Two lessons Monday to Thursday, nothing on Friday.
+    val week = (0 until 4).flatMap(d => List(at(a.id, d, 0), at(a.id, d, 1))).toList
+    assert(broken(PlanCheck(s, week)).contains("R17"))
+
   test("an optional subject in the middle of a day is caught"):
     val a = cls("1A")
     val s = school(List(a), List(line(a.id), line(a.id, religia), line(a.id)))

@@ -79,6 +79,11 @@ export interface Optimisation {
   classDayWeight: number;
   homeRoomWeight: number;
   softRoomWeight: number;
+  /**
+   * Bound. A class's longest day minus its shortest, in lessons (RULES P2).
+   * Said to FET per class, as a range of day lengths around its own average.
+   */
+  maxClassDaySpread: number | null;
 }
 
 export interface School {

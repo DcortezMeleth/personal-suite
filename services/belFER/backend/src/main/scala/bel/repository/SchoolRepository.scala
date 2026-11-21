@@ -18,6 +18,7 @@ class SchoolRepository(xa: Transactor[IO]):
          max_teacher_gaps_per_day, max_teacher_gaps_per_week,
          min_class_hours_daily, max_class_hours_daily,
          class_day_weight, home_room_weight, soft_room_weight,
+         max_class_day_spread,
          created_at"""
 
   def findAll: IO[List[School]] =
@@ -64,7 +65,8 @@ class SchoolRepository(xa: Transactor[IO]):
         max_class_hours_daily     = ${tuning.maxClassHoursDaily},
         class_day_weight          = ${tuning.classDayWeight},
         home_room_weight          = ${tuning.homeRoomWeight},
-        soft_room_weight          = ${tuning.softRoomWeight}
+        soft_room_weight          = ${tuning.softRoomWeight},
+        max_class_day_spread      = ${tuning.maxClassDaySpread}
       WHERE id = $id
       RETURNING""" ++ columns)
       .query[School].option.transact(xa)

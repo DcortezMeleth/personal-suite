@@ -92,6 +92,33 @@ object FetExport:
   private def cohortGroup(cls: SchoolClass, subjectId: UUID): String =
     s"${cls.name}~${subjectId.toString.take(8)}"
 
+  /**
+   * Every student set of a class that an activity can name, with the
+   * subgroups (the pupils who share one timetable) it stands for. The names
+   * are the ones the student structure below writes. Kept beside it rather
+   * than derived from it, so a change to one has to be made to the other;
+   * FetClassDaysSpec fails if they drift apart.
+   */
+  private def subgroups(snapshot: SchoolSnapshot, cls: SchoolClass): Map[String, List[String]] =
+    val cohorts = attendanceCohorts(snapshot, cls, cls.studentCount.getOrElse(30))
+    val halves = List(1, 2).map { half =>
+      val halfName = s"${cls.name}/$half"
+      halfName -> (if cohorts.isEmpty then List(s"${halfName}s")
+                   else cohorts.map((label, _) => s"${halfName}s-$label"))
+    }
+    val optional = optionalCohortLabels(snapshot, cls).map((subjectId, label, _) =>
+      cohortGroup(cls, subjectId) -> List(1, 2).map(half => s"${cls.name}/${half}s-$label"))
+    val all = halves.flatMap(_._2)
+    ((cls.name -> all) :: (halves ++ optional ++ all.map(s => s -> List(s)))).toMap
+
+  /** Each subgroup's hours a week: every activity any set of it is named in. */
+  private def subgroupLoads(snapshot: SchoolSnapshot, acts: List[Act]): Map[String, Int] =
+    val sets = snapshot.classes.flatMap(subgroups(snapshot, _)).toMap
+    acts.flatMap(a => a.students.flatMap(s => sets.getOrElse(s,
+        throw IllegalStateException(s"student set $s is named by an activity and never declared"))
+      ).distinct.map(_ -> a.duration))
+      .groupMapReduce(_._1)(_._2)(_ + _)
+
   /** The day names this file will use, which is how FET answers back. */
   def dayNames(teachingDays: Int): List[String] = SchoolWeek.names(teachingDays)
 
@@ -262,12 +289,41 @@ object FetExport:
     b ++= "<Time_Constraints_List>\n"
     b ++= constraint("ConstraintBasicCompulsoryTime", Nil)
 
+    // How uneven a class's week may be (RULES P2), as a range of day lengths
+    // per class: see ClassDays. Worked out per subgroup, because a subgroup is
+    // a set of pupils with one timetable between them. Where every subgroup of
+    // a class carries the same load, which is every class until attendance is
+    // entered, one range is written for the class, and FET applies it to each
+    // subgroup. Where they differ, each subgroup gets its own.
+    val dayRanges: Map[String, (Int, Int)] =
+      snapshot.settings.optimisation.maxClassDaySpread match
+        case None => Map.empty
+        case Some(spread) =>
+          val load = subgroupLoads(snapshot, acts)
+          def rangeFor(l: Int) = ClassDays.range(l, snapshot.teachingDays, snapshot.slotsPerDay, spread)
+          snapshot.classes.flatMap { cls =>
+            val subs = subgroups(snapshot, cls)(cls.name)
+            val loads = subs.map(load.getOrElse(_, 0)).distinct
+            if loads.size == 1 then rangeFor(loads.head).map(cls.name -> _).toList
+            else subs.flatMap(s => rangeFor(load.getOrElse(s, 0)).map(s -> _))
+          }.toMap
+
+    def dayRange(set: String, longest: Int): Unit =
+      for (shortest, _) <- dayRanges.get(set) do
+        b ++= constraint("ConstraintStudentsSetMinHoursDaily",
+          List("Minimum_Hours_Daily" -> shortest.toString, "Students" -> set,
+            "Allow_Empty_Days" -> "false"))
+      b ++= constraint("ConstraintStudentsSetMaxHoursDaily",
+        List("Maximum_Hours_Daily" -> longest.toString, "Students" -> set))
+
     // A student has nowhere to be in a free period.
     for cls <- snapshot.classes.sortBy(_.name) do
       b ++= constraint("ConstraintStudentsSetMaxGapsPerDay",
         List("Max_Gaps" -> "0", "Students" -> cls.name))
-      b ++= constraint("ConstraintStudentsSetMaxHoursDaily",
-        List("Maximum_Hours_Daily" -> snapshot.slotsPerDay.toString, "Students" -> cls.name))
+      dayRange(cls.name, dayRanges.get(cls.name).fold(snapshot.slotsPerDay)(_._2))
+      if !dayRanges.contains(cls.name) then
+        for s <- subgroups(snapshot, cls)(cls.name) if dayRanges.contains(s) do
+          dayRange(s, dayRanges(s)._2)
 
     // Both halves of a split, and every class's share of a cross-class block.
     for (_, group) <- acts.flatMap(a => a.sameTimeAs.map(_ -> a)).groupBy(_._1) do
@@ -382,8 +438,9 @@ object FetExport:
     for most <- tuning.maxTeacherGapsPerWeek do
       b ++= constraint("ConstraintTeachersMaxGapsPerWeek", List("Max_Gaps" -> most.toString))
 
-    // The two ends of a class's day. FET cannot speak about a spread, so the
-    // spread is said as its ends — and only one end will take a weight.
+    // The two ends of every class's day, one pair for the whole school, and
+    // only one end will take a weight. The spread itself is said per class
+    // above, which these cannot do (maxClassDaySpread).
     for shortest <- tuning.minClassHoursDaily do
       b ++= constraint("ConstraintStudentsMinHoursDaily",
         List("Minimum_Hours_Daily" -> shortest.toString, "Allow_Empty_Days" -> "false"))

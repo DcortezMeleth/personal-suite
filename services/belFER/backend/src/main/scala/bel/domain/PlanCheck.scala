@@ -137,6 +137,18 @@ object PlanCheck:
     val tooLong = halfHours.count((_, hours) => hours.size > capacity)
     rule("R12", s"oddział ma najwyżej $capacity lekcji dziennie", tooLong, "dni grup")
 
+    // RULES P2, when the school has asked for it. A day is a pupil's, first
+    // lesson to last; a day with nothing in it is a day of length zero, and
+    // so as short as a day can be.
+    for spread <- s.settings.optimisation.maxClassDaySpread do
+      val uneven = (for c <- s.classes; h <- List(1, 2) yield
+        val lengths = (0 until s.teachingDays).map(d =>
+          halfHours.get((c.id, h, d)).filter(_.nonEmpty)
+            .fold(0)(hours => hours.max - hours.min + 1))
+        lengths.max - lengths.min).count(_ > spread)
+      rule("R17", s"najdłuższy dzień grupy jest najwyżej o $spread lekcji dłuższy od najkrótszego",
+        uneven, "grup")
+
     // ── One block of a subject a day, per audience ───────────────────────
     val twice = plan
       .flatMap(x => x.classIds.map(c => (c, x.subjectId, x.audience, x.day)))

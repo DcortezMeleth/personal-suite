@@ -37,15 +37,18 @@ case class SchedulingSettings(
  * @param maxTeacherGapsPerWeek bound. Free hours a teacher may have across the
  *   week. The one with leverage — `maxConsecutiveTeacherGaps` of two already
  *   permits ten across five days, and this school averages four and a half.
- * @param minClassHoursDaily bound. The short end of a class's day; with the
- *   maximum below it is how "longest minus shortest at most three" gets said,
- *   because FET cannot speak about a spread.
+ * @param minClassHoursDaily bound. The short end of every class's day, one
+ *   number for the whole school.
  * @param maxClassHoursDaily preference. The long end of the same.
  * @param classDayWeight strength of that preference, 0 to 100. Zero is off.
  * @param homeRoomWeight preference. A lesson in its teacher's own room.
  * @param softRoomWeight preference. A subject in a room of its kind, where the
  *   subject says the requirement is soft. Subjects that call it hard are
  *   unaffected and stay at full strength.
+ * @param maxClassDaySpread bound. A class's longest day minus its shortest, in
+ *   lessons (RULES P2). Said to FET per class, as a range of day lengths
+ *   around that class's own average, which the two school-wide ends above
+ *   cannot do: no shortest day suits a 38-hour class and a 28-hour one alike.
  */
 case class Optimisation(
   maxTeacherGapsPerDay: Option[Int] = None,
@@ -54,7 +57,8 @@ case class Optimisation(
   maxClassHoursDaily: Option[Int] = None,
   classDayWeight: Int = 0,
   homeRoomWeight: Int = 0,
-  softRoomWeight: Int = 0
+  softRoomWeight: Int = 0,
+  maxClassDaySpread: Option[Int] = None
 ):
   /** A preference nobody has asked for is not written into the file at all. */
   def wantsClassDay: Boolean = maxClassHoursDaily.isDefined && classDayWeight > 0
@@ -74,7 +78,8 @@ object Optimisation:
       dayWeight <- c.getOrElse[Int]("classDayWeight")(0)
       homeRoom <- c.getOrElse[Int]("homeRoomWeight")(0)
       softRoom <- c.getOrElse[Int]("softRoomWeight")(0)
-    yield Optimisation(daily, gaps, shortest, longest, dayWeight, homeRoom, softRoom)
+      spread   <- c.getOrElse[Option[Int]]("maxClassDaySpread")(None)
+    yield Optimisation(daily, gaps, shortest, longest, dayWeight, homeRoom, softRoom, spread)
   }
 
   def validate(o: Optimisation): Either[String, Unit] =
@@ -97,6 +102,8 @@ object Optimisation:
           Left("Najdłuższy dzień oddziału musi być dodatni")
         else if o.minClassHoursDaily.zip(o.maxClassHoursDaily).exists((lo, hi) => lo > hi) then
           Left("Najkrótszy dzień oddziału nie może być dłuższy niż najdłuższy")
+        else if o.maxClassDaySpread.exists(_ < 0) then
+          Left("Różnica między najdłuższym a najkrótszym dniem oddziału nie może być ujemna")
         else Right(())
 
 object SchedulingSettings:

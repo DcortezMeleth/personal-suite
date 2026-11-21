@@ -159,9 +159,24 @@ export function ConfigurationPage() {
         </Row>
 
         <Row
+          label="Różnica długości dni oddziału (godz.)"
+          help="Najdłuższy dzień oddziału minus najkrótszy, liczone dla każdej grupy osobno.
+                Każdy oddział dostaje własny przedział długości dnia wokół swojej średniej —
+                np. przy 3 oddział z 32 godzinami tygodniowo ma dni od 5 do 8 lekcji. Na
+                danych szkoły: przy 3 plan układa się w ok. 2 minuty, przy 2 w ok. 4.
+                Sprawdzane na gotowym planie (reguła R17)."
+        >
+          <Optional
+            value={draft.maxClassDaySpread}
+            onChange={(maxClassDaySpread) => patch({ maxClassDaySpread })}
+          />
+        </Row>
+
+        <Row
           label="Najkrótszy dzień oddziału (godz.)"
-          help="Razem z najdłuższym dniem niżej zastępuje regułę „najdłuższy minus najkrótszy
-                dzień”, bo FET nie potrafi mówić o różnicy — tylko o obu końcach osobno."
+          help="Jedna wartość dla wszystkich oddziałów. Różnicę między dniami lepiej ustawić
+                polem wyżej — ta sama najkrótsza długość nie pasuje do oddziału z 38 i z 28
+                godzinami tygodniowo."
         >
           <Optional
             value={draft.minClassHoursDaily}
