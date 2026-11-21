@@ -143,6 +143,41 @@ object PlanCheck:
       .groupBy(identity).count(_._2.size > 1)
     rule("R5", "najwyżej jeden blok przedmiotu dziennie na grupę", twice, "przypadków")
 
+    // ── Whole-class and half lessons of one subject — RULES S4 and S5 ────
+    //
+    // Only lessons of a class's own lines: a cross-class unit has no halves
+    // of the class's split, and the bookkeeping entry for one is not taught.
+    val ownLessons = plan.filter(x => !x.derived && x.classIds.nonEmpty)
+    val bySubject = ownLessons
+      .flatMap(x => x.classIds.map(c => (c, x.subjectId) -> x))
+      .groupBy(_._1).view.mapValues(_.map(_._2)).toMap
+
+    // S4: a half that has the subject on a day the whole class also has it
+    // sees it twice that day.
+    val sharedDays = bySubject.values.toList.map { lessons =>
+      val whole = lessons.filter(_.audience == LessonAudience.WHOLE_CLASS).map(_.day).toSet
+      val halves = lessons.filter(_.audience != LessonAudience.WHOLE_CLASS).map(_.day).toSet
+      (whole intersect halves).size
+    }.sum
+    rule("R5b", "lekcja całej klasy i lekcja grupy z przedmiotu nie tego samego dnia",
+      sharedDays, "dni")
+
+    // S5, exactly as RULES states it: when a whole-class lesson starts, both
+    // halves have had equally many of their own lessons of the subject since
+    // Monday. Not "since the last whole-class lesson" — read that way, one
+    // half can stay a lesson ahead all term.
+    def earlier(x: Scheduled, than: Scheduled) =
+      x.day < than.day || (x.day == than.day && x.from < than.from)
+    val unlevel = bySubject.values.toList.map { lessons =>
+      val whole = lessons.filter(_.audience == LessonAudience.WHOLE_CLASS)
+      val first = lessons.filter(_.audience == LessonAudience.GROUP_1)
+      val second = lessons.filter(_.audience == LessonAudience.GROUP_2)
+      if first.isEmpty && second.isEmpty then 0
+      else whole.count(w => first.count(earlier(_, w)) != second.count(earlier(_, w)))
+    }.sum
+    rule("R16", "obie grupy są na równi, gdy zaczyna się lekcja całej klasy",
+      unlevel, "lekcji całej klasy")
+
     // ── Religia i etyka na brzegu dnia ───────────────────────────────────
     val classHours = plan.flatMap(x => x.classIds.map(c => (c, x.day) -> x.positions.toSet))
       .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap

@@ -104,6 +104,45 @@ class PlanCheckSpec extends AnyFunSuite:
       at(a.id, 0, 1, audience = LessonAudience.GROUP_2)))
     assert(!broken(swapped).contains("R5"))
 
+  // RULES S4 and S5, on 1C biologia's shape: one whole-class lesson and two
+  // for each half. Days only, as in the worked examples in RULES.
+  private def halvesWeek(whole: Int, first: List[Int], second: List[Int]) =
+    val a = cls("1C")
+    val s = school(List(a), List(
+      line(a.id),
+      line(a.id, blocks = List(1, 1), audience = LessonAudience.GROUP_1),
+      line(a.id, blocks = List(1, 1), audience = LessonAudience.GROUP_2)))
+    val week = at(a.id, whole, 3) ::
+      first.map(d => at(a.id, d, 0, audience = LessonAudience.GROUP_1)) :::
+      second.map(d => at(a.id, d, 1, audience = LessonAudience.GROUP_2))
+    PlanCheck(s, week)
+
+  test("a half that has a subject on a whole-class day of it is caught"):
+    assert(broken(halvesWeek(whole = 1, first = List(0, 3), second = List(0, 4))).isEmpty)
+    // Half 1 has biologia on Tuesday, when the whole class has it too.
+    assert(broken(halvesWeek(whole = 1, first = List(1, 3), second = List(0, 4))).contains("R5b"))
+
+  test("a whole-class lesson with one half a lesson ahead is caught"):
+    // The rows of the worked-examples table in RULES S5, in order.
+    assert(!broken(halvesWeek(whole = 1, first = List(0, 3), second = List(0, 4))).contains("R16"))
+    assert(broken(halvesWeek(whole = 1, first = List(0, 3), second = List(2, 3))).contains("R16"))
+    assert(!broken(halvesWeek(whole = 0, first = List(1, 3), second = List(1, 4))).contains("R16"))
+    assert(!broken(halvesWeek(whole = 2, first = List(0, 3), second = List(1, 4))).contains("R16"))
+    assert(broken(halvesWeek(whole = 2, first = List(0, 1), second = List(0, 3))).contains("R16"))
+
+  test("level is counted from Monday, not since the last whole-class lesson"):
+    // Half 1 on Friday, half 2 on Monday, the whole class on Wednesday: one
+    // lesson each "since last Wednesday", and half 2 ahead every week of term.
+    val a = cls("2A")
+    val s = school(List(a), List(
+      line(a.id),
+      line(a.id, audience = LessonAudience.GROUP_1),
+      line(a.id, audience = LessonAudience.GROUP_2)))
+    val week = List(at(a.id, 2, 3),
+      at(a.id, 4, 0, audience = LessonAudience.GROUP_1),
+      at(a.id, 0, 0, audience = LessonAudience.GROUP_2))
+    assert(broken(PlanCheck(s, week)).contains("R16"))
+
   test("an optional subject in the middle of a day is caught"):
     val a = cls("1A")
     val s = school(List(a), List(line(a.id), line(a.id, religia), line(a.id)))

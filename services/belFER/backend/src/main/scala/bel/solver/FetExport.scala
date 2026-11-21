@@ -128,8 +128,17 @@ object FetExport:
      * fallback stays, because a pupil nobody has accounted for must not be
      * quietly allowed a window.
      */
-    cohortKnown: Boolean = false
+    cohortKnown: Boolean = false,
+    /** The class's own lesson line this block belongs to, if it is one. */
+    line: Option[LineBlock] = None
   )
+
+  /** Where a block of a class's own lesson line came from. */
+  private case class LineBlock(classId: UUID, subjectId: UUID, audience: LessonAudience,
+                               kind: LessonKind, lineId: UUID, block: Int)
+
+  /** One class's lessons of one subject, as whole-class and per half. */
+  private case class Split(whole: List[Act], first: List[Act], second: List[Act])
 
   def apply(snapshot: SchoolSnapshot, rooms: List[Room]): Written =
     val kindNames = rooms.flatMap(_.kinds).map(k => k.id -> k.name).toMap
@@ -274,12 +283,50 @@ object FetExport:
     // to the same hour. Asking for those to be a day apart as well is a
     // contradiction, and FET takes it exactly as seriously as it deserves:
     // half an hour of searching placed one activity out of eleven hundred.
-    for (_, group) <- acts.filter(a => a.groupId > 0 && a.sameTimeAs.isEmpty)
-                          .groupBy(_.groupId) if group.size > 1 do
+    //
+    // A subject a class has both whole-class and in halves is spread as one:
+    // the whole-class blocks with each half's, so a half never meets the
+    // subject twice in a day (RULES S4). The halves are not spread against
+    // each other — both may have it on the same day.
+    val split = acts.flatMap(a => a.line.map(l => (l.classId, l.subjectId) -> a))
+      .groupBy(_._1).view.mapValues(_.map(_._2)).toMap
+      .map((key, as) => key -> Split(
+        as.filter(_.line.exists(_.audience == LessonAudience.WHOLE_CLASS)),
+        as.filter(_.line.exists(_.audience == LessonAudience.GROUP_1)),
+        as.filter(_.line.exists(_.audience == LessonAudience.GROUP_2))))
+      .filter((_, s) => s.whole.nonEmpty && (s.first.nonEmpty || s.second.nonEmpty))
+    val linked = split.values.flatMap(s => s.whole ++ s.first ++ s.second).map(_.id).toSet
+    val spreading =
+      acts.filter(a => a.groupId > 0 && a.sameTimeAs.isEmpty && !linked(a.id))
+        .groupBy(_.groupId).values.toList ++
+      split.values.toList.flatMap(s =>
+        List(s.first, s.second).filter(_.nonEmpty).map(half => s.whole ++ half))
+    for group <- spreading.map(_.sortBy(_.id)).sortBy(_.head.id) if group.size > 1 do
       b ++= constraint("ConstraintMinDaysBetweenActivities",
         ("Number_of_Activities" -> group.size.toString)
           :: group.map(a => "Activity_Id" -> a.id.toString)
           ::: List("MinDays" -> "1", "Consecutive_If_Same_Day" -> "true"))
+
+    // The halves stay level (RULES S5): when the whole class meets, neither
+    // half is a lesson ahead. FET cannot say that exactly — where the halves
+    // must be level depends on where the whole-class lesson lands — so it is
+    // said as something stronger that FET can: each lesson of half 1 and its
+    // counterpart in half 2 at most a day apart. With the spreading above
+    // keeping the whole class off the halves' days, no whole-class lesson can
+    // then fall between a pair. It keeps 73–100% of the valid layouts; RULES
+    // S5 has the count, and PlanCheck R16 checks the rule itself.
+    //
+    // Counterparts are matched like for like — basic with basic, extended
+    // with extended — then in block order.
+    def matched(half: List[Act]) =
+      half.sortBy(a => a.line.map(l => (l.kind.ordinal, l.lineId.toString, l.block)))
+    for
+      s <- split.values.toList.sortBy(_.whole.head.id)
+      (one, other) <- matched(s.first).zip(matched(s.second))
+    do
+      b ++= constraint("ConstraintMaxDaysBetweenActivities",
+        List("Number_of_Activities" -> "2", "Activity_Id" -> one.id.toString,
+          "Activity_Id" -> other.id.toString, "MaxDays" -> "1"))
 
     // Religia and etyka sit at the edge of a day, first or last, for every
     // class they are taught to — RULES S2 and G1. FET checks this per
@@ -495,7 +542,9 @@ object FetExport:
           roomHard = snapshot.subjects.find(_.id == line.subjectId)
             .forall(_.roomRequirementHard),
           wholeClass = line.audience == LessonAudience.WHOLE_CLASS,
-          cohortKnown = cohort.isDefined)
+          cohortKnown = cohort.isDefined,
+          line = Some(LineBlock(line.classId, line.subjectId, line.audience, line.kind,
+            line.id, block)))
         next += 1
 
     // A cross-class block is two different things at once and has to be said
