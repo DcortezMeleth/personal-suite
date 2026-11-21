@@ -18,7 +18,7 @@ and the result is not yet correct for the pupils who skip religia.
 | Activities to place | 1331 |
 | Best with the shipped 8-slot week | **1115 of 1331** — never completes |
 | With a ninth slot | **1331 of 1331 — complete, both seeds, under 40 min** |
-| Still wrong in that complete week | 18 of 46 religia/etyka opt-out cohorts get a 1-hour window |
+| Still wrong in that complete week | 16–18 of 46 religia/etyka opt-out cohorts get a 1-hour window |
 
 So the state is: **a timetable exists, and we cannot yet promise it is legal.**
 
@@ -105,10 +105,33 @@ An early test on a toy file appeared to prove subgroup-level enforcement, and
 was over-read — the toy case was infeasible for reasons that did not separate
 the two readings. The real data settles it the other way.
 
-**The fix to try first:** emit `ConstraintStudentsSetMaxGapsPerDay` for each
-attendance subgroup as well as for the year. FET accepts any student set there,
-including a subgroup. Whether the week is still feasible with 46 more hard
-constraints is an open question — a run was in flight when this was written.
+**The obvious fix was tried and did not work, and the reason is unresolved.**
+`ConstraintStudentsSetMaxGapsPerDay` was emitted for each of the 46 attendance
+subgroups as well as for the year. FET accepted all 71 of them — its own
+constraint count reports none removed as wrong — and the week still lays out
+completely, 1331 of 1331 on one of two seeds, so the extra constraints cost
+nothing. But 16 of the 46 cohorts still measure a one-hour window.
+
+That leaves two observations that cannot both be right:
+
+- A toy file where a part-class lesson is pinned mid-day, with the gap rule on
+  the year only, is **infeasible** for FET — which says the year-level rule
+  does reach subgroups.
+- The real completed week has opt-out cohorts sitting through a free hour,
+  with the rule present both on the year *and* on the subgroup.
+
+One of them is being misread. The measurement was checked for the obvious
+hole — every student set named by an activity is declared in `Students_List`,
+so nothing is being silently skipped — and the toy test was checked for the
+obvious hole too, which is that it might be infeasible for an unrelated
+reason. Neither check settled it.
+
+**What to do next:** build the smallest file that reproduces the real
+behaviour, rather than reasoning from either end. Take one real class with its
+cohorts, strip everything else, and watch whether FET will place religia
+mid-day. That distinguishes "FET does not enforce this" from "we are
+describing the class to it wrongly", and those have completely different
+fixes.
 
 **A second defect found alongside it**, smaller: the cohort groups are written
 with `Number_of_Students` equal to the number of subgroups (2) rather than the
@@ -119,8 +142,11 @@ under-reports how many pupils a religia lesson needs to seat.
 
 ## Next steps, in order
 
-1. **Per-subgroup gap constraints.** The correctness defect above. Until it is
-   fixed the cohort model promises something it does not deliver.
+1. **The opt-out window defect.** The correctness defect above, still open:
+   the obvious fix was tried and did not take, and the two pieces of evidence
+   contradict each other. Reproduce it in the smallest possible file first.
+   Until it is settled the cohort model promises something it does not
+   deliver — though it remains a large feasibility gain regardless.
 2. **Ask the school about a ninth slot.** It is the only thing measured to
    complete the week. A question for the school, not a setting we should pick.
 3. **Correct the cohort student counts** so room capacity is right.
