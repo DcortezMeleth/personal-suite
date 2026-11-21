@@ -16,7 +16,9 @@ fifteen rules, can be read four ways, and the planner can now say what a *good*
 week is rather than only a legal one. Asking for at most four teacher windows
 a week took the school's 331 window-hours down to 183.
 
-What is left, roughly in the order it is worth doing:
+All open items, including data and rules, are listed in
+[OPEN_ITEMS.md](OPEN_ITEMS.md). The product work left, roughly in the order it
+is worth doing:
 
 | | What | Why it matters |
 |---|---|---|
@@ -60,10 +62,10 @@ Also open, and deliberately parked:
   work is worth starting. Less pressing than it was: a run that fails now
   keeps the current plan and reports FET's own complaint verbatim, which is
   usually the rule that defeated it.
-- **Real home rooms.** The 28 in the database are placeholders assigned to the
-  busiest teachers by `testdata/seed-home-rooms.sql`, pending the school's own
-  mapping. The preference works; it is currently preferring an invented
-  arrangement.
+- **Real home rooms.** None in the database as of 2026-11-21: the placeholders
+  `testdata/seed-home-rooms.sql` assigned to the busiest teachers are gone.
+  The preference works and has nothing to prefer until the school's mapping
+  is entered.
 - **Comparing two settings fairly.** Every plan now records the seed FET was
   rolled with, so two configurations can be run from the same dice. Nothing
   does this yet, and this week's 331-to-183 measurement changed the setting

@@ -515,20 +515,5 @@ Does the app, given the setting, write what the script wrote?
 
 ## Queue
 
-In order. Each is one change, so its effect can be read on its own.
-
-1. **Home-lab image** (see R5). Build it natively on an x86-64 host, or switch
-   it to upstream's prebuilt x86-64 binary.
-2. ~~Even class days (P2) in the app~~: done in R11.
-   ~~Teacher windows (G5)~~: settled for now by "at most 1 a day" (R6),
-   which rules out two in a row.
-   - **Support teachers** are absent from the data (RULES §7). Find out how
-     the school assigns them before the next real comparison.
-3. **The students' no-gaps rule per week rather than per day.** It no longer
-   looks needed: 7.12.1 does not warn, and R4 completes in under a minute.
-   Keep it in mind if a later rule makes runs slow.
-4. **G2, the attendance-group windows.** Re-check them on 7.12.1 once real
-   attendance numbers are entered. Until then no attendance groups are
-   written.
-5. **Real teacher availability** (about 15 teachers expected, 6 entered). These
-   runs stay optimistic until it is in.
+Moved to [OPEN_ITEMS.md](OPEN_ITEMS.md) on 2026-11-21, which keeps every open
+item in one list. Runs that answer one of them are still logged here.
