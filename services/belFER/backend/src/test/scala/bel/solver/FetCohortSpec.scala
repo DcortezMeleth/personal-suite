@@ -8,11 +8,12 @@ import org.scalatest.funsuite.AnyFunSuite
  * Who actually sits in an optional lesson, as FET hears it.
  *
  * The school's rule is that a pupil must never be left with a free hour in the
- * middle of a day. Religia and etyka are attended by part of a class, so the
- * only way to promise that without saying who attends is to order every such
- * lesson to the end of its class's day — which is stricter than the rule, and
- * on the real school placed 432 activities of 1331 and then stopped for
- * fifteen hours.
+ * middle of a day. Religia and etyka are attended by part of a class, so
+ * without saying who attends, the promise is kept by putting every such lesson
+ * first or last in its class's day — the school's own wording (RULES S2, G1).
+ * It used to be "last" alone, because FET 6.8.5 had no "or"; on the real
+ * school that placed 432 activities of 1331 and then stopped for fifteen
+ * hours.
  *
  * Said properly, the lesson is addressed to the pupils in it, the rest of the
  * class is visibly free, and FET's own no-gaps rule covers them. That was
@@ -55,14 +56,14 @@ class FetCohortSpec extends AnyFunSuite:
 
   test("with nobody accounted for, the blunt rule stays"):
     val xml = FetExport(school(Map.empty), rooms).xml
-    assert(xml.contains("ConstraintActivityEndsStudentsDay"),
+    assert(xml.contains("ConstraintActivityBeginsOrEndsStudentsDay"),
       "a pupil nobody has counted must not quietly be allowed a window")
     assert(addressedTo(xml, "Religia") === List("1A"), "the whole class, for want of better")
 
   test("told who attends, the lesson is addressed to them and the rule is dropped"):
     val xml = FetExport(school(Map((a1.id, religia) -> 24)), rooms).xml
-    assert(!xml.contains("ConstraintActivityEndsStudentsDay"),
-      "the cohorts say who is free, so the lesson need not end the day")
+    assert(!xml.contains("ConstraintActivityBeginsOrEndsStudentsDay"),
+      "the cohorts say who is free, so the lesson need not sit at an edge")
     assert(addressedTo(xml, "Religia") !== List("1A"),
       "addressed to the attenders, not to everyone")
     assert(addressedTo(xml, "Maths").isEmpty)
@@ -86,8 +87,8 @@ class FetCohortSpec extends AnyFunSuite:
         LessonLine(UUID.randomUUID, b1.id, religia, LessonAudience.WHOLE_CLASS,
           LessonKind.BASE, Some(anna), None, List(1))))
     val xml = FetExport(both, rooms).xml
-    assert(xml.contains("ConstraintActivityEndsStudentsDay"),
+    assert(xml.contains("ConstraintActivityBeginsOrEndsStudentsDay"),
       "1B is still unaccounted for and must keep its fallback")
-    assert(xml.sliding("ConstraintActivityEndsStudentsDay>".length)
-      .count(_ == "ConstraintActivityEndsStudentsDay>") == 2,
+    assert(xml.sliding("ConstraintActivityBeginsOrEndsStudentsDay>".length)
+      .count(_ == "ConstraintActivityBeginsOrEndsStudentsDay>") == 2,
       "exactly one such constraint, opened and closed, for 1B alone")

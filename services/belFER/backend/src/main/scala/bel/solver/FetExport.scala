@@ -20,19 +20,15 @@ import java.util.UUID
  * the student structure is years containing groups, which is a class
  * containing its two halves.
  *
- * One rule does not survive the crossing. The school's is "first or last,
- * whichever suits", and FET states neither disjunctions nor "last" in any form
- * it can combine — so optional subjects are exported as ending the day, which
- * is stricter than the school is. Worth knowing when reading the answer: a
- * timetable FET cannot find under that reading might still exist under ours.
+ * The rules being translated are docs/RULES.md, which also says, rule by rule,
+ * how each one is said here and where FET is told less than the rule.
  *
- * This comment used to claim FET had no way to say "or begins it". That was
- * wrong: `ConstraintActivityBeginsStudentsDay` is in the 6.8.5 binary we run
- * and always has been. It matters more than a correction — measured on the
- * real school, ending the day places 432 activities of 1331 and beginning it
- * places 1089, because nothing forces a class's day to start at the first
- * hour, so "begins" lets each class start at an hour of its own. Still not the
- * rule, but a far better half of it. See the postscript to ADR 0006.
+ * Religia and etyka are "first or last, whichever suits". For years of FET
+ * that could not be said — 6.8.5 has "ends the day" and "begins the day" but
+ * no "or" — and exporting "ends" alone placed 432 activities of 1331 and then
+ * nothing for fifteen hours. FET 7 says it directly, per subgroup, which is
+ * one reason the image is built from upstream source rather than taken from
+ * Ubuntu (services/belFER/fet/Dockerfile).
  */
 object FetExport:
 
@@ -146,7 +142,8 @@ object FetExport:
     val b = StringBuilder()
 
     b ++= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    b ++= "<fet version=\"7.12.0\">\n\n"
+    // The version of the engine that reads it (services/belFER/fet/Dockerfile).
+    b ++= "<fet version=\"7.12.1\">\n\n"
     b ++= s"<Institution_Name>${esc("I LO")}</Institution_Name>\n"
     b ++= "<Comments>Wyeksportowane z belFER</Comments>\n\n"
 
@@ -284,20 +281,23 @@ object FetExport:
           :: group.map(a => "Activity_Id" -> a.id.toString)
           ::: List("MinDays" -> "1", "Consecutive_If_Same_Day" -> "true"))
 
-    // Religia and etyka sit at the edge of a day — but only as a fallback, and
-    // only where nobody has said who attends them.
+    // Religia and etyka sit at the edge of a day, first or last, for every
+    // class they are taught to — RULES S2 and G1. FET checks this per
+    // subgroup, so a block shared by seven classes sits at the edge of each of
+    // their days, not merely of one.
     //
-    // It is the stricter reading of the school's rule, which is "first or
-    // last, whichever suits": FET states neither a disjunction nor "last" in a
-    // form it can combine. Where the attendance is known the rule is not
-    // needed at all, because the cohorts say who is free and FET's own no-gaps
-    // promise covers them — so it is dropped there rather than piled on top,
-    // which would forbid the mid-day hour that suits everybody.
+    // Only where nobody has said who attends. Where the attendance is known
+    // the rule is not needed at all, because the cohorts say who is free and
+    // FET's own no-gaps promise covers them — so it is dropped there rather
+    // than piled on top, which would forbid the mid-day hour that suits
+    // everybody.
     //
-    // Measured on the real school: this rule on every optional activity places
-    // 432 activities of 1331 and never moves again. Cohorts instead: 1079.
+    // This used to be "ends the day", the stricter half of the rule, because
+    // FET 6.8.5 had no "or": on the real school it placed 432 activities of
+    // 1331 and never moved again.
     for a <- acts if a.optional && !a.cohortKnown do
-      b ++= constraint("ConstraintActivityEndsStudentsDay", List("Activity_Id" -> a.id.toString))
+      b ++= constraint("ConstraintActivityBeginsOrEndsStudentsDay",
+        List("Activity_Id" -> a.id.toString))
 
     // What a teacher's week may look like. None of this was exported the first
     // time, so FET had no reason to respect any of it — and duly did not:
@@ -559,8 +559,11 @@ object FetExport:
       lesson <- plan.lessons
       (length, block) <- lesson.blocks.zipWithIndex
     do
-      val mine = group
+      // A group of its own, allocated like every other: taking the current
+      // number before moving on handed the first tuition lesson the last
+      // unit's group, and with it that unit's "different days" rule.
       group += 1
+      val mine = group
       out += Act(next, lesson.teacherId.toList.flatMap(teachers.get),
         subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
         optional = false, sameTimeAs = None,

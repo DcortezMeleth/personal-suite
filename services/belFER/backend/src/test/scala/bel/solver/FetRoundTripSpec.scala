@@ -207,6 +207,24 @@ class FetRoundTripSpec extends AnyFunSuite:
     assert(teaching.flatMap(_.classIds).isEmpty)
     assert(teaching.flatMap(_.teacherIds).toSet === Set(piotr, ewa))
 
+  test("tuition is never tied to another lesson's days"):
+    // Every activity's group, by activity number, as the file states it.
+    val nodes = parse(written.xml).getElementsByTagName("Activity")
+    val groupOf = (0 until nodes.getLength).toList.flatMap { i =>
+      val e = nodes.item(i).asInstanceOf[Element]
+      (for
+        id <- text(e, "Id").flatMap(_.toIntOption)
+        g  <- text(e, "Activity_Group_Id").flatMap(_.toIntOption)
+      yield id -> g).toList
+    }.toMap
+    val tuition = numberOf(tuitionBlock)
+    assert(!groupOf.exists((id, g) => id != tuition && g == groupOf(tuition)),
+      "the first tuition lesson used to share the last unit's group")
+    val spread = raw"(?s)<ConstraintMinDaysBetweenActivities>(.*?)</ConstraintMinDaysBetweenActivities>".r
+      .findAllMatchIn(written.xml).map(_.group(1)).toList
+    assert(!spread.exists(_.contains(s"<Activity_Id>$tuition</Activity_Id>")),
+      "and so had to keep off that unit's days")
+
   test("tuition books the teacher and leaves the class free"):
     val scheduled = FetImport.expand(snapshot, result.placed, rooms)
     val tuition = scheduled.find(x => x.day == 4 && x.from == 7).get
