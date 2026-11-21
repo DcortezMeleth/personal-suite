@@ -69,6 +69,9 @@ is in `out/logs/difficult_activities.txt`.
 | R3 | 2026-11-21 | 1331 | R1's file on FET 7.12.1 instead of 6.8.5 | stuck at 433 in 2 s (6.8.5: 34 s) | same wall, reached faster |
 | R4 | 2026-11-21 | 1331 | religia/etyka "first or last" (FET 7); G10 fix | **complete**, 46 s and 47 s, 2 of 2 seeds | **yes — first complete 8-slot week since 10-29** |
 | R5 | 2026-11-21 | 1331 | + S4's whole-class link, S5's pairs | **complete**, 52 s and 63 s, 2 of 2 seeds; 16 of 17 rules | **yes — only teacher run length left** |
+| R6 | 2026-11-21 | 1331 | teacher free periods ≤1 a day (was 2) | **complete**, 60 s and 37 s, 2 of 2 seeds; **17 of 17 rules** | **yes — first week that keeps every checked rule** |
+| R7 | 2026-11-21 | 1331 | + teacher free periods ≤3 a week (was 4) | **complete**, 86 s and 75 s, 2 of 2 seeds; 17 of 17 rules | **yes — avg 2.4 free periods a week** |
+| R8 | 2026-11-21 | 1331 | + class days: longest − shortest ≤ 2 (by script) | **complete**, 198 s and 253 s, 2 of 2 seeds; 17 of 17 rules; 0 of 25 classes over | **yes — not yet in the app** |
 
 ---
 
@@ -310,6 +313,118 @@ the arm64 laptop fails: FET's build tool (`qmake`) cannot read the compiler's
 output under emulation, although the compiler itself works there. **Do not
 redeploy the home lab until this is settled.**
 
+## R6 — 2026-11-21-r6-gaps-day-1
+
+The first of three tightenings, one per run: teacher free periods a day, then
+a week, then how uneven a class's days may be.
+
+- **Rules:** 1.2 · **App:** `7ee9d22` · **Engine:** FET 7.12.1
+- **Changed (data, the school's settings):** teacher free periods **at most 1
+  a day** (`max_teacher_gaps_per_day` 2 → 1). The weekly cap stays at 4.
+  - That is stricter than T5's "never 2 in a row" and "at most 2 a day", so
+    it can only make a week more legal. It also settles G5 for as long as it
+    holds: with one free period a day there cannot be two in a row.
+- **Input:** 1331 activities, sha256 `42314ae18e2e9cd0…`. The only difference
+  from R5's file is that one value, in its two places.
+- **Settings:** as R5, apart from the above. Same two seeds, **30-minute
+  limit** (was 120 s).
+- **Result:** **complete on both seeds, in 60 s and 37 s.**
+- **Our checker:** **17 of 17 kept on both weeks.** R15, teacher run length,
+  is kept for the first time.
+- **Teacher free periods a week** (63 teachers with lessons; a free period is
+  an empty hour between a teacher's first and last lesson of a day):
+
+  | Week | Avg | Median | Min | Max | Total | 2 in a row |
+  |---|---|---|---|---|---|---|
+  | R5 seed a | 3.33 | 4 | 0 | 4 | 210 | 25 days |
+  | R5 seed b | 3.30 | 4 | 0 | 4 | 208 | 29 days |
+  | R6 seed a | 3.05 | 3 | 0 | 4 | 192 | 0 |
+  | R6 seed b | 2.90 | 3 | 0 | 4 | 183 | 0 |
+
+  Teachers at the weekly cap of 4: 43 and 47 in R5, 31 and 25 in R6.
+- **Class days, measured for the next step** (not a rule yet): longest day
+  minus shortest per half. 16 of 25 classes are over 2 in both weeks, up to
+  8 against 2 in one class.
+- **Verdict:** **one free period a day costs nothing measurable** and is the
+  first week with every checked rule kept.
+- **Next:** the weekly cap down to 3 (R7).
+
+## R7 — 2026-11-21-r7-gaps-week-3
+
+- **Rules:** 1.2 · **App:** `7ee9d22` · **Engine:** FET 7.12.1
+- **Changed (data):** teacher free periods **at most 3 a week**
+  (`max_teacher_gaps_per_week` 4 → 3), on top of R6's 1 a day.
+  - H3 on 2026-11-01 never completed at 3 a week, but it was stuck under
+    "last only", so that told us nothing about this cap.
+- **Input:** sha256 `6da545d2ff5a3339…`. The only difference from R6's file is
+  that one value.
+- **Settings:** as R6. Same two seeds, 30-minute limit.
+- **Result:** **complete on both seeds, in 86 s and 75 s.**
+- **Our checker:** 17 of 17 kept on both weeks.
+- **Teacher free periods a week:**
+
+  | Week | Avg | Median | Min | Max | Total | At the cap |
+  |---|---|---|---|---|---|---|
+  | R7 seed a | 2.41 | 3 | 0 | 3 | 152 | 41 of 63 |
+  | R7 seed b | 2.33 | 3 | 0 | 3 | 147 | 39 of 63 |
+
+- **Class days** (not a rule yet): 15 of 25 classes over 2 in both weeks.
+- **Verdict:** the cap of 3 costs about 30 seconds of search. FET still fills
+  the allowance, about two thirds of teachers sit at it, so a cap of 2 is the
+  next lever if the school wants one.
+- **Next:** how uneven a class's days may be (R8).
+
+## R8 — 2026-11-21-r8-class-spread-2
+
+Even class days (RULES P2), given to FET for the first time.
+
+- **Rules:** 1.2 · **App:** `7ee9d22`, plus a throwaway script ·
+  **Engine:** FET 7.12.1
+- **What was off before, to be exact:** G8 cleared a different setting, the
+  school-wide "shortest day at least 4". P2 itself, *longest day minus
+  shortest at most 2*, was never sent. The app can only send one school-wide
+  minimum and maximum, and that cannot express a spread.
+- **Changed (file, by script `add_spread.py`, kept in the run directory):**
+  R7's file plus, per class, a range of day lengths centred on its average
+  day, which keeps the spread at 2 or less:
+  - `StudentsSetMinHoursDaily` (no empty days) per class, 25 new;
+  - that class's existing `StudentsSetMaxHoursDaily` lowered where needed, 14
+    changed.
+
+  | Classes | Weekly load | Day length |
+  |---|---|---|
+  | 1st and 4th year (14) | 28–32 | 5–7 |
+  | 2nd and 3rd year (11) | 34–38 | 6–8 |
+
+  Both halves of every class carry the same load, which the script asserts.
+  FET applies a class's constraint to each half.
+- **What the range gives up:** a 32-hour class can no longer run 8/6/6/6/6,
+  and the 28-hour class (4G) cannot run 4/6/6/6/6. Each class keeps every
+  other day layout with a spread of 2 or less. Counted per class over ordered
+  day lengths: 30 of 35 kept at 32 and at 28 hours, all of them elsewhere.
+- **Input:** sha256 `6195a0a4f82d9436…`
+- **Settings:** as R7. Same two seeds, 30-minute limit.
+- **Result:** **complete on both seeds, in 198 s and 253 s.**
+- **Our checker:** 17 of 17 kept on both weeks. It has no spread check yet,
+  so that was measured by script (`class_days.py`, scratch) and by hand for
+  1A: days of 5, 7, 6, 7, 7 for both halves.
+- **Class days:**
+
+  | Week | Spread 1 | Spread 2 | Over 2 |
+  |---|---|---|---|
+  | R7 seed a (no rule) | 8 halves | 18 | 24 halves, 15 classes |
+  | R8 seed a | 15 | 35 | **0** |
+  | R8 seed b | 10 | 40 | **0** |
+
+- **Teacher free periods a week:** avg 2.35 and 2.27, median 3, max 3. The
+  same as R7: the class rule did not push teachers' weeks apart.
+- **Verdict:** **every rule tried today holds at once,** at about 4 minutes of
+  search instead of 1–1.5. This is the first rule that has cost noticeable
+  search time.
+- **Next:** build P2 into the app (a setting, the per-class range in the
+  exporter, a check in `PlanCheck`), then re-run to confirm the app's own
+  file does what the script did.
+
 ---
 
 ## Queue
@@ -318,9 +433,11 @@ In order. Each is one change, so its effect can be read on its own.
 
 1. **Home-lab image** (see R5). Build it natively on an x86-64 host, or switch
    it to upstream's prebuilt x86-64 binary.
-2. **Teacher windows (G5).** Try "at most 1 free period a day", which is
-   stricter than "never 2 in a row" but expressible. See whether it still
-   completes and how much it costs.
+2. **Even class days (P2) in the app.** A setting for the spread, the
+   per-class range in the exporter, a check in `PlanCheck`. R8 did it by
+   script.
+   - ~~Teacher windows (G5)~~: settled for now by "at most 1 a day" (R6),
+     which rules out two in a row.
 3. **The students' no-gaps rule per week rather than per day.** It no longer
    looks needed: 7.12.1 does not warn, and R4 completes in under a minute.
    Keep it in mind if a later rule makes runs slow.
