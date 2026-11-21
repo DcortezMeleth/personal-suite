@@ -574,7 +574,6 @@ object SolveCli extends IOApp:
     def blamedRule(day: Int, lessons: Set[String]): IO[List[String]] =
       val candidates = List(
         TimetableProblem.Rule.CLASS_DAY_CONTIGUOUS,
-        TimetableProblem.Rule.CLASS_DAY_STARTS_FIRST,
         TimetableProblem.Rule.ONE_BLOCK_PER_SUBJECT_PER_DAY,
         TimetableProblem.Rule.OPTIONAL_AT_DAY_EDGE,
         TimetableProblem.Rule.TEACHER_GAP_LIMIT,

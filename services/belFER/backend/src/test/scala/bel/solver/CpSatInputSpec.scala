@@ -142,12 +142,10 @@ class CpSatInputSpec extends AnyFunSuite:
     val mathsSlot = placed(s"line|${mat.id}|0")
     val slotsPerDay = problem.slotsPerDay
 
+    // On its own day religia is both first and last wherever it sits, since a
+    // class's day may start late. Sharing a day with maths, it must be right
+    // before maths or right after it — never at slot 1 with maths later on.
     if religiaSlot / slotsPerDay == mathsSlot / slotsPerDay then
-      // Same day: religia is either the first hour or the one after maths ends.
-      val position = religiaSlot % slotsPerDay
-      assert(position == 0 || religiaSlot == mathsSlot + 2,
+      assert(religiaSlot == mathsSlot + 2 || religiaSlot + 1 == mathsSlot,
         s"religia at $religiaSlot, maths at $mathsSlot")
-    else
-      // Its own day, where it is both first and last.
-      assert(religiaSlot % slotsPerDay == 0, s"religia at $religiaSlot")
   }

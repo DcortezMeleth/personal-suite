@@ -234,9 +234,10 @@ defaults (5 and 8).
 should be cleared.
 
 **G9. The legacy CP-SAT solver** (the `solve` CLI; the app does not use it).
-`CLASS_DAY_STARTS_FIRST` is on by default. Its religia edge rule takes "first"
-to mean slot 1. It has no attendance groups, no whole-class link for S4, and no
-S5. It is to be brought in line with this file before CP-SAT is reconsidered.
+The "starts at slot 1" rule is gone from it, and its religia edge rule now means
+"first or last of the class's own day" rather than "at slot 1, or last". It
+still has no attendance groups, no whole-class link for S4, and no S5. It is to
+be brought in line with this file before CP-SAT is reconsidered.
 
 ---
 

@@ -34,8 +34,8 @@ object BellSchedule:
    * validation can assume it sees all of it.
    *
    * Contiguity from 1 matters beyond tidiness: slot positions are what "a
-   * class's day starts at slot 1" and "a double block occupies consecutive
-   * slots" are expressed in terms of. A gap in the numbering would make both
+   * student has no window" and "a double block occupies consecutive slots"
+   * are expressed in terms of. A gap in the numbering would make both
    * constraints quietly mean something else.
    */
   def validate(slots: List[TimeSlotInput]): Either[String, Unit] =

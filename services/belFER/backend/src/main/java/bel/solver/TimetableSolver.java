@@ -320,33 +320,26 @@ public final class TimetableSolver {
                             Math.min(problem.slotsPerDay(), decided[d] + slack));
                     }
                     lengths[d] = length;
-                    if (problem.settings().has(Rule.CLASS_DAY_STARTS_FIRST)) {
-                        for (int p = 0; p < problem.slotsPerDay(); p++) {
-                            model.addGreaterThan(length, p).onlyEnforceIf(busy[base + p]);
-                            model.addLessOrEqual(length, p).onlyEnforceIf(busy[base + p].not());
-                        }
-                    } else {
-                        // Unbroken, but not necessarily from the first hour: the
-                        // class is in school across one window of the day and
-                        // nowhere outside it. Costs an integer and two booleans
-                        // a slot over the version that starts at zero, which is
-                        // the price of letting a class come in late.
-                        IntVar from = model.newIntVar(0, problem.slotsPerDay(),
-                            "from_" + entry.getKey() + "_" + d);
-                        IntVar until = model.newIntVar(0, problem.slotsPerDay(),
-                            "until_" + entry.getKey() + "_" + d);
-                        model.addEquality(
-                            LinearExpr.newBuilder().add(until).addTerm(from, -1).build(), length);
-                        for (int p = 0; p < problem.slotsPerDay(); p++) {
-                            BoolVar here = busy[base + p];
-                            model.addLessOrEqual(from, p).onlyEnforceIf(here);
-                            model.addGreaterThan(until, p).onlyEnforceIf(here);
-                            BoolVar early = model.newBoolVar("early_" + entry.getKey() + d + p);
-                            BoolVar late = model.newBoolVar("late_" + entry.getKey() + d + p);
-                            model.addGreaterThan(from, p).onlyEnforceIf(early);
-                            model.addLessOrEqual(until, p).onlyEnforceIf(late);
-                            model.addBoolOr(new Literal[] { here, early, late });
-                        }
+                    // Unbroken, but not necessarily from the first hour: the
+                    // class is in school across one window of the day and
+                    // nowhere outside it. A class may come in late; the rule
+                    // that it may not was ours, never the school's, and is
+                    // withdrawn in RULES.md 1.0.
+                    IntVar from = model.newIntVar(0, problem.slotsPerDay(),
+                        "from_" + entry.getKey() + "_" + d);
+                    IntVar until = model.newIntVar(0, problem.slotsPerDay(),
+                        "until_" + entry.getKey() + "_" + d);
+                    model.addEquality(
+                        LinearExpr.newBuilder().add(until).addTerm(from, -1).build(), length);
+                    for (int p = 0; p < problem.slotsPerDay(); p++) {
+                        BoolVar here = busy[base + p];
+                        model.addLessOrEqual(from, p).onlyEnforceIf(here);
+                        model.addGreaterThan(until, p).onlyEnforceIf(here);
+                        BoolVar early = model.newBoolVar("early_" + entry.getKey() + d + p);
+                        BoolVar late = model.newBoolVar("late_" + entry.getKey() + d + p);
+                        model.addGreaterThan(from, p).onlyEnforceIf(early);
+                        model.addLessOrEqual(until, p).onlyEnforceIf(late);
+                        model.addBoolOr(new Literal[] { here, early, late });
                     }
                     for (int h = 0; h < 2; h++)
                         atMostOneStart(model, problem, halves[h], base,
@@ -390,17 +383,21 @@ public final class TimetableSolver {
                 model.addGreaterOrEqual(week[d - 1], week[d]);
         }
 
-        // ── Religia and etyka sit at an end of the day: at the first slot, or
-        //    with the next one free, which given the rule above means last.
+        // ── Religia and etyka sit at an end of the day: the slot before it is
+        //    free, or the slot after it is, which given the rule above means
+        //    first or last. Not "at the first slot": a class's day may start
+        //    late, so the first slot of the day is not the first of the class's.
         for (int i = 0; i < n; i++) {
             Lesson l = lessons.get(i);
             if (!l.optional() || !problem.settings().has(Rule.OPTIONAL_AT_DAY_EDGE)) continue;
             BoolVar[] busy = classBusy.get(l.classId());
             if (busy == null) continue;
             for (int s = 0; s < slots; s++) {
-                if (startsAt[i][s] == null || position(problem, s) == 0) continue;
-                if (position(problem, s) + l.length() < problem.slotsPerDay())
-                    model.addEquality(busy[s + l.length()], 0).onlyEnforceIf(startsAt[i][s]);
+                int p = position(problem, s);
+                if (startsAt[i][s] == null || p == 0 || p + l.length() >= problem.slotsPerDay())
+                    continue;
+                model.addBoolOr(new Literal[] { busy[s - 1].not(), busy[s + l.length()].not() })
+                    .onlyEnforceIf(startsAt[i][s]);
             }
         }
 
