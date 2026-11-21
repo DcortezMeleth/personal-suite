@@ -1,6 +1,6 @@
 # belFER — scheduling rules
 
-**Version 1.0 · 2026-11-21**
+**Version 1.1 · 2026-11-21**
 
 The rules a generated timetable must obey, and the preferences it should try to
 meet. **This file is the source of truth for rules.** REQUIREMENTS §9 is where
@@ -164,7 +164,7 @@ have a home room. Weight 0.
 
 ## 6. Coverage — what FET is told, and what we check
 
-✅ covered · ⚠ partly · ❌ not at all. Gaps G1–G9 are described below the
+✅ covered · ⚠ partly · ❌ not at all. Gaps G1–G10 are described below the
 table.
 
 | Rule | What FET is told | `PlanCheck` | |
@@ -183,7 +183,7 @@ table.
 | T4 | `TeachersMaxHoursDaily` + `TeacherMaxHoursDaily` | R14 | ⚠ G7 |
 | T5 | `TeachersMaxGapsPerDay = 2`, `TeachersMaxGapsPerWeek = 4` | R15, run length only | ⚠ G5 |
 | RM1 | Built in | R3, R3d | ✅ |
-| RM2 | Would be `ActivityPreferredRooms`, but PE has no room type in the data | R3c cannot see it | ❌ G6 |
+| RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
 | RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type | R3c | ✅ |
 | RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c | ✅ |
 | P1–P3 | Off | — | — |
@@ -192,10 +192,11 @@ table.
 written only where the school has entered how many pupils attend each subject.
 None are entered, so every optional lesson falls back to
 `ActivityEndsStudentsDay`. That means *last only*, which is much stricter than
-S2, and it is the configuration that stalled at 432 of 1331. *Proposed* (see
-§7): when nothing is entered, assume all three attendance groups exist. That is
+S2, and it is the configuration that stalled at 432 of 1331. **Decided (1.1):**
+when nothing is entered, assume all three attendance groups exist. That is
 exactly "first or last" for every class, and it needs no numbers. Entering real
-numbers then only relaxes it, where a group turns out to be empty.
+numbers then only relaxes it, where a group turns out to be empty. Not built
+yet; it is RUNLOG queue item R3.
 
 **G2. The open defect.** In a completed week, 16–18 of the 46 attendance groups
 had a one-hour window although FET had been told no windows (FEASIBILITY.md,
@@ -208,30 +209,31 @@ does check them.
 both allow a whole-class block and a half's block of one subject on the same
 day. Fix: add the whole-class activities to each half's spreading group.
 
-**G4. S5 is not encoded anywhere.** One possible encoding: put each matched
-pair on the same day (`ActivitiesSameStartingDay`). Together with S4, that keeps
-whole-class lessons off those days, so none can fall between. This is stricter
-than S5, because it forbids a pair on Monday/Tuesday with the whole class on
-Wednesday. It needs a decision before it is built.
+**G4. S5 is not encoded anywhere.** Putting each matched pair on the same day
+would be easy, but it is **rejected (1.1)**: it restricts the week more than S5
+does. An exact encoding is needed. FET has no "either before both or after
+both", so the likely tools are `TwoActivitiesOrdered` and its same-day variant,
+which needs a way to choose the interleaving. To be worked out once a week
+completes without S4 and S5.
 
 **G5. Teacher windows.** FET cannot say "no 2 in a row". It counts gaps per day,
 never the length of a run. At 2 a day it can still leave a 2-hour hole. R15
 catches that afterwards, but nothing checks the daily (2) or weekly (4) counts.
 
-**G6. PE in classrooms.** Neither Wychowanie fizyczne nor any of its 17 units
-has a room type set, so FET puts PE groups in classrooms and leaves the PE
-spaces empty. R3c only flags a lesson that needs a type and did not get it, so
-it cannot see this. Fix: set the type in the data, and decide whether import
-should set it.
+**G6. PE in classrooms — fixed in the data, 2026-11-21.** Wychowanie fizyczne
+and its 14 PE units (of 17 cross-class units; the other 3 are religia and
+etyka) had no room type. FET was therefore putting PE groups in classrooms.
+They now require Sala gimnastyczna, hard, and the export confirms all 138 PE
+group lessons are confined to the six PE spaces. Still open: R3c could not see
+the fault, and a re-import would lose the setting unless import sets it.
 
 **G7. Teacher defaults, minor.** The school-wide default for working days is
 never sent; only per-teacher values are. A per-teacher daily cap *above* the
 school default is overridden by the default. Both are harmless with today's
 defaults (5 and 8).
 
-**G8. A setting outside this spec is on.** The shortest class day is set to 4
-(`min_class_hours_daily`) and is sent to FET as a hard rule. P2 is off, so this
-should be cleared.
+**G8. A setting outside this spec was on — fixed 2026-11-21.** The shortest
+class day was set to 4 and sent to FET as a hard rule. It is now cleared.
 
 **G9. The legacy CP-SAT solver** (the `solve` CLI; the app does not use it).
 The "starts at slot 1" rule is gone from it, and its religia edge rule now means
@@ -239,13 +241,16 @@ The "starts at slot 1" rule is gone from it, and its religia edge rule now means
 still has no attendance groups, no whole-class link for S4, and no S5. It is to
 be brought in line with this file before CP-SAT is reconsidered.
 
+**G10. Exporter off-by-one.** The first individual-tuition lesson reuses the
+group number of the last cross-class unit. FET is therefore told to keep that
+lesson on a different day from the unit's blocks, a rule nobody asked for.
+Found 2026-11-21; see RUNLOG.
+
 ---
 
 ## 7. Open questions and TODO
 
-- **G1's proposed default** (assume all three attendance groups when no numbers
-  are entered). Awaiting confirmation.
-- **G4's encoding** of S5. Same-day pairs, or something exact.
+- **G4's encoding** of S5. It must be exact; same-day pairs are rejected.
 - **TODO — individual sessions for a pupil who is also in a class**
   (*rewalidacja*, *zajęcia wyrównawcze*). Must they avoid that class's
   lessons? Today they book only the teacher and a room. Deferred 2026-11-21.
@@ -257,6 +262,18 @@ be brought in line with this file before CP-SAT is reconsidered.
 ---
 
 ## 8. Changelog
+
+### 1.1 — 2026-11-21
+
+No rule changed. Two decisions on how rules are given to FET, and coverage
+brought up to date:
+
+- **G1:** with no attendance entered, assume all three attendance groups. This
+  replaces "last only".
+- **G4:** S5 must be encoded exactly. Same-day pairing is rejected as too
+  restrictive.
+- **G6 and G8 fixed in the data.** PE rooms, and the shortest-day bound.
+- **G10 added:** the exporter off-by-one.
 
 ### 1.0 — 2026-11-21
 
