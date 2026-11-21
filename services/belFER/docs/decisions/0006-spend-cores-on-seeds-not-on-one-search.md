@@ -215,3 +215,17 @@ A note against reaching for the first of those too confidently: the ablation
 figures other than the completion were read while the runs were still going,
 so they rank nothing against each other. Only "this one completes and the
 others do not" is load-bearing.
+
+
+---
+
+## A note on these postscripts, 2026-11-21
+
+Two postscripts have been appended to an accepted decision, which the log's own
+rules say should not happen: an entry records what was known when a choice was
+made, and a running investigation is not that.
+
+The investigation has moved to **FEASIBILITY.md**, which is a living document
+and says so. This entry stays as it is. Where the two disagree, FEASIBILITY.md
+is current — in particular, the second postscript's reading of what the cohort
+model guarantees has since been found incomplete.

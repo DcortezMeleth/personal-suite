@@ -225,10 +225,24 @@ Each subphase is a migration + repository + routes + a page.
   **Half of UC-32 arrived with 3.4**: a stopped run reports how far FET got
   and which lesson it could not get past, in FET's own words. What is still
   missing is the same for a run that fails on its own, and UC-33
+- ✅ **3.6** Attendance cohorts for optional subjects — religia and etyka are
+  attended by part of a class, and saying who lets FET see the rest as free
+  rather than forcing every such lesson to the end of the day. 432 of 1331
+  activities placed before, 1090 after. **Not yet correct**: FET's year-level
+  gap rule does not protect that year's subgroups, so the opt-outs can still
+  be given a window. See FEASIBILITY.md
 
 > 3.5 is not polish. The school's instance is solvable — FET proves it — so
 > an infeasible run means a mistake somewhere in ~500 assignment rows, and a
 > bare "no solution" leaves the planner nothing to act on.
+
+> **The week does not currently fit, and that is the project's open question
+> rather than a bug in a phase.** The real school's second years carry 37–38
+> occupied hours of a 40-slot week, and with no class gaps permitted that
+> leaves one possible day shape. A ninth slot lays the whole week out in under
+> forty minutes; eight does not, on any seed or setting tried. Everything
+> measured, including what failed and why, is in **FEASIBILITY.md** — read it
+> before changing anything about constraints or the exporter.
 
 > **Measured 2026-11-01, and it changes what to try next.** With gaps limited
 > to 3 a day and 3 a week, six searches on six different seeds all stop at the
