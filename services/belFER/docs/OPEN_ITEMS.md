@@ -110,3 +110,19 @@ From ROADMAP "Open work", in its order:
 3. **Frontend production build in this shell:** Node is an x64 build and only
    the arm64 rollup binary is installed, so `vite build` fails here. The
    type-check passes. Environment, not code.
+
+## 6. Code review findings
+
+The full review of 2026-11-21 is in
+[REVIEW_2026-11-21.md](REVIEW_2026-11-21.md), with its own "Fix first" list.
+In short:
+
+- deleting any teacher, room or room kind in use fails;
+- edits and re-imports delete lessons from saved plans;
+- saving one row on four pages discards edits in the others;
+- the checker both rejects some legal weeks and misses some broken ones;
+- errors are invisible;
+- the importer has week-range and reference faults;
+- two privacy questions sit in the anonymiser.
+
+Items from it move here as they are scheduled.
