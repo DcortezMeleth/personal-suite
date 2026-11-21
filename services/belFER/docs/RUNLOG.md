@@ -66,6 +66,9 @@ is in `out/logs/difficult_activities.txt`.
 | H6 | ≤ 2026-11-21 | 1331 | H5 + a ninth slot | **complete**, < 40 min; 16–18 groups with a window | not legal |
 | R1 | 2026-11-21 | 1331 | data fixes (PE rooms, shortest day off) | 15 s check: stuck at 433 | same as H3 |
 | R2 | 2026-11-21 | 1128 | R1 without individual tuition | 15 s check: stuck at 323 | no |
+| R3 | 2026-11-21 | 1331 | R1's file on FET 7.12.1 instead of 6.8.5 | stuck at 433 in 2 s (6.8.5: 34 s) | same wall, reached faster |
+| R4 | 2026-11-21 | 1331 | religia/etyka "first or last" (FET 7); G10 fix | **complete**, 46 s and 47 s, 2 of 2 seeds | **yes — first complete 8-slot week since 10-29** |
+| R5 | 2026-11-21 | 1331 | + S4's whole-class link, S5's pairs | **complete**, 52 s and 63 s, 2 of 2 seeds; 16 of 17 rules | **yes — only teacher run length left** |
 
 ---
 
@@ -221,17 +224,108 @@ what stalls the week.
 
 ---
 
+## R3 — 2026-11-21-r3-engine
+
+Does a newer engine alone move the wall?
+
+- **Rules:** 1.2 · **App:** none; R1's file, exported at `e28a4e1`
+- **Changed:** only the engine. FET **7.12.1**, built from upstream source in
+  `services/belFER/fet/Dockerfile`, against **6.8.5** from Ubuntu, kept as
+  `belfer-fet:6.8.5`.
+- **Input:** R1's file, byte for byte (`59f85f4f692bb382…`)
+- **Settings:** as R1. 120 s each, run side by side.
+- **Result:** **both stuck at 433 of 1331.**
+  - 7.12.1 got there in 2 s, 6.8.5 in 34 s.
+  - 7.12.1 no longer prints the "students max gaps per day … not optimized"
+    warning.
+- **Verdict:** the engine is not what stalls the week. The newer one searches
+  faster and is the one to keep: R4 below needs it, and 6.8.5 cannot read R4's
+  file.
+
+## R4 — 2026-11-21-r4-begins-or-ends
+
+The first complete eight-slot week since 10-29.
+
+- **Rules:** 1.2 · **App:** `453e9f0` · **Engine:** FET 7.12.1
+- **Changed (exporter):**
+  - **Religia/etyka:** with no attendance entered, the 26 activities are
+    `ActivityBeginsOrEndsStudentsDay` (first or last, checked per subgroup)
+    instead of `ActivityEndsStudentsDay`. This is RULES G1.
+  - **The off-by-one:** the first tuition lesson no longer shares a PE unit's
+    group (G10).
+  - **The version stamp** in the file is now `7.12.1`.
+- **Input:** 1331 activities, sha256 `d0e3f38cf23e901c…`
+  - Constraint counts as R1, except `ActivityEndsStudentsDay` 26 →
+    `ActivityBeginsOrEndsStudentsDay` 26.
+- **Settings:** as R1. Two fixed seeds (1,2,3,4,5,6 and 101,…,606), 120 s
+  limit each.
+- **Result:** **complete on both seeds: 1331 of 1331, in 46 s and 47 s.**
+- **Our checker** (`solve --read`), 1286 lessons, both weeks:
+  - **Kept:** R1, R2, R3, R3b, R3c, R3d, R5, R7, R9, R10, R11, R12, R13, R14.
+    That covers every lesson placed once, nobody double-booked, no student
+    window, religia/etyka first or last, PE in PE spaces, and rooms.
+  - **Broken, R15:** teachers with two free periods in a row, on 20 and 18
+    teacher-days. This is G5: FET is told "at most 2 a day", which allows a
+    2-hour hole.
+  - **Broken, new checks:** run against these weeks after they were added,
+    whole class and half on the same day (R5b) 25 and 22 times, and halves not
+    level (R16) at 23 and 15 whole-class lessons. FET was not yet told about
+    S4's link or S5.
+- **Verdict:** **the wall was "last only", our encoding, not the school's
+  arithmetic.** FEASIBILITY.md's conclusion that the week needs a ninth slot
+  was wrong. It was measured under a rule stricter than the school's.
+- **Next blocker:** the halves rules (R5), then teacher windows (G5).
+
+## R5 — 2026-11-21-r5-halves
+
+The halves rules, measured against R4.
+
+- **Rules:** 1.2 · **App:** `82f458b` · **Engine:** FET 7.12.1
+- **Changed (exporter):**
+  - **S4's whole-class link (G3).** For the 30 class–subject cases with both
+    whole-class and half lessons, the whole-class blocks are spread together
+    with each half's.
+  - **S5 (G4).** Each half lesson is held at most a day from its counterpart,
+    like for like.
+- **Input:** 1331 activities, sha256 `c956e80e40830c6b…`
+  - `MinDaysBetweenActivities` 275 → 290.
+  - New: `MaxDaysBetweenActivities` 49 (one per pair).
+  - Both checked against a hand count by shape: +20 +1 −3 −3 spreading
+    constraints, and 10 + 26 + 1 + 6 + 6 pairs.
+- **Settings:** as R4. Same two seeds, 120 s limit.
+- **Result:** **complete on both seeds, in 52 s and 63 s.**
+- **Our checker:** **16 of 17 kept on both weeks**, including the new R5b and
+  R16. Broken: R15, teacher run length, on 25 and 29 teacher-days.
+- **Verdict:** the halves rules cost little search time, since the week still
+  completes in about a minute. R4 broke them 22–25 and 15–23 times.
+- **Next blocker:** teacher windows, G5, left as it is for now by the
+  planner's decision. Then real teacher availability, then real attendance
+  numbers.
+
+### Not done: the home-lab image
+
+The home-lab backend image (`infra/belfer-backend-fet.Dockerfile`) needs FET
+7.x too, because 6.8.5 cannot read R4's constraint. Compiling it for amd64 on
+the arm64 laptop fails: FET's build tool (`qmake`) cannot read the compiler's
+output under emulation, although the compiler itself works there. **Do not
+redeploy the home lab until this is settled.**
+
+---
+
 ## Queue
 
 In order. Each is one change, so its effect can be read on its own.
 
-1. **R3 — G1 + G10.** Exporter: with no attendance entered, assume all three
-   groups (religia / etyka / neither); fix the group off-by-one. Expect "last
-   only" to become "first or last".
-2. **R4 — R3 with students' no-gaps stated per week rather than per day.** Same
-   rule, FET's faster path.
-3. **R5 — the FET version.** Match the stamp to the binary, or update the
-   binary. Then re-check the attendance-group windows (G2) on whatever
-   completes.
-4. Then the S4 and S5 encodings (RULES G3 and G4). They make the problem
-   harder, so they go in once there is a baseline that completes.
+1. **Home-lab image** (see R5). Build it natively on an x86-64 host, or switch
+   it to upstream's prebuilt x86-64 binary.
+2. **Teacher windows (G5).** Try "at most 1 free period a day", which is
+   stricter than "never 2 in a row" but expressible. See whether it still
+   completes and how much it costs.
+3. **The students' no-gaps rule per week rather than per day.** It no longer
+   looks needed: 7.12.1 does not warn, and R4 completes in under a minute.
+   Keep it in mind if a later rule makes runs slow.
+4. **G2, the attendance-group windows.** Re-check them on 7.12.1 once real
+   attendance numbers are entered. Until then no attendance groups are
+   written.
+5. **Real teacher availability** (about 15 teachers expected, 6 entered). These
+   runs stay optimistic until it is in.

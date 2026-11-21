@@ -297,10 +297,10 @@ table.
 | Rule | What FET is told | `PlanCheck` | |
 |---|---|---|---|
 | S1 | Student structure: class = year, halves = groups, attendance groups = subgroups | R1, for classes and halves but not attendance groups | ✅ |
-| S2 | `StudentsSetMaxGapsPerDay = 0` on every class, which FET applies to each subgroup | R9 per half; R10 still checks "first or last" | ⚠ G1 G2 |
+| S2 | `StudentsSetMaxGapsPerDay = 0` on every class, applied per subgroup; religia/etyka with no attendance entered: `ActivityBeginsOrEndsStudentsDay` | R9 per half; R10 first or last | ✅ while no attendance is entered; ⚠ G2 once it is |
 | S3 | A class-occupancy activity plus `ActivitiesSameStartingTime` | Only indirectly, through R1 | ⚠ |
-| S4 | `MinDaysBetweenActivities` per class + subject + audience | R5 per audience | ❌ G3 |
-| S5 | Nothing | Nothing | ❌ G4 |
+| S4 | `MinDaysBetweenActivities` per class + subject + audience; whole-class blocks spread with each half's | R5 per audience; R5b the whole-class link | ✅ |
+| S5 | `MaxDaysBetweenActivities` ≤ 1 per pair of half lessons, which is stronger than S5 | R16, exact | ✅ stronger than the rule |
 | S6 | Activity duration | Cannot be broken | ✅ |
 | S7 | Built in | R7 | ✅ |
 | S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 | ✅ |
@@ -315,7 +315,7 @@ table.
 | RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c | ✅ |
 | P1–P3 | Off | — | — |
 
-**G1. Religia and etyka without attendance numbers.** Attendance groups are
+**G1. Religia and etyka without attendance numbers — closed 2026-11-21 (RUNLOG R4).** Attendance groups are
 written only where the school has entered how many pupils attend each subject.
 None are entered, so every optional lesson falls back to
 `ActivityEndsStudentsDay`. That means *last only*, which is much stricter than
@@ -336,13 +336,13 @@ looks at halves, not attendance groups. Until it is settled, S2 is not
 guaranteed for attendance groups. Halves rest on the same FET mechanism, but R9
 does check them.
 
-**G3. S4's whole-class link.** Blocks are grouped per audience, so FET and R5
+**G3. S4's whole-class link — closed 2026-11-21 (RUNLOG R5).** Blocks are grouped per audience, so FET and R5
 both allow a whole-class block and a half's block of one subject on the same
 day. Fix: add the whole-class activities to each half's spreading group, as
 `MinDaysBetweenActivities`, and make R5 check across audiences. To be built
 together with G4, which relies on it.
 
-**G4. S5 is not encoded anywhere yet.** Decided (1.2): give FET "each pair at
+**G4. S5 — closed 2026-11-21 (RUNLOG R5).** Decided (1.2): give FET "each pair at
 most one day apart", which keeps 73–100% of the valid patterns and never lets
 a violation through. Give our checker the exact condition. The full definition
 and the reasoning are under S5 above. Same-day pairing was rejected in 1.1.
@@ -372,7 +372,7 @@ The "starts at slot 1" rule is gone from it, and its religia edge rule now means
 still has no attendance groups, no whole-class link for S4, and no S5. It is to
 be brought in line with this file before CP-SAT is reconsidered.
 
-**G10. Exporter off-by-one.** The first individual-tuition lesson reuses the
+**G10. Exporter off-by-one — fixed 2026-11-21 (RUNLOG R4).** The first individual-tuition lesson reuses the
 group number of the last cross-class unit. FET is therefore told to keep that
 lesson on a different day from the unit's blocks, a rule nobody asked for.
 Found 2026-11-21; see RUNLOG.

@@ -10,9 +10,18 @@ Last updated 2026-11-21.
 
 ## Where we are
 
+> **2026-11-21, later: the week fits in eight slots.** The wall below was our
+> encoding, not the school's arithmetic. Where nobody had entered who attends,
+> religia and etyka were exported as "ends the day", which is stricter than
+> the school's "first or last". FET 6.8.5 had no way to say "or"; 7.12.1 does.
+> With that one change, on FET 7.12.1, the school completes on eight slots,
+> 1331 of 1331, in under a minute on both seeds tried. Our own checker passes
+> it except for teacher run lengths. See [RUNLOG.md](RUNLOG.md) R3 and R4.
+> Everything below is kept as measured, but its conclusions about capacity
+> were reached under that stricter rule and do not stand.
+>
 > **2026-11-21: the ninth slot is ruled out.** The school day does not run past
-> eight lessons. The only configuration below that ever completed is therefore
-> not available. The rules this document measures against are now in
+> eight lessons. The rules this document measures against are now in
 > [RULES.md](RULES.md); its coverage section lists where FET is told less, or
 > more, than those rules.
 
