@@ -1,6 +1,6 @@
 # belFER — scheduling rules
 
-**Version 1.2 · 2026-11-21**
+**Version 1.3 · 2026-11-21**
 
 The rules a generated timetable must obey, and the preferences it should try to
 meet. **This file is the source of truth for rules.** REQUIREMENTS §9 is where
@@ -16,8 +16,8 @@ that it means something different) bumps the version and gets an entry in the
 changelog (§8) saying what changed and why. Typo fixes don't.
 
 **IDs.** S = students and classes, T = teachers, RM = rooms, P = preferences.
-These are not the checker's codes: `PlanCheck` numbers its checks R1–R15, a
-separate list that §6 maps onto this one.
+These are not the checker's codes: `PlanCheck` numbers its checks R1–R17
+(with R3b–R3d and R5b), a separate list that §6 maps onto this one.
 
 ---
 
@@ -247,6 +247,11 @@ teacher.
 
 > *Source:* school, 2026-11-21. "4–5 a week is our cap", "no 2 consecutive",
 > "a 2-a-day cap is fine if it's easier". The long-term aim is 2–3 a week (P3).
+>
+> **The school's settings are stricter than this rule**, and that is allowed:
+> since 2026-11-21 they are **at most 1 a day and at most 2 a week** (RUNLOG
+> R6–R10). At 1 a day, two in a row cannot happen. T5 stays the limit the
+> settings may be relaxed to.
 
 ---
 
@@ -275,15 +280,27 @@ whole class.
 
 ## 5. Preferences
 
-**All off in 1.0**, until a legal week can be generated at all.
+All were off in 1.0, until a legal week could be generated at all. P2 and P3
+are on since 1.3, as bounds the school sets.
 
 **P1. A lesson in its teacher's own room.** Kept in the model: a teacher may
-have a home room. Weight 0.
+have a home room. Weight 0. **No teacher has one in today's data** (0 of
+77). The placeholder rooms seeded on 2026-10-30
+(`testdata/seed-home-rooms.sql`, written for 75 teachers) are gone, probably
+with a re-import, and no real list has been entered.
 
-**P2. Even class days:** longest day minus shortest day at most 2–3. Off.
+**P2. Even class days: a class's longest day minus its shortest is at most
+N lessons**, counted per half, an empty day counting as zero. **N is a school
+setting** (`max_class_day_spread`, Konfiguracja); unset, the rule is off.
+**Set to 3 on 2026-11-21** ("fine for now"). When set, it is hard: FET must
+keep it.
+
+> *Source:* school. Was "at most 2–3", off, until 1.3. Measured: at 2 the week
+> completes in about 4 minutes, at 3 in about 2 (RUNLOG R8–R11).
 
 **P3. Fewer teacher windows**, towards 2–3 a week. FET cannot weigh this (ADR
-0005). The only lever is tightening T5's weekly cap, one run at a time.
+0005). The only lever is tightening T5's weekly cap, one run at a time. Now at
+2 a week (see T5).
 
 **P4. Difficult subjects in the morning.** Post-MVP, not built.
 
@@ -308,12 +325,14 @@ table.
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
 | T4 | `TeachersMaxHoursDaily` + `TeacherMaxHoursDaily` | R14 | ⚠ G7 |
-| T5 | `TeachersMaxGapsPerDay = 2`, `TeachersMaxGapsPerWeek = 4` | R15, run length only | ⚠ G5 |
+| T5 | `TeachersMaxGapsPerDay` and `TeachersMaxGapsPerWeek` from the school's settings, now 1 and 2, stricter than T5 | R15, run length only | ✅ while the daily setting is 1; ⚠ G5 above it |
 | RM1 | Built in | R3, R3d | ✅ |
 | RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
 | RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type | R3c | ✅ |
 | RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c | ✅ |
-| P1–P3 | Off | — | — |
+| P1 | Off (weight 0, and no home rooms in the data) | — | — |
+| P2 | Per class, a range of day lengths N wide around its own average: `StudentsSetMinHoursDaily` and `StudentsSetMaxHoursDaily`, per subgroup where loads differ. Stronger than the rule | R17, exact | ✅ stronger than the rule |
+| P3 | Through T5's weekly setting | — (not counted; see G5) | ⚠ |
 
 **G1. Religia and etyka without attendance numbers — closed 2026-11-21 (RUNLOG R4).** Attendance groups are
 written only where the school has entered how many pupils attend each subject.
@@ -349,7 +368,9 @@ and the reasoning are under S5 above. Same-day pairing was rejected in 1.1.
 
 **G5. Teacher windows.** FET cannot say "no 2 in a row". It counts gaps per day,
 never the length of a run. At 2 a day it can still leave a 2-hour hole. R15
-catches that afterwards, but nothing checks the daily (2) or weekly (4) counts.
+catches that afterwards, but nothing checks the daily or weekly counts.
+**Moot since 2026-11-21** while the daily setting is 1 (RUNLOG R6): one free
+period a day cannot be two in a row. Open again if it is raised.
 
 **G6. PE in classrooms — fixed in the data, 2026-11-21.** Wychowanie fizyczne
 and its 14 PE units (of 17 cross-class units; the other 3 are religia and
@@ -388,10 +409,31 @@ Found 2026-11-21; see RUNLOG.
   compared the two on different rule sets: CP-SAT was carrying "starts at slot
   1", which FET could not express. See SOLVER_EVALUATION's addendum.
 - **Specialist rooms beyond PE**, if the school needs them later.
+- **Support teachers (*nauczyciel wspomagający*): none in the data.** T1 and
+  the model cover them (a second teacher on a lesson line), but the arkusz's
+  support-teacher rows came in as 30 hours of phantom individual tuition and
+  were deleted, and how the arkusz books them is still unknown (REQUIREMENTS
+  §8, ROADMAP). If the school has any, their hours are missing from every
+  generated week.
+- **Teacher home rooms (P1): none in the data** (see P1).
+- **P2 and attendance groups.** The range is per subgroup, so once attendance
+  is entered, pupils who skip religia get a range for their own shorter
+  week. R17 checks halves, not attendance groups (as with G2).
 
 ---
 
 ## 8. Changelog
+
+### 1.3 — 2026-11-21
+
+- **P2 on, as a configurable bound:** a class's longest day minus its
+  shortest at most N, N a school setting, set to 3. Was "2–3", off. Given to
+  FET per class as a range of day lengths; checked exactly by R17.
+- **T5 coverage:** the school's settings are now 1 free period a day and 2 a
+  week, stricter than T5, which stays the limit they may be relaxed to. G5 is
+  moot while the daily setting is 1.
+- **P1:** recorded that no teacher has a home room in today's data.
+- **TODO added:** support teachers, absent from the data.
 
 ### 1.2 — 2026-11-21
 

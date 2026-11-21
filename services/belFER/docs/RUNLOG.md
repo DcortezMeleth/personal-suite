@@ -74,6 +74,7 @@ is in `out/logs/difficult_activities.txt`.
 | R8 | 2026-11-21 | 1331 | + class days: longest − shortest ≤ 2 (by script) | **complete**, 198 s and 253 s, 2 of 2 seeds; 17 of 17 rules; 0 of 25 classes over | **yes — not yet in the app** |
 | R9 | 2026-11-21 | 1331 | R7 + class days ≤ 3 (by script), the planner's limit | **complete**, 132 s and 105 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | baseline for R10 |
 | R10 | 2026-11-21 | 1331 | R9 + teacher free periods ≤2 a week (was 3) | **complete**, 144 s and 183 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | **yes — avg 1.6–1.7 free periods a week** |
+| R11 | 2026-11-21 | 1331 | R10, written by the app itself (setting `max_class_day_spread` = 3) | **complete**, 135 s and 181 s; **18 of 18** rules, R17 new; the same weeks as R10 | **confirms the app** |
 
 ---
 
@@ -484,6 +485,32 @@ Even class days (RULES P2), given to FET for the first time.
 - **Next:** build the class-day rule into the app (queue item 2). Whether 1 a
   week is worth a run is the planner's call.
 
+## R11 — 2026-11-21-r11-app-spread-3
+
+Does the app, given the setting, write what the script wrote?
+
+- **Rules:** 1.3 · **App:** `76d22c5` · **Engine:** FET 7.12.1
+- **Changed (app):** the class-day limit is a school setting,
+  `max_class_day_spread` (migration V18, Konfiguracja page), set to **3**.
+  The exporter picks each class's range the way `add_spread.py` did
+  (`ClassDays`), per subgroup where loads differ. `PlanCheck` gains **R17**,
+  the limit checked exactly, per half.
+- **Input:** sha256 `fe7a7c0b627f0930…`, exported by the app with no script.
+  Against R10's file: the same 495 time and 1287 space constraints and
+  identical activities, students and rooms. Only the order of constraints
+  differs.
+- **Settings:** as R10. Same two seeds, 30-minute limit.
+- **Result:** **complete on both seeds, in 135 s and 181 s.** **The same weeks
+  as R10**, all 1331 activities at the same day, hour and room on both seeds.
+  The order of constraints did not change FET's search.
+- **Our checker:** **18 of 18** on both weeks. Teacher free periods as R10
+  (avg 1.60 and 1.70, max 2).
+- **R17 checked against the script** on earlier weeks: R7 (no day rule) 13
+  halves over 3, as the script counts; R10 none.
+- **Verdict:** the setting works as measured. The throwaway script is retired.
+- **Next:** the queue below. The local server on 8081 still runs code from
+  2026-11-01 and needs a restart to use any of today's changes.
+
 ---
 
 ## Queue
@@ -492,11 +519,11 @@ In order. Each is one change, so its effect can be read on its own.
 
 1. **Home-lab image** (see R5). Build it natively on an x86-64 host, or switch
    it to upstream's prebuilt x86-64 binary.
-2. **Even class days (P2) in the app,** at longest − shortest ≤ 3 (R9). A
-   setting for the limit, the per-class range in the exporter, a check in
-   `PlanCheck`. R8–R10 did it by script.
-   - ~~Teacher windows (G5)~~: settled for now by "at most 1 a day" (R6),
-     which rules out two in a row.
+2. ~~Even class days (P2) in the app~~: done in R11.
+   ~~Teacher windows (G5)~~: settled for now by "at most 1 a day" (R6),
+   which rules out two in a row.
+   - **Support teachers** are absent from the data (RULES §7). Find out how
+     the school assigns them before the next real comparison.
 3. **The students' no-gaps rule per week rather than per day.** It no longer
    looks needed: 7.12.1 does not warn, and R4 completes in under a minute.
    Keep it in mind if a later rule makes runs slow.
