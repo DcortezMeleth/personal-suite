@@ -97,13 +97,9 @@ object PlanCheck:
 
   private def individuals(s: SchoolSnapshot): List[Taught] =
     val split = s.lessonLines.filter(_.audience != LessonAudience.WHOLE_CLASS).map(_.classId).toSet
-    s.individualPlans.map { p =>
-      val kind = p.kind match
-        case Some(TuitionKind.MIXED) if p.half.isEmpty && split.contains(p.classId) => TuitionKind.ON_SITE
-        case Some(k) => k
-        case None    => TuitionKind.ON_SITE
-      Taught(p.id, p.classId, kind, p.half.getOrElse(1), p.lessons.map(_.subjectId).toSet)
-    }
+    s.individualPlans.map(p =>
+      Taught(p.id, p.classId, p.plannedKind(split.contains(p.classId)), p.half.getOrElse(1),
+        p.lessons.map(_.subjectId).toSet))
 
   /**
    * The attendance groups of each class, by the optional subject they attend

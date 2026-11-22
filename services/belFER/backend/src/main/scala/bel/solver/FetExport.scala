@@ -111,9 +111,33 @@ object FetExport:
     val all = halves.flatMap(_._2)
     ((cls.name -> all) :: (halves ++ optional ++ all.map(s => s -> List(s)))).toMap
 
+  // ── Individual pupils (RULES S9) ─────────────────────────────────────────
+
+  private def splitClasses(snapshot: SchoolSnapshot): Set[UUID] =
+    snapshot.lessonLines.filter(_.audience != LessonAudience.WHOLE_CLASS).map(_.classId).toSet
+
+  /**
+   * Pupils taught apart from their class: remote and on-site, and anyone whose
+   * kind is not settled yet, who is planned as on-site (IndividualPlan.
+   * plannedKind). Each is a FET year of their own, so FET knows the pupil
+   * exists: it will not give them two lessons at once, and for an on-site
+   * pupil it keeps their day free of windows. Until 2026-11-22 individual
+   * lessons named no student set at all, and a week double-booked pupils on 22
+   * pupil-days.
+   */
+  private def apart(snapshot: SchoolSnapshot): List[IndividualPlan] =
+    val split = splitClasses(snapshot)
+    snapshot.individualPlans.filter(p => p.plannedKind(split.contains(p.classId)) != TuitionKind.MIXED)
+
+  /** A pupil's student set: the class and the plan's ordinal, never a name. */
+  private def pupilSet(classNames: Map[UUID, String], plan: IndividualPlan): String =
+    s"${classNames.getOrElse(plan.classId, "?")}~i${plan.ordinal}"
+
   /** Each subgroup's hours a week: every activity any set of it is named in. */
   private def subgroupLoads(snapshot: SchoolSnapshot, acts: List[Act]): Map[String, Int] =
-    val sets = snapshot.classes.flatMap(subgroups(snapshot, _)).toMap
+    val classNames = snapshot.classes.map(c => c.id -> c.name).toMap
+    val sets = snapshot.classes.flatMap(subgroups(snapshot, _)).toMap ++
+      apart(snapshot).map(p => pupilSet(classNames, p)).map(n => n -> List(n))
     acts.flatMap(a => a.students.flatMap(s => sets.getOrElse(s,
         throw IllegalStateException(s"student set $s is named by an activity and never declared"))
       ).distinct.map(_ -> a.duration))
@@ -254,6 +278,9 @@ object FetExport:
         for m <- members do subgroup(m, 1, "\t\t\t")
         b ++= "\t\t</Group>\n"
       b ++= "\t</Year>\n"
+    for plan <- apart(snapshot) do
+      b ++= s"\t<Year>\n\t\t<Name>${esc(pupilSet(classes, plan))}</Name>\n"
+      b ++= "\t\t<Number_of_Students>1</Number_of_Students>\n\t\t<Comments></Comments>\n\t</Year>\n"
     b ++= "</Students_List>\n\n"
 
     b ++= "<Activities_List>\n"
@@ -326,6 +353,16 @@ object FetExport:
       if !dayRanges.contains(cls.name) then
         for s <- subgroups(snapshot, cls)(cls.name) if dayRanges.contains(s) do
           dayRange(s, dayRanges(s)._2)
+
+    // An individual pupil's day: at most a school day long, and for an on-site
+    // pupil (or one not yet settled) without windows. A remote pupil may wait.
+    val inHalves = splitClasses(snapshot)
+    for plan <- apart(snapshot) do
+      val set = pupilSet(classes, plan)
+      if plan.plannedKind(inHalves.contains(plan.classId)) == TuitionKind.ON_SITE then
+        b ++= constraint("ConstraintStudentsSetMaxGapsPerDay", List("Max_Gaps" -> "0", "Students" -> set))
+      b ++= constraint("ConstraintStudentsSetMaxHoursDaily",
+        List("Maximum_Hours_Daily" -> snapshot.slotsPerDay.toString, "Students" -> set))
 
     // Both halves of a split, and every class's share of a cross-class block.
     for (_, group) <- acts.flatMap(a => a.sameTimeAs.map(_ -> a)).groupBy(_._1) do
@@ -656,12 +693,12 @@ object FetExport:
 
     // ── Nauczanie indywidualne ────────────────────────────────────────────
     //
-    // One student, so no student set: the class is not busy, because the
-    // student is not in it. What it does book is the teacher — which is the
-    // whole reason for carrying these at all — and a room: one the school keeps
-    // for it, or an ordinary classroom.
+    // One pupil, taught alone: the class is not busy, because the pupil is not
+    // in it. It books the teacher, the pupil's own student set (RULES S9), and
+    // a room: one the school keeps for it, or an ordinary classroom.
     val individualKind = snapshot.roomsOfKind.keys.find(id =>
       kindNames.get(id).exists(_.equalsIgnoreCase(IndividualTuition.RoomKindName)))
+    val apartIds = apart(snapshot).map(_.id).toSet
     for
       plan <- snapshot.individualPlans
       lesson <- plan.lessons
@@ -673,7 +710,12 @@ object FetExport:
       group += 1
       val mine = group
       out += Act(next, lesson.teacherId.toList.flatMap(teachers.get),
-        subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
+        subjects.getOrElse(lesson.subjectId, "?"),
+        // Addressed to the pupil, so FET knows they exist (RULES S9). A mixed
+        // pupil's set is part of their class, which comes next; until then
+        // their lessons name no student set, as all of them used to.
+        if apartIds.contains(plan.id) then List(pupilSet(classes, plan)) else Nil,
+        length, mine,
         optional = false, sameTimeAs = None,
         means = Some(LessonRef.Individual(lesson.id, block)),
         // A tuition room or any ordinary classroom (RULES RM3, S9): the kind is

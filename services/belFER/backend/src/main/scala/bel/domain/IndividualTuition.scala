@@ -58,6 +58,20 @@ case class IndividualPlan(
 ):
   def hours: Int = lessons.map(_.hours).sum
 
+  /**
+   * How the pupil is planned: their kind, or on-site until the planner has
+   * set it, and also for a mixed pupil whose class has lessons in halves but
+   * whose half is not set. On-site never double-books a pupil and never leaves
+   * them waiting, though it misses a mixed pupil's lessons with the class
+   * (INDIVIDUAL_TUITION.md §6). The export and the checker both read it here.
+   *
+   * @param classSplit whether the pupil's class has lessons in halves
+   */
+  def plannedKind(classSplit: Boolean): TuitionKind = kind match
+    case Some(TuitionKind.MIXED) if half.isEmpty && classSplit => TuitionKind.ON_SITE
+    case Some(k) => k
+    case None    => TuitionKind.ON_SITE
+
 /** What the planner sets on a plan: the two things the arkusz does not say. */
 case class TuitionSettings(kind: Option[TuitionKind], half: Option[Int])
 
