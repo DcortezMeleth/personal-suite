@@ -75,6 +75,7 @@ is in `out/logs/difficult_activities.txt`.
 | R9 | 2026-11-21 | 1331 | R7 + class days ≤ 3 (by script), the planner's limit | **complete**, 132 s and 105 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | baseline for R10 |
 | R10 | 2026-11-21 | 1331 | R9 + teacher free periods ≤2 a week (was 3) | **complete**, 144 s and 183 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | **yes — avg 1.6–1.7 free periods a week** |
 | R11 | 2026-11-21 | 1331 | R10, written by the app itself (setting `max_class_day_spread` = 3) | **complete**, 135 s and 181 s; **18 of 18** rules, R17 new; the same weeks as R10 | **confirms the app** |
+| R12 | 2026-11-22 | 1331 | the app's own Generate path after the review fixes (RULES 1.4 checker, V19–V20, error handling, importer) | **complete**, 139 s, 4 seeds raced; **19 of 19**; saved as the current plan | **nothing broken** |
 
 ---
 
@@ -510,6 +511,29 @@ Does the app, given the setting, write what the script wrote?
 - **Verdict:** the setting works as measured. The throwaway script is retired.
 - **Next:** the queue below. The local server on 8081 still runs code from
   2026-11-01 and needs a restart to use any of today's changes.
+
+## R12 — 2026-11-22, generation through the app after the review fixes
+
+Did the day's fixes break anything? Run through the path the Generate button
+uses (`solve --generate`: export, four FET searches raced on random seeds,
+read-back, check, save), not by hand.
+
+- **Rules:** 1.4 · **App:** `4cce692` · **Engine:** FET 7.12.1
+- **Changed since R11 (app):** the checker per attendance group with R4, R3e,
+  bounds and block matching (RULES 1.4); deletes and plans keeping their
+  lessons (V19, V20); error handling and logging; importer fixes. Data and
+  settings as R11.
+- **Settings:** 4 workers, 30-minute backstop, seeds random (recorded with the
+  plan).
+- **Result:** **complete in 139 s; 19 of 19 checks kept**, including the new
+  R4, R3e and R12; saved and made current, the school's first saved plan.
+- **Stored:** 1286 placements (942 line blocks, 141 PE group lessons, 203
+  tuition hours), every one with a room, none unresolved. No FET containers or
+  work directories left behind.
+- **Teacher free periods a week:** avg 1.75, median 2, max 2; 52 of 63 at the
+  cap; no two in a row. As R10–R11.
+- **Verdict:** nothing broken. No files kept: the app's runs work in a
+  temporary directory, and the plan is in the database.
 
 ---
 
