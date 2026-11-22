@@ -56,7 +56,9 @@ object PlanCheck:
      */
     block: Option[(UUID, Int)] = None,
     /** The cross-class unit and the unit's block this is part of (RULES S3). */
-    unitBlock: Option[(UUID, Int)] = None
+    unitBlock: Option[(UUID, Int)] = None,
+    /** The individual plan whose pupil this lesson is for (RULES S9). */
+    pupil: Option[UUID] = None
   ):
     def positions: Range = from until (from + length)
     /** Which halves of a class this occupies — a whole-class lesson takes both. */
@@ -78,7 +80,30 @@ object PlanCheck:
    * Pupils of a class who share one timetable (RULES S2): a half, and within
    * it those attending one optional subject (`attends`), or none of them.
    */
-  private case class Pupils(classId: UUID, half: Int, attends: Option[UUID])
+  private sealed trait Who
+  private case class Pupils(classId: UUID, half: Int, attends: Option[UUID]) extends Who
+  /** One pupil on individual tuition (RULES S9), by their plan. */
+  private case class Individual(planId: UUID) extends Who
+
+  /**
+   * How an individual pupil is planned. Their kind, or on-site until the
+   * planner has set it, and also for a mixed pupil whose class has lessons in
+   * halves but whose half is not set: on-site never double-books a pupil or
+   * leaves them waiting, though it misses a mixed pupil's class lessons. The
+   * export makes the same choice. `own` is the subjects taught to them
+   * individually, which a mixed pupil does not take with the class.
+   */
+  private case class Taught(planId: UUID, classId: UUID, kind: TuitionKind, half: Int, own: Set[UUID])
+
+  private def individuals(s: SchoolSnapshot): List[Taught] =
+    val split = s.lessonLines.filter(_.audience != LessonAudience.WHOLE_CLASS).map(_.classId).toSet
+    s.individualPlans.map { p =>
+      val kind = p.kind match
+        case Some(TuitionKind.MIXED) if p.half.isEmpty && split.contains(p.classId) => TuitionKind.ON_SITE
+        case Some(k) => k
+        case None    => TuitionKind.ON_SITE
+      Taught(p.id, p.classId, kind, p.half.getOrElse(1), p.lessons.map(_.subjectId).toSet)
+    }
 
   /**
    * The attendance groups of each class, by the optional subject they attend
@@ -152,16 +177,36 @@ object PlanCheck:
     // Per group of pupils, not per class: religia and etyka at the same hour
     // are two lessons for two different sets of pupils (RULES S2).
     val groups = attendanceGroups(s)
-    def pupils(x: Scheduled): Set[Pupils] =
-      for
-        c <- x.classIds
-        h <- x.halves
-        g <- groups.getOrElse(c, List(None)).toSet
-        if !x.optional || g.contains(x.subjectId)
-      yield Pupils(c, h, g)
-    val classAt = occupancy(plan)(x =>
-      for p <- pupils(x); pos <- x.positions yield (p, x.day, pos))
-    rule("R1", "oddział nigdy nie jest w dwóch miejscach naraz", classAt, "kolizji")
+    val taught = individuals(s)
+    val mixedIn = taught.filter(_.kind == TuitionKind.MIXED).groupBy(_.classId)
+    // Everyone a lesson occupies: the class's groups of pupils, the pupil an
+    // individual lesson is for, and a mixed pupil sitting the class lesson
+    // with everyone else — unless it is a subject they are taught on their
+    // own, or religia/etyka, which they are assumed not to attend (as for the
+    // class's "neither" group, RULES G1).
+    def pupils(x: Scheduled): Set[Who] =
+      val classGroups: Set[Who] =
+        for
+          c <- x.classIds
+          h <- x.halves
+          g <- groups.getOrElse(c, List(None)).toSet
+          if !x.optional || g.contains(x.subjectId)
+        yield Pupils(c, h, g)
+      val withClass: Set[Who] =
+        if x.optional then Set.empty
+        else
+          for
+            c <- x.classIds
+            t <- mixedIn.getOrElse(c, Nil).toSet
+            if x.halves.contains(t.half) && !t.own.contains(x.subjectId)
+          yield Individual(t.planId)
+      classGroups ++ withClass ++ x.pupil.map(Individual(_))
+    def busy(keep: Who => Boolean) = occupancy(plan)(x =>
+      for p <- pupils(x) if keep(p); pos <- x.positions yield (p, x.day, pos))
+    rule("R1", "oddział nigdy nie jest w dwóch miejscach naraz",
+      busy(_.isInstanceOf[Pupils]), "kolizji")
+    rule("R18", "uczeń nauczania indywidualnego nigdy nie ma dwóch zajęć naraz",
+      busy(_.isInstanceOf[Individual]), "kolizji")
 
     // RULES S3: every group of a cross-class unit's block at the same hour.
     // The classes' side of a unit is one bookkeeping entry, at the first
@@ -246,8 +291,14 @@ object PlanCheck:
     // (REVIEW_2026-11-21 D2).
     val pupilHours = plan.flatMap(x => pupils(x).toList.map(p => (p, x.day) -> x.positions.toSet))
       .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
-    val gaps = pupilHours.count((_, hours) => longestGap(hours) > 0)
+    val gaps = pupilHours.count((key, hours) => key._1.isInstanceOf[Pupils] && longestGap(hours) > 0)
     rule("R9", "żadna grupa uczniów nie ma okienka", gaps, "dni grup")
+
+    // RULES S9: an individual pupil has no windows either, unless remote.
+    val remote: Set[Who] = taught.filter(_.kind == TuitionKind.REMOTE).map(t => Individual(t.planId)).toSet
+    val pupilGaps = pupilHours.count((key, hours) =>
+      key._1.isInstanceOf[Individual] && !remote.contains(key._1) && longestGap(hours) > 0)
+    rule("R19", "uczeń nauczania indywidualnego nie ma okienka (poza zdalnym)", pupilGaps, "dni uczniów")
 
     // RULES P2, when the school has asked for it. A day is a pupil's, first
     // lesson to last; a day with nothing in it is a day of length zero, and

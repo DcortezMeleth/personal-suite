@@ -350,3 +350,65 @@ class PlanCheckSpec extends AnyFunSuite:
     assert(!broken(report).contains("R15"))
     assert(!broken(report).contains("R15b"))
     assert(!broken(report).contains("R15c"))
+
+  // ── Individual pupils (RULES S9) ─────────────────────────────────────
+
+  private val history = UUID.randomUUID
+  private val polish = UUID.randomUUID
+
+  private def pupilPlan(classId: UUID, kind: Option[TuitionKind], half: Option[Int] = None,
+                        subjects: List[UUID] = List(maths)) =
+    IndividualPlan(UUID.randomUUID, classId, 1,
+      subjects.map(sub => IndividualLesson(UUID.randomUUID, sub, Some(piotr), List(1))), kind, half)
+
+  /** An individual lesson for the plan's pupil, taught by Piotr. */
+  private def alone(plan: IndividualPlan, day: Int, from: Int, subject: UUID = maths) =
+    PlanCheck.Scheduled(Set.empty, LessonAudience.WHOLE_CLASS, subject, Set(piotr), day, from, 1,
+      false, pupil = Some(plan.id))
+
+  test("an individual pupil with two lessons at once is caught"):
+    val a = cls("1A")
+    val p = pupilPlan(a.id, None, subjects = List(maths, polish))
+    val s = school(List(a), Nil).copy(individualPlans = List(p))
+    val clash = List(alone(p, 0, 0), alone(p, 0, 0, polish).copy(teacherIds = Set(anna)))
+    assert(broken(PlanCheck(s, clash)).contains("R18"))
+    assert(!broken(PlanCheck(s, List(alone(p, 0, 0), alone(p, 0, 1, polish)))).contains("R18"))
+
+  test("an individual pupil has no windows, unless remote"):
+    val a = cls("1A")
+    def week(kind: Option[TuitionKind]) =
+      val p = pupilPlan(a.id, kind, subjects = List(maths, polish))
+      PlanCheck(school(List(a), Nil).copy(individualPlans = List(p)),
+        List(alone(p, 0, 0), alone(p, 0, 2, polish)))
+    assert(broken(week(None)).contains("R19"), "not yet set: planned as on-site")
+    assert(broken(week(Some(TuitionKind.ON_SITE))).contains("R19"))
+    assert(!broken(week(Some(TuitionKind.REMOTE))).contains("R19"))
+
+  test("a mixed pupil sits the class's lessons, except their own subjects"):
+    // 1A: history, maths, Polish at the first three hours. The pupil takes
+    // maths on their own.
+    val a = cls("1A")
+    val p = pupilPlan(a.id, Some(TuitionKind.MIXED))
+    val s = school(List(a), List(line(a.id, history), line(a.id), line(a.id, polish)))
+      .copy(individualPlans = List(p))
+    val classDay = List(at(a.id, 0, 0, history), at(a.id, 0, 1), at(a.id, 0, 2, polish))
+
+    // Their maths where the class has maths: no clash, no window.
+    val together = PlanCheck(s, classDay :+ alone(p, 0, 1))
+    assert(!broken(together).contains("R18"))
+    assert(!broken(together).contains("R19"))
+    // Their maths during history, which they sit with the class: a clash.
+    assert(broken(PlanCheck(s, classDay :+ alone(p, 0, 0))).contains("R18"))
+    // Their maths after the day: the class's maths hour is a window for them.
+    assert(broken(PlanCheck(s, classDay :+ alone(p, 0, 3))).contains("R19"))
+
+  test("a mixed pupil sits only their own half's lessons"):
+    val a = cls("1A")
+    val p = pupilPlan(a.id, Some(TuitionKind.MIXED), half = Some(2))
+    val s = school(List(a), List(line(a.id, history, audience = LessonAudience.GROUP_1),
+      line(a.id, polish, audience = LessonAudience.GROUP_2))).copy(individualPlans = List(p))
+    // Half 1's history at the first hour is not theirs; their maths then is fine.
+    val week = List(at(a.id, 0, 0, history, audience = LessonAudience.GROUP_1),
+      at(a.id, 0, 1, polish, audience = LessonAudience.GROUP_2), alone(p, 0, 0))
+    assert(!broken(PlanCheck(s, week)).contains("R18"))
+    assert(!broken(PlanCheck(s, week)).contains("R19"))

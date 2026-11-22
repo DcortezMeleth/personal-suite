@@ -86,6 +86,7 @@ object FetImport:
     def kindIsHard(subject: UUID) = s.subjects.find(_.id == subject).forall(_.roomRequirementHard)
 
     val tuition = s.individualPlans.flatMap(_.lessons).map(l => l.id -> l).toMap
+    val planOf = s.individualPlans.flatMap(p => p.lessons.map(_.id -> p.id)).toMap
 
     val individual = placed.collect {
       case Placed(LessonRef.Individual(lessonId, block), day, from, _, where)
@@ -105,7 +106,8 @@ object FetImport:
           needsKind = tuitionKind,
           // A tuition room or an ordinary classroom (RULES RM3), as exported.
           kindIsHard = false,
-          block = Some(lessonId -> block))
+          block = Some(lessonId -> block),
+          pupil = planOf.get(lessonId))
     }
 
     val ordinary = placed.collect {
