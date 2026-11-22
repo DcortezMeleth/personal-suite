@@ -97,6 +97,21 @@ object ArkuszMapper:
       .map(s => PlannedSubject(s.code, s.name,
         optional = OptionalSubjectHints.exists(h => s.code.toLowerCase.contains(h))))
 
+    // ── References the file makes and does not keep ─────────────────────────
+    //
+    // A row naming a subject the file never defines got through the preview
+    // and then failed the import with a bare error; a teacher it never defines
+    // was stored as nobody, without a word (REVIEW_2026-11-21 I7). Collected
+    // here and said in the preview, where the planner decides.
+    val teacherCodes = doc.teachers.map(_.code).toSet
+    val subjectCodes = subjects.map(_.code).toSet
+    val strangers = scala.collection.mutable.SortedSet.empty[String]
+    val unknownSubjects = scala.collection.mutable.SortedSet.empty[String]
+    def knownTeacher(code: Option[String]): Option[String] =
+      code.filter(c => teacherCodes.contains(c) || { strangers += c; false })
+    def knownSubject(code: String): Boolean =
+      subjectCodes.contains(code) || { unknownSubjects += code; false }
+
     // ── Which rows apply to the chosen weeks ──────────────────────────────────
     val inRange = doc.assignments.filter(_.overlaps(weeks.from, weeks.to))
     val dropped = doc.assignments.size - inRange.size
@@ -200,12 +215,12 @@ object ArkuszMapper:
           var blocks = group.map(_.blocks)
           def total = blocks.map(_.size).sum
           val before = total
+          // One pair at a time, from whichever line has most singles left:
+          // pairing a line's singles all at once turned 4 + 2 hours into four
+          // blocks where five would have fitted (REVIEW_2026-11-21 I6).
           while total > TeachingDays && blocks.exists(_.count(_ == 1) >= 2) do
             val index = blocks.indices.maxBy(i => blocks(i).count(_ == 1))
-            val singles = blocks(index).count(_ == 1)
-            blocks = blocks.updated(index,
-              (blocks(index).filter(_ != 1) ++ List.fill(singles / 2)(2)
-                ++ List.fill(singles % 2)(1)).sorted)
+            blocks = blocks.updated(index, (blocks(index).diff(List(1, 1)) :+ 2).sorted)
           (key, before > total, group.zip(blocks).map((line, shape) => line.copy(blocks = shape)))
         }
 
@@ -260,6 +275,28 @@ object ArkuszMapper:
     // provision is the most sensitive thing in the file — but the hours do,
     // because they are taught by the people who teach the classes and a plan
     // that does not know about them will commit somebody twice over.
+    //
+    // Read the way lesson lines are (REVIEW_2026-11-21 I2, I5): rows of the
+    // chosen weeks only, and where one subject is stated for several stretches
+    // of weeks, the one running in the middle of them rather than the sum.
+    // Only the pupil's own rows: a pseudo-class also appears as a member of
+    // cross-class groups, and those rows are lessons with the group, not
+    // tuition. Extended codes are merged into their subject like everyone
+    // else's, which they were not, so r_ tuition was dropped at the database.
+    def tuitionOf(pseudoCode: String): List[PlannedIndividualLesson] =
+      inRange
+        .filter(a => a.isOrdinary && a.classCode.contains(pseudoCode) && a.hours > 0)
+        .groupBy(_.subjectCode)
+        .toList.sortBy(_._1)
+        .flatMap { (code, rows) =>
+          val running = rows.filter(a => a.weekFrom <= sampleWeek && a.weekTo >= sampleWeek)
+          val chosen = if running.nonEmpty then running else List(rows.maxBy(rowOverlap(_, weeks)))
+          chosen.groupBy(_.teacherCode).toList.sortBy(_._1.getOrElse(""))
+            .map((teacher, same) => PlannedIndividualLesson(baseOf(code), knownTeacher(teacher),
+              List.fill(same.maxBy(rowOverlap(_, weeks)).hours)(1)))
+        }
+        .filter(lesson => knownSubject(lesson.subjectCode))
+
     val individualPlans =
       individual.flatMap { pseudo =>
         IndividualClass.unapplySeq(pseudo.code).map(parts => parts.head -> pseudo)
@@ -271,10 +308,7 @@ object ArkuszMapper:
         // Numbered after the empty ones are dropped, so a class with one plan
         // calls it the first rather than the second.
         pseudos
-          .map((_, pseudo) => doc.assignments
-            .filter(a => a.classCode.contains(pseudo.code))
-            .flatMap(a => Option.when(a.hours > 0)(
-              PlannedIndividualLesson(a.subjectCode, a.teacherCode, List.fill(a.hours)(1)))))
+          .map((_, pseudo) => tuitionOf(pseudo.code))
           .filter(_.nonEmpty)
           .zipWithIndex
           .map((lessons, index) => PlannedIndividualPlan(classCode, index + 1, lessons))
@@ -288,25 +322,50 @@ object ArkuszMapper:
     if skipped > 0 then
       info(s"Pominięto $skipped planów nauczania indywidualnego bez przydzielonych godzin")
 
+    val resolvedLines = fittedLines.filter(l => knownSubject(l.subjectCode))
+      .map(l => l.copy(teacherCode = knownTeacher(l.teacherCode)))
+    val resolvedUnits = crossClassUnits.filter(u => knownSubject(u.subjectCode))
+      .map(u => u.copy(groups = u.groups.map(g => g.copy(teacherCode = knownTeacher(g.teacherCode)))))
+
+    // What the database would refuse outright, said here instead: a code used
+    // twice, and more girls than pupils.
+    def once[A](what: String, all: List[A])(code: A => String): List[A] =
+      val repeated = all.groupBy(code).collect { case (c, same) if same.sizeIs > 1 => c }.toList.sorted
+      if repeated.nonEmpty then
+        warn(s"$what o powtórzonym kodzie: ${repeated.mkString(", ")} — wczytano pierwszy z każdych")
+      all.distinctBy(code)
+    val resolvedClasses = once("Oddziały", classes)(_.code).map { c =>
+      val girls = c.girlCount.filter(g => c.studentCount.forall(g <= _))
+      if girls != c.girlCount then
+        warn(s"${c.code}: dziewcząt więcej niż uczniów — pominięto liczbę dziewcząt")
+      c.copy(homeroomTeacherCode = knownTeacher(c.homeroomTeacherCode), girlCount = girls)
+    }
+
+    if unknownSubjects.nonEmpty then
+      warn(s"Pominięto przydziały przedmiotów, których arkusz nie definiuje: " +
+        unknownSubjects.mkString(", "))
+    if strangers.nonEmpty then
+      warn(s"Kody nauczycieli spoza listy nauczycieli arkusza: ${strangers.mkString(", ")} " +
+        "— ich przydziały zostaną bez nauczyciela")
+
     ImportPlan(
       schoolName = doc.school.name,
-      teachers = doc.teachers.map(t => PlannedTeacher(t.code, t.firstName, t.lastName, t.pensum)),
-      subjects = subjects,
-      classes = classes,
-      lessonLines = fittedLines,
-      crossClassUnits = crossClassUnits,
+      teachers = once("Nauczyciele", doc.teachers)(_.code)
+        .map(t => PlannedTeacher(t.code, t.firstName, t.lastName, t.pensum)),
+      subjects = once("Przedmioty", subjects)(_.code),
+      classes = resolvedClasses,
+      lessonLines = resolvedLines,
+      crossClassUnits = resolvedUnits,
       individualPlans = individualPlans,
       notes = notes.result()
     )
 
-  /**
-   * belFER splits a class into two halves. The arkusz mostly agrees, but its
-   * own WF rows sometimes carry three or four groups within one class — which
-   * the model cannot hold, so those are reported rather than squeezed in.
-   */
   /** How much of the imported stretch an allocation actually applies to. */
   private def overlapWeeks(line: PlannedLessonLine, weeks: WeekRange): Int =
     (math.min(line.weekTo, weeks.to) - math.max(line.weekFrom, weeks.from) + 1).max(0)
+
+  private def rowOverlap(row: ArkuszAssignment, weeks: WeekRange): Int =
+    (math.min(row.weekTo, weeks.to) - math.max(row.weekFrom, weeks.from) + 1).max(0)
 
   private def normaliseName(name: String): String =
     name.trim.toLowerCase.replaceAll("\\s+", " ")

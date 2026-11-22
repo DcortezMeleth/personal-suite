@@ -12,6 +12,11 @@ server {
     # serves the routes at the root — which is why the two cannot share a file.
     location /api/ {
         proxy_pass ${BELFER_BACKEND};
+
+        # An arkusz upload. The backend caps it at 20 MB; nginx's own default
+        # is 1 MB, which would refuse a large export before the backend could
+        # say why (REVIEW_2026-11-21 I4).
+        client_max_body_size 21m;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
 

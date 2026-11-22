@@ -44,9 +44,14 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
 
   private given EntityDecoder[IO, Multipart[IO]] = EntityDecoder.multipart[IO]
 
-  // Uploads are capped well above a real arkusz — the committed one is 210 kB —
-  // so a mistyped file cannot be read into memory unbounded.
+  // Uploads are capped well above a real arkusz — the committed one is 189 kB —
+  // so a mistyped file cannot be read into memory unbounded. The cap is put on
+  // the request body (see `routes`): the multipart decoder reads the whole
+  // body before any part can be looked at, so checking the file part's size
+  // afterwards bounded nothing (REVIEW_2026-11-21 I4).
   private val MaxUploadBytes = 20 * 1024 * 1024
+  /** Room for the form's boundaries and its two small fields. */
+  private val FormOverhead = 64 * 1024
 
   private def counts(plan: ImportPlan) = ImportSummary.Counts(
     teachers = plan.teachers.size,
@@ -84,7 +89,10 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
   private def uploadFrom(mp: Multipart[IO]): IO[Either[String, (ArkuszDocument, ArkuszMapper.WeekRange)]] =
     readUpload(mp).map(_.flatMap((bytes, weeks) => ArkuszParser.parse(bytes).map(_ -> weeks)))
 
-  val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
+  val routes: HttpRoutes[IO] =
+    org.http4s.server.middleware.EntityLimiter(unlimited, (MaxUploadBytes + FormOverhead).toLong)
+
+  private def unlimited: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
     // Says what would happen without doing it. The import replaces a school's
     // whole allocation, so seeing the numbers first is the difference between a
