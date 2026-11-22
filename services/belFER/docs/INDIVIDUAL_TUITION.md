@@ -1,9 +1,8 @@
 # Individual tuition — how it works and how to model it
 
-**Draft, revised 2026-11-22.** Not built. This records how the school runs
-individual tuition, what the data says, what is wrong today, the design, and
-the questions still open. When they are answered, the decided rule goes into
-RULES.md (as S9) and this file keeps the reasoning.
+**Decided 2026-11-22; not built yet.** This records how the school runs
+individual tuition, what the data says, what is wrong today, and the design.
+The rule itself is RULES S9; this file keeps the reasoning.
 
 ---
 
@@ -23,9 +22,13 @@ From the planner, 2026-11-22.
   class, so for timetabling each is a class of their own. A remote pupil's
   day may have windows; an on-site pupil's may not.
 - **A mixed pupil** attends most lessons with their class and takes a few
-  subjects individually, typically maths. When the class has a subject the
-  pupil takes individually, the pupil's individual lesson has to be at the
-  same time; otherwise they would have a gap.
+  subjects individually, typically maths. They are out of every class lesson
+  of those subjects. Where the class has more hours of the subject than the
+  pupil has individually (2 of 4 maths), in the class's remaining hours the
+  pupil has another of their individual lessons, or is free; and if free, the
+  hour must be the first or last of their day. The same holds where the
+  individual teacher is the class's own teacher of the subject, and the two
+  cannot run together.
 
 ### What the arkusz says, and what it does not
 
@@ -53,6 +56,9 @@ From the planner, 2026-11-22.
 - **German** is in the arkusz: 1C, 1F, 2C, 2F, 4C and 4F have 2 hours each,
   in halves. One individual German lesson belongs to a 3F pupil whose class
   has none. Worth checking in the original file.
+- **Rooms.** An individual lesson may be held in a tuition room or in an
+  ordinary classroom. A lesson of a whole class (or a half) never goes into a
+  tuition room.
 - **Individual PE needs a room,** for simplicity. A remote pupil's PE strictly
   would not, but treating all alike is simpler, at some cost in flexibility.
 
@@ -170,22 +176,21 @@ hours.
 
 ---
 
-## 6. Open questions
+## 6. Decisions (2026-11-22)
 
-1. **Rooms for remote lessons.** The 6 tuition rooms, as now, or any free
-   classroom? Today all 203 individual hours go to the 6 tuition rooms, 85% of
-   their week. Freeing remote lessons from them would loosen that a lot.
-2. **A mixed pupil with fewer hours than the class** (all 16 such lessons).
-   Take maths: the class has 4 hours, the pupil 2 individually. In the class's
-   other 2 maths hours the pupil is:
-   - a. free, so those hours must fall at the start or end of their day;
-   - b. in the class lesson with everyone else; or
-   - c. with a support teacher, as in the workaround.
-3. **A mixed pupil taught by the class's own teacher of the subject** (7
-   lessons). The two cannot run at the same time. Is the individual lesson a
-   separate hour, at the start or end of the pupil's day?
-4. **Kind or half not entered yet.** Block generation until they are, with
-   Walidacja saying which pupils? (Recommended: 23 choices to make, once.)
+1. **Rooms:** an individual lesson may use a tuition room or an ordinary
+   classroom; class lessons never use tuition rooms. This also takes the
+   pressure off the 6 tuition rooms (85% full today).
+2. **Fewer hours than the class:** in the class's remaining hours of the
+   subject the pupil has another individual lesson or is free, and a free
+   hour must be first or last in their day (§1).
+3. **Same teacher:** answered by 2; the individual lesson is a separate hour.
+4. **Kind or half not entered:** there is no UI for it yet (the tuition page
+   is read-only); it is to be built (§7). Until a pupil's kind is set,
+   Walidacja reports it as blocking, and the export treats the pupil as
+   on-site: a class of their own with no windows, which never double-books
+   them and never leaves them waiting, though it misses a mixed pupil's class
+   lessons. Proposed; to confirm.
 
 ---
 

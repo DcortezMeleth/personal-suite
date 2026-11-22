@@ -1,6 +1,6 @@
 # belFER — scheduling rules
 
-**Version 1.5 · 2026-11-22**
+**Version 1.6 · 2026-11-22**
 
 The rules a generated timetable must obey, and the preferences it should try to
 meet. **This file is the source of truth for rules.** REQUIREMENTS §9 is where
@@ -225,6 +225,27 @@ long break.
 
 **S8. A class has at most 8 lessons a day.** This follows from §1.
 
+**S9. Individual pupils.** A pupil on individual tuition has a kind, set by
+the planner, and is one of:
+
+- **remote:** only individual lessons; windows allowed;
+- **on-site:** only individual lessons; no windows (S2);
+- **mixed:** belongs to one half of their class and attends that half's and
+  the whole class's lessons, except every lesson of the subjects in their
+  individual plan. Their day, the class lessons they attend plus their
+  individual lessons, has no windows (S2). In an hour when the class has one
+  of those subjects, the pupil has another individual lesson or is free, and
+  a free hour is the first or last of their day.
+
+For every kind: no two lessons at once (S1), at most 8 a day (S8). Every
+individual lesson needs a room, a tuition room or an ordinary classroom
+(RM3); individual PE included.
+
+> *Source:* school, 2026-11-22. The reasoning, the data and the design are in
+> [INDIVIDUAL_TUITION.md](INDIVIDUAL_TUITION.md). Rewalidacja and TUS exist
+> only for individual pupils. Pseudo-class codes differing only in case are
+> one pupil.
+
 ---
 
 ## 3. Hard rules — teachers
@@ -267,7 +288,9 @@ class.
 
 **RM2. PE groups use PE spaces only.**
 
-**RM3. Individual tuition uses individual-tuition rooms only.**
+**RM3. Individual tuition uses individual-tuition rooms or ordinary
+classrooms** (S9). A whole class or a half never uses an individual-tuition
+room.
 
 **RM4. Every other lesson uses a classroom.** It never goes in a PE space or an
 individual-tuition room. A whole-class lesson needs a classroom that holds a
@@ -324,6 +347,7 @@ table.
 | S6 | Activity duration | Contiguous by construction; R12 checks it ends within the day | ✅ |
 | S7 | Built in | R7: counted and matched block by block | ✅ |
 | S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 (every lesson within the week's days and hours) with R1 | ✅ |
+| S9 | Nothing yet: individual lessons book only a teacher and a tuition room; the pupil is unknown to FET | Nothing yet | ❌ G11 |
 | T1 | Built in; support teacher and tuition are named on the activity | R2 | ✅ |
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
@@ -331,7 +355,7 @@ table.
 | T5 | `TeachersMaxGapsPerDay` and `TeachersMaxGapsPerWeek` from the school's settings, now 1 and 2, stricter than T5 | R15 run length, R15b per day, R15c per week (when set); an hour the teacher is unavailable is not a free period, as FET counts | ✅ |
 | RM1 | Built in | R3, R3d | ✅ |
 | RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
-| RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type | R3c | ✅ |
+| RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type only (ordinary classrooms not yet allowed) | R3c | ⚠ G11 |
 | RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c (a wanted kind may use a classroom too), R3e (every lesson has a room) | ✅ |
 | P1 | Off (weight 0, and no home rooms in the data) | — | — |
 | P2 | Per class, a range of day lengths N wide around its own average: `StudentsSetMinHoursDaily` and `StudentsSetMaxHoursDaily`, per subgroup where loads differ. Stronger than the rule | R17, per half, and per attendance group once attendance is entered, as FET is told | ✅ stronger than the rule |
@@ -402,6 +426,11 @@ group number of the last cross-class unit. FET is therefore told to keep that
 lesson on a different day from the unit's blocks, a rule nobody asked for.
 Found 2026-11-21; see RUNLOG.
 
+**G11. Individual pupils (S9) are not modelled.** FET and the checker know
+only a lesson's teacher and room. In RUNLOG R12's week a pupil has two
+individual lessons at once on 22 pupil-days and windows on 39. To be built as
+INDIVIDUAL_TUITION.md §7 describes.
+
 ---
 
 ## 7. Open questions and TODO
@@ -431,6 +460,12 @@ Found 2026-11-21; see RUNLOG.
 ---
 
 ## 8. Changelog
+
+### 1.6 — 2026-11-22
+
+- **Added S9, individual pupils** (remote, on-site, mixed), from the school.
+  Not covered yet: G11.
+- **RM3 widened:** individual tuition may use ordinary classrooms too.
 
 ### 1.5 — 2026-11-22
 
