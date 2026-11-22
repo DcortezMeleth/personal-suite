@@ -113,5 +113,20 @@ class TeacherRepository(xa: Transactor[IO]):
       yield saved
     program.transact(xa)
 
+  /**
+   * The teacher goes, and whatever they taught stays, without a teacher: the
+   * planner is told so before confirming. The references are cleared here
+   * because the database cannot do it for a two-column key on PostgreSQL 14
+   * (V19). Subjects and unavailability go with the teacher; tuition lessons
+   * keep their hours with nobody assigned, through their own key.
+   */
   def delete(id: UUID): IO[Int] =
-    sql"DELETE FROM teacher WHERE id = $id".update.run.transact(xa)
+    val program =
+      for
+        _ <- sql"UPDATE school_class SET homeroom_teacher_id = NULL WHERE homeroom_teacher_id = $id".update.run
+        _ <- sql"UPDATE lesson_line SET teacher_id = NULL WHERE teacher_id = $id".update.run
+        _ <- sql"UPDATE lesson_line SET support_teacher_id = NULL WHERE support_teacher_id = $id".update.run
+        _ <- sql"UPDATE cross_class_group SET teacher_id = NULL WHERE teacher_id = $id".update.run
+        n <- sql"DELETE FROM teacher WHERE id = $id".update.run
+      yield n
+    program.transact(xa)

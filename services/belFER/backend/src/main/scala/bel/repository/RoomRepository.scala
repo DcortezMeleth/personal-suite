@@ -29,12 +29,22 @@ class RoomRepository(xa: Transactor[IO]):
     """.query[RoomKind].option.transact(xa)
 
   /**
-   * Deletion cascades to room assignments, and nulls the reference from any
-   * subject that required this kind — which is why a subject's hard room
-   * requirement is validated on write rather than trusted thereafter.
+   * Deletion cascades to room assignments and clears the requirement from any
+   * subject or cross-class unit that asked for this kind. A subject's "hard"
+   * flag goes with it: a hard requirement for no kind is something the
+   * subject form refuses to save, and the planner could not untick it either
+   * (REVIEW_2026-11-21 U7). Cleared here because the database cannot do it for
+   * a two-column key on PostgreSQL 14 (V19).
    */
   def deleteKind(id: UUID): IO[Int] =
-    sql"DELETE FROM room_kind WHERE id = $id".update.run.transact(xa)
+    val program =
+      for
+        _ <- sql"""UPDATE subject SET required_room_kind_id = NULL, room_requirement_hard = FALSE
+                   WHERE required_room_kind_id = $id""".update.run
+        _ <- sql"UPDATE cross_class_unit SET required_room_kind_id = NULL WHERE required_room_kind_id = $id".update.run
+        n <- sql"DELETE FROM room_kind WHERE id = $id".update.run
+      yield n
+    program.transact(xa)
 
   // ── Rooms ─────────────────────────────────────────────────────────────────
 
@@ -116,5 +126,14 @@ class RoomRepository(xa: Transactor[IO]):
     sql"SELECT count(*) FROM room_kind_assignment WHERE room_kind_id = $kindId"
       .query[Int].unique.transact(xa)
 
+  /**
+   * A teacher whose own room this was keeps teaching without one. Saved plans
+   * keep their lessons and lose the room, through plan_placement's own key.
+   */
   def deleteRoom(id: UUID): IO[Int] =
-    sql"DELETE FROM room WHERE id = $id".update.run.transact(xa)
+    val program =
+      for
+        _ <- sql"UPDATE teacher SET home_room_id = NULL WHERE home_room_id = $id".update.run
+        n <- sql"DELETE FROM room WHERE id = $id".update.run
+      yield n
+    program.transact(xa)
