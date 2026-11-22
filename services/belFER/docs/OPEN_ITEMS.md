@@ -87,6 +87,9 @@ From ROADMAP "Open work", in its order:
    - *zajęcia z wychowawcą* with nobody assigned is not reported;
    - tuition cannot be edited in the UI;
    - the importer recreates the phantom support-teacher tuition.
+   - Fixed 2026-11-22 (REVIEW I2, I4–I7, I11): tuition by week range and
+     merged codes, minimal doubles, unknown references reported, the upload
+     cap enforced while reading.
 
 ## 4. Engine
 
@@ -130,6 +133,8 @@ Items from it move here as they are scheduled.
 
 **Done 2026-11-22:** "Fix first" items 1–5: deletes, plans keeping their
 lessons plus the import preview, other rows' edits (and with them U7 and
-D16), and the checker (RULES 1.4: D1–D7). **Still open from item 2:** a
+D16), the checker (RULES 1.4: D1–D7), and — items 6 and 7 — readable errors
+with logging, and the importer's week ranges, tuition codes, doubles,
+references and upload cap. **Still open from item 2:** a
 re-import still replaces hand-entered data; it now says so first. Upserting
 by code is ROADMAP 2.3.
