@@ -4,6 +4,7 @@ import cats.effect.{Fiber, IO, Ref}
 import cats.effect.std.Supervisor
 import java.time.Instant
 import java.util.UUID
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 /**
  * Generation runs, started and then asked about.
@@ -87,6 +88,8 @@ class PlanGenerationRuns private (
 ):
   import PlanGenerationRuns.*
 
+  private val log = Slf4jLogger.getLoggerFromName[IO]("bel.solver.PlanGenerationRuns")
+
   /**
    * Start one, or hand back the one already going.
    *
@@ -145,7 +148,12 @@ class PlanGenerationRuns private (
         // being reachable the way configuration says it is.
         case Left(error) =>
           State.Failed(Option(error.getMessage).getOrElse(error.getClass.getName))
-      settle(schoolId, state)
+      // A failed run used to leave only that one line, on the screen of
+      // whoever was looking (REVIEW_2026-11-21 F9). The stack trace goes to
+      // the log.
+      val logged = outcome.left.toOption.fold(IO.unit)(error =>
+        log.error(error)(s"generation failed for school $schoolId"))
+      logged *> settle(schoolId, state)
     }.onCancel(settle(schoolId, State.Cancelled))
 
   /** Record how far the search has got, for whoever asks next. */

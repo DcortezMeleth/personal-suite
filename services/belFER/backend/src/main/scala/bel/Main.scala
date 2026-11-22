@@ -12,6 +12,7 @@ import com.comcast.ip4s.Port
 import com.typesafe.config.ConfigFactory
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object Main extends IOApp.Simple:
 
@@ -70,6 +71,7 @@ object Main extends IOApp.Simple:
               .default[IO]
               .withHost(serverHost)
               .withPort(serverPort)
+              .withErrorHandler(ApiError.handler(Slf4jLogger.getLoggerFromName[IO]("bel.api")))
               .withHttpApp(
                 Router(
                   "/"    -> HealthRoutes.routes,

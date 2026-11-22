@@ -1,0 +1,20 @@
+<!--
+  What the server writes to its console.
+
+  There was no configuration, so logback defaulted to DEBUG for everything:
+  every pooled connection opened and closed, every Ember frame, and the one
+  line that mattered lost among them (REVIEW_2026-11-21 A14). INFO by default;
+  belFER's own loggers ("bel.*") keep INFO too, and only say what failed and
+  where, never the school's data (see ApiError.handler).
+-->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
