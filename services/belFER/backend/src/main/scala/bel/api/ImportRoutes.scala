@@ -3,6 +3,7 @@ package bel.api
 import bel.importer.*
 import bel.repository.ImportRepository
 import cats.effect.IO
+import cats.syntax.apply.*
 import io.circe.{Encoder, Json}
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
@@ -27,6 +28,8 @@ object ImportSummary:
     counts: Counts,
     notes: List[Note],
     replaces: Counts,
+    /** What the import loses that the arkusz does not bring back. */
+    discards: List[String],
     // Offered so the planner picks a stretch whose allocation is constant,
     // rather than discovering half way through that it covers two.
     segments: List[Segment]
@@ -92,7 +95,7 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
           case Left(message) => UnprocessableContent(ApiError.body(message))
           case Right((doc, weeks)) =>
             val plan = ArkuszMapper.map(doc, weeks)
-            repo.existingCounts(schoolId).flatMap { existing =>
+            (repo.existingCounts(schoolId), repo.discards(schoolId)).tupled.flatMap { (existing, discards) =>
               Ok(ImportSummary.Preview(
                 schoolName = plan.schoolName,
                 counts = counts(plan),
@@ -100,6 +103,7 @@ class ImportRoutes(repo: ImportRepository, schools: bel.repository.SchoolReposit
                 replaces = ImportSummary.Counts(
                   existing.teachers, existing.subjects, existing.classes,
                   existing.lessonLines, existing.crossClassUnits, 0),
+                discards = discards,
                 segments = ArkuszSegments.suggested(doc).map(s =>
                   ImportSummary.Segment(s.from, s.to, s.weeks, s.allocations, s.hoursPerWeek))
               ).asJson)

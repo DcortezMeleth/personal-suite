@@ -59,21 +59,43 @@ class CrossClassUnitRepository(xa: Transactor[IO]):
       units <- assemble(bare)
     yield units.headOption
 
+  /**
+   * The unit's groups made to match the form, keeping every group that is
+   * still there under its own id.
+   *
+   * It used to delete them all and insert them again, which gave every group
+   * a new id on every save. A saved plan names its lessons by group id, so
+   * correcting a typo in a unit's name made that unit's lessons drop out of
+   * the current plan and every earlier one (REVIEW_2026-11-21 A2). Only a
+   * group the form no longer has is deleted now.
+   */
   private def replaceGroups(unitId: UUID, schoolId: UUID, groups: List[CrossClassGroupInput]): ConnectionIO[Unit] =
+    def setClasses(groupId: UUID, classIds: List[UUID]): ConnectionIO[Unit] =
+      for
+        _ <- sql"DELETE FROM cross_class_group_class WHERE group_id = $groupId".update.run
+        _ <- classIds.distinct.traverse(classId =>
+               sql"""INSERT INTO cross_class_group_class (group_id, class_id, school_id)
+                     VALUES ($groupId, $classId, $schoolId)""".update.run)
+      yield ()
+
     for
-      _ <- sql"DELETE FROM cross_class_group WHERE unit_id = $unitId".update.run
-      _ <- groups.traverse { group =>
-             for
-               groupId <- sql"""
-                            INSERT INTO cross_class_group (unit_id, school_id, label, teacher_id)
-                            VALUES ($unitId, $schoolId, ${group.label.trim}, ${group.teacherId})
-                            RETURNING id
-                          """.query[UUID].unique
-               _       <- group.classIds.distinct.traverse(classId =>
-                            sql"""INSERT INTO cross_class_group_class (group_id, class_id, school_id)
-                                  VALUES ($groupId, $classId, $schoolId)""".update.run)
-             yield ()
-           }
+      existing <- sql"SELECT id FROM cross_class_group WHERE unit_id = $unitId".query[UUID].to[Set]
+      kept     =  groups.flatMap(_.id).filter(existing.contains).toSet
+      _        <- (existing -- kept).toList.traverse(gone =>
+                    sql"DELETE FROM cross_class_group WHERE id = $gone".update.run)
+      _        <- groups.traverse { group =>
+                    group.id.filter(kept.contains) match
+                      case Some(id) =>
+                        sql"""UPDATE cross_class_group
+                              SET label = ${group.label.trim}, teacher_id = ${group.teacherId}
+                              WHERE id = $id""".update.run
+                          .flatMap(_ => setClasses(id, group.classIds))
+                      case None =>
+                        sql"""INSERT INTO cross_class_group (unit_id, school_id, label, teacher_id)
+                              VALUES ($unitId, $schoolId, ${group.label.trim}, ${group.teacherId})
+                              RETURNING id""".query[UUID].unique
+                          .flatMap(setClasses(_, group.classIds))
+                  }
     yield ()
 
   def create(schoolId: UUID, input: CrossClassUnitInput): IO[CrossClassUnit] =

@@ -100,3 +100,20 @@ class CrossClassUnitSpec extends AnyFunSuite:
     assert(unit.classIds.toSet == Set(a, b))
     assert(unit.hours == 2)
   }
+
+/** A group as the form sends it: an existing one keeps its id, a new one has none. */
+class CrossClassGroupInputSpec extends AnyFunSuite:
+
+  private val cls = UUID.randomUUID
+
+  private def decode(json: String) =
+    io.circe.parser.decode[CrossClassGroupInput](json)
+
+  test("a new group comes without an id"):
+    val got = decode(s"""{"label":"grupa 1","teacherId":null,"classIds":["$cls"]}""")
+    assert(got === Right(CrossClassGroupInput("grupa 1", None, List(cls), None)))
+
+  test("an existing group keeps the id it was sent with"):
+    val id = UUID.randomUUID
+    val got = decode(s"""{"id":"$id","label":"grupa 1","teacherId":null,"classIds":[]}""")
+    assert(got.map(_.id) === Right(Some(id)))

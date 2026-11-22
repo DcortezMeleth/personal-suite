@@ -141,6 +141,8 @@ scala_test(
     deps = [
         ":belfer_lib",
         "@maven//:com_typesafe_config",
+        "@maven//:io_circe_circe_core_3",
+        "@maven//:io_circe_circe_parser_3",
         "@maven//:org_tpolecat_doobie_core_3",
         "@maven//:org_typelevel_cats_core_3",
         "@maven//:org_typelevel_cats_kernel_3",

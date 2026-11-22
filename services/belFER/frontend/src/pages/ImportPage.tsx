@@ -191,6 +191,19 @@ export function ImportPage() {
               </ul>
             )}
 
+            {preview.discards.length > 0 && (
+              <div className="mt-4">
+                <AlertBanner
+                  level="warning"
+                  message={
+                    "Import usunie też dane wpisane ręcznie, których nie ma w arkuszu: " +
+                    preview.discards.join("; ") +
+                    "."
+                  }
+                />
+              </div>
+            )}
+
             <div className="mt-5 flex items-center gap-3">
               <button
                 disabled={busy}
@@ -199,6 +212,9 @@ export function ImportPage() {
                   replacingAnything
                     ? confirm(
                         "Import zastąpi obecnych nauczycieli, przedmioty, oddziały i przydziały. " +
+                          (preview.discards.length > 0
+                            ? "Przepadną też dane wpisane ręcznie: " + preview.discards.join("; ") + ". "
+                            : "") +
                           "Sale i typy sal zostaną nienaruszone.",
                         doImport,
                         { title: "Potwierdź import", confirmLabel: "Importuj" },

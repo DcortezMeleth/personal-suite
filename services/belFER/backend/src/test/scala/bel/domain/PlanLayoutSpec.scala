@@ -117,6 +117,14 @@ class PlanLayoutSpec extends AnyFunSuite:
     assert(partial.unresolved === 1)
     assert(!partial.complete)
 
+  test("a placement of a block the lesson no longer has is counted too"):
+    // Maths in 1A/1 is two blocks; a plan saved when it was three still names
+    // the third. Read as a one-hour lesson it would make the week look whole.
+    val gone = Placement(Some(mathsLine.id), None, None, 2, 3, 1, None)
+    val partial = PlanLayout.of(school, placements :+ gone, rooms)
+    assert(partial.lessons.size === lessons.size)
+    assert(partial.unresolved === 1)
+
   test("the printed sheet says so too"):
     val orphan = Placement(Some(UUID.randomUUID), None, None, 0, 1, 1, None)
     assert(PlanSheet(school, plan, placements :+ orphan, rooms).contains("Uwaga:"))

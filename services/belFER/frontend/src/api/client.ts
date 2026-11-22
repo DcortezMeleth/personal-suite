@@ -222,7 +222,11 @@ export interface CrossClassGroup {
   classIds: string[];
 }
 
-export type CrossClassGroupInput = Omit<CrossClassGroup, "id">;
+/**
+ * A group as the form sends it. An existing group keeps its `id`, so the server
+ * changes it in place and saved plans keep its lessons; a new group has none.
+ */
+export type CrossClassGroupInput = Omit<CrossClassGroup, "id"> & { id?: string };
 
 export interface CrossClassUnit {
   id: string;
@@ -269,6 +273,8 @@ export interface ImportPreview {
   counts: ImportCounts;
   notes: ImportNote[];
   replaces: ImportCounts;
+  /** What the import loses that the arkusz does not bring back. */
+  discards: string[];
   segments: WeekSegment[];
 }
 

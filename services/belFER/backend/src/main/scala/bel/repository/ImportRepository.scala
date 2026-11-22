@@ -43,6 +43,39 @@ class ImportRepository(xa: Transactor[IO]):
                         WHERE p.school_id = $schoolId""".query[Int].unique
     yield Applied(teachers, subjects, classes, lines, units, tuition)).transact(xa)
 
+  /**
+   * What an import would throw away that the arkusz does not bring back:
+   * everything entered here by hand on the rows it deletes, and the lessons
+   * of every saved plan, which name rows that will no longer exist. Said in
+   * the preview, so that re-importing is a decision rather than a surprise
+   * (REVIEW_2026-11-21 I3). One line per kind, and only kinds there are any of.
+   */
+  def discards(schoolId: UUID): IO[List[String]] =
+    def count(q: Fragment) = q.query[Int].unique
+    (for
+      plans     <- count(sql"SELECT count(*) FROM plan WHERE school_id = $schoolId")
+      away      <- count(sql"""SELECT count(DISTINCT u.teacher_id) FROM teacher_unavailability u
+                                JOIN teacher t ON t.id = u.teacher_id WHERE t.school_id = $schoolId""")
+      limits    <- count(sql"""SELECT count(*) FROM teacher WHERE school_id = $schoolId
+                                AND (max_working_days IS NOT NULL OR max_lessons_per_day IS NOT NULL)""")
+      homeRooms <- count(sql"SELECT count(*) FROM teacher WHERE school_id = $schoolId AND home_room_id IS NOT NULL")
+      support   <- count(sql"SELECT count(*) FROM lesson_line WHERE school_id = $schoolId AND support_teacher_id IS NOT NULL")
+      attending <- count(sql"""SELECT count(DISTINCT a.class_id) FROM optional_subject_attendance a
+                                JOIN school_class c ON c.id = a.class_id WHERE c.school_id = $schoolId""")
+      kinds     <- count(sql"""SELECT (SELECT count(*) FROM subject
+                                       WHERE school_id = $schoolId AND required_room_kind_id IS NOT NULL)
+                                   + (SELECT count(*) FROM cross_class_unit
+                                       WHERE school_id = $schoolId AND required_room_kind_id IS NOT NULL)""")
+    yield List(
+      plans     -> s"lekcje $plans zapisanych planów: przestaną się odnajdywać i plan pokaże je jako brakujące",
+      away      -> s"niedostępne godziny $away nauczycieli",
+      limits    -> s"własne limity dni lub lekcji $limits nauczycieli",
+      homeRooms -> s"sale własne $homeRooms nauczycieli",
+      support   -> s"nauczyciela wspomagającego w $support przydziałach",
+      attending -> s"frekwencję na religii i etyce w $attending oddziałach",
+      kinds     -> s"wymagany typ sali przy $kinds przedmiotach i zajęciach międzyoddziałowych"
+    ).collect { case (n, what) if n > 0 => what }).transact(xa)
+
   def apply(schoolId: UUID, plan: ImportPlan): IO[Applied] =
     val program =
       for

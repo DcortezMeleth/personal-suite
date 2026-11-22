@@ -143,6 +143,7 @@ function CrossClassUnitCard(props: {
     requiredRoomKindId: props.unit.requiredRoomKindId,
     blocks: props.unit.blocks,
     groups: props.unit.groups.map((g) => ({
+      id: g.id,
       label: g.label,
       teacherId: g.teacherId,
       classIds: g.classIds,

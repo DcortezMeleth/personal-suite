@@ -47,12 +47,14 @@ object PlanLayout:
    * A plan as far as it could be read.
    *
    * `unresolved` is placements naming a lesson line, a cross-class group or
-   * an hour of tuition that the school no longer has. It is not normally
-   * anything but zero, and the number matters precisely because of when it
-   * is not: a plan laid out before an arkusz was re-imported refers to
-   * lessons that may since have been replaced, and the alternative to
+   * an hour of tuition that the school no longer has, or a block of one that
+   * it no longer has (a line cut from three blocks to two). It is not
+   * normally anything but zero, and the number matters precisely because of
+   * when it is not: a plan laid out before an arkusz was re-imported refers
+   * to lessons that may since have been replaced, and the alternative to
    * counting them is a timetable that is quietly missing hours and says it
-   * is complete.
+   * is complete. Since V20 the database keeps such placements rather than
+   * deleting them, so this is where they are seen.
    */
   case class Resolved(lessons: List[Lesson], unresolved: Int):
     def complete: Boolean = unresolved == 0
@@ -74,10 +76,11 @@ object PlanLayout:
     val resolved = placements.map { p =>
       val room = p.roomId.flatMap(roomNames.get)
 
-      p.lessonLineId.flatMap(byLine.get).map { line =>
+      p.lessonLineId.flatMap(byLine.get).flatMap(line =>
+        line.blocks.lift(p.blockIndex).map(length => (line, length))).map { (line, length) =>
         Lesson(
           day = p.dayOfWeek - 1, position = p.position - 1,
-          length = line.blocks.lift(p.blockIndex).getOrElse(1),
+          length = length,
           subject = subjectNames.getOrElse(line.subjectId, "?"),
           teachers = (line.teacherId.toList ++ line.supportTeacherId.toList).flatMap(teacherNames.get),
           room = room,
@@ -88,10 +91,11 @@ object PlanLayout:
             case _                      => None,
           individual = false)
       }.orElse {
-        p.crossClassGroupId.flatMap(byGroup.get).map { (unit, group) =>
+        p.crossClassGroupId.flatMap(byGroup.get).flatMap((unit, group) =>
+          unit.blocks.lift(p.blockIndex).map(length => (unit, group, length))).map { (unit, group, length) =>
           Lesson(
             day = p.dayOfWeek - 1, position = p.position - 1,
-            length = unit.blocks.lift(p.blockIndex).getOrElse(1),
+            length = length,
             subject = subjectNames.getOrElse(unit.subjectId, "?"),
             teachers = group.teacherId.toList.flatMap(teacherNames.get),
             room = room,
@@ -100,10 +104,11 @@ object PlanLayout:
             individual = false)
         }
       }.orElse {
-        p.individualLessonId.flatMap(byTuition.get).map { (_, lesson) =>
+        p.individualLessonId.flatMap(byTuition.get).flatMap((_, lesson) =>
+          lesson.blocks.lift(p.blockIndex).map(length => (lesson, length))).map { (lesson, length) =>
           Lesson(
             day = p.dayOfWeek - 1, position = p.position - 1,
-            length = lesson.blocks.lift(p.blockIndex).getOrElse(1),
+            length = length,
             subject = subjectNames.getOrElse(lesson.subjectId, "?"),
             teachers = lesson.teacherId.toList.flatMap(teacherNames.get),
             room = room,

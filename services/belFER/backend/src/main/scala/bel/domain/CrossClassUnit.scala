@@ -21,11 +21,27 @@ object CrossClassGroup:
   given Encoder[CrossClassGroup] = deriveEncoder
   given Decoder[CrossClassGroup] = deriveDecoder
 
-case class CrossClassGroupInput(label: String, teacherId: Option[UUID], classIds: List[UUID])
+/**
+ * A group as the form sends it. `id` names an existing group, which is then
+ * changed in place; without one, a new group is made. Keeping the id is what
+ * keeps a saved plan's lessons of this group attached to it: a group deleted
+ * and made again on every save was a different group to every plan
+ * (REVIEW_2026-11-21 A2).
+ */
+case class CrossClassGroupInput(label: String, teacherId: Option[UUID], classIds: List[UUID],
+                                id: Option[UUID] = None)
 
 object CrossClassGroupInput:
   given Encoder[CrossClassGroupInput] = deriveEncoder
-  given Decoder[CrossClassGroupInput] = deriveDecoder
+  /** `id` may be absent: a new group has none. */
+  given Decoder[CrossClassGroupInput] = Decoder.instance { c =>
+    for
+      label    <- c.get[String]("label")
+      teacher  <- c.get[Option[UUID]]("teacherId")
+      classIds <- c.get[List[UUID]]("classIds")
+      id       <- c.getOrElse[Option[UUID]]("id")(None)
+    yield CrossClassGroupInput(label, teacher, classIds, id)
+  }
 
 /**
  * A set of groups that must run at the same time.
