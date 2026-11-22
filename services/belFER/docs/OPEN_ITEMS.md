@@ -52,8 +52,8 @@ at a time and log a run after each.
    the pupil, so it can clash with the pupil's class lessons. RULES §7.
 2. **G2: attendance-group windows.** 16–18 of 46 groups had a one-hour window
    on FET 6.8.5 despite the no-gaps rule. Re-check on FET 7 once attendance is
-   entered. `PlanCheck` checks halves only, so it cannot see this (nor R17 for
-   attendance groups). RULES G2, FEASIBILITY.
+   entered. Since RULES 1.4 `PlanCheck` checks each attendance group, so such a
+   week is rejected rather than saved. RULES G2, FEASIBILITY.
 3. **Attendance-group student counts.** A cohort group is written with the
    number of subgroups (2) rather than the pupils. Harmless while room
    capacity is not modelled (every room is written as 10000). FEASIBILITY.
@@ -67,8 +67,7 @@ at a time and log a run after each.
 7. **G7: teacher defaults.** The school default for working days is never
    sent, and a per-teacher daily cap above the default is overridden. Harmless
    at today's defaults (5 and 8). RULES G7.
-8. **S3 is checked only indirectly** (cross-class units at the same hours,
-   through R1). RULES §6.
+8. ~~**S3 is checked only indirectly.**~~ Checked since RULES 1.4 (R4).
 9. **Specialist rooms beyond PE,** if the school needs them. RULES §4.
 10. **P4: difficult subjects in the morning.** Not built.
 
@@ -129,7 +128,8 @@ In short:
 
 Items from it move here as they are scheduled.
 
-**Done 2026-11-22:** "Fix first" items 1–3 (deletes, plans keeping their
-lessons plus the import preview, other rows' edits), and with them U7 and
-D16. **Still open from item 2:** a re-import still replaces hand-entered
-data; it now says so first. Upserting by code is ROADMAP 2.3.
+**Done 2026-11-22:** "Fix first" items 1–5: deletes, plans keeping their
+lessons plus the import preview, other rows' edits (and with them U7 and
+D16), and the checker (RULES 1.4: D1–D7). **Still open from item 2:** a
+re-import still replaces hand-entered data; it now says so first. Upserting
+by code is ROADMAP 2.3.

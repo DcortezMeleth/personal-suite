@@ -1,6 +1,6 @@
 # belFER — scheduling rules
 
-**Version 1.3 · 2026-11-21**
+**Version 1.4 · 2026-11-22**
 
 The rules a generated timetable must obey, and the preferences it should try to
 meet. **This file is the source of truth for rules.** REQUIREMENTS §9 is where
@@ -17,7 +17,8 @@ changelog (§8) saying what changed and why. Typo fixes don't.
 
 **IDs.** S = students and classes, T = teachers, RM = rooms, P = preferences.
 These are not the checker's codes: `PlanCheck` numbers its checks R1–R17
-(with R3b–R3d and R5b), a separate list that §6 maps onto this one.
+(with R3b–R3e and R5b; R10 was folded into R9 in 1.4, and R6 is not
+checked), a separate list that §6 maps onto this one.
 
 ---
 
@@ -290,7 +291,9 @@ have a home room. Weight 0. **No teacher has one in today's data** (0 of
 with a re-import, and no real list has been entered.
 
 **P2. Even class days: a class's longest day minus its shortest is at most
-N lessons**, counted per half, an empty day counting as zero. **N is a school
+N lessons**, counted per group of pupils who share a timetable (per half;
+per attendance group within a half once the school has entered attendance),
+an empty day counting as zero. **N is a school
 setting** (`max_class_day_spread`, Konfiguracja); unset, the rule is off.
 **Set to 3 on 2026-11-21** ("fine for now"). When set, it is hard: FET must
 keep it.
@@ -313,14 +316,14 @@ table.
 
 | Rule | What FET is told | `PlanCheck` | |
 |---|---|---|---|
-| S1 | Student structure: class = year, halves = groups, attendance groups = subgroups | R1, for classes and halves but not attendance groups | ✅ |
-| S2 | `StudentsSetMaxGapsPerDay = 0` on every class, applied per subgroup; religia/etyka with no attendance entered: `ActivityBeginsOrEndsStudentsDay` | R9 per half; R10 first or last | ✅ while no attendance is entered; ⚠ G2 once it is |
-| S3 | A class-occupancy activity plus `ActivitiesSameStartingTime` | Only indirectly, through R1 | ⚠ |
+| S1 | Student structure: class = year, halves = groups, attendance groups = subgroups | R1, per attendance group within each half | ✅ |
+| S2 | `StudentsSetMaxGapsPerDay = 0` on every class, applied per subgroup; religia/etyka with no attendance entered: `ActivityBeginsOrEndsStudentsDay` | R9, per attendance group within each half; groups not entered are assumed to exist (G1), which makes it "first or last". Was R9 per half plus R10 per class | ✅; G2 is now visible to R9 |
+| S3 | A class-occupancy activity plus `ActivitiesSameStartingTime` | R4: all groups of a unit's block at one hour. Before 1.4 nothing checked it; "indirectly, through R1" was wrong | ✅ |
 | S4 | `MinDaysBetweenActivities` per class + subject + audience; whole-class blocks spread with each half's | R5 per audience; R5b the whole-class link | ✅ |
 | S5 | `MaxDaysBetweenActivities` ≤ 1 per pair of half lessons, which is stronger than S5 | R16, exact | ✅ stronger than the rule |
-| S6 | Activity duration | Cannot be broken | ✅ |
-| S7 | Built in | R7 | ✅ |
-| S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 | ✅ |
+| S6 | Activity duration | Contiguous by construction; R12 checks it ends within the day | ✅ |
+| S7 | Built in | R7: counted and matched block by block | ✅ |
+| S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 (every lesson within the week's days and hours) with R1 | ✅ |
 | T1 | Built in; support teacher and tuition are named on the activity | R2 | ✅ |
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
@@ -329,9 +332,9 @@ table.
 | RM1 | Built in | R3, R3d | ✅ |
 | RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
 | RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type | R3c | ✅ |
-| RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c | ✅ |
+| RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c (a wanted kind may use a classroom too), R3e (every lesson has a room) | ✅ |
 | P1 | Off (weight 0, and no home rooms in the data) | — | — |
-| P2 | Per class, a range of day lengths N wide around its own average: `StudentsSetMinHoursDaily` and `StudentsSetMaxHoursDaily`, per subgroup where loads differ. Stronger than the rule | R17, exact | ✅ stronger than the rule |
+| P2 | Per class, a range of day lengths N wide around its own average: `StudentsSetMinHoursDaily` and `StudentsSetMaxHoursDaily`, per subgroup where loads differ. Stronger than the rule | R17, per half, and per attendance group once attendance is entered, as FET is told | ✅ stronger than the rule |
 | P3 | Through T5's weekly setting | — (not counted; see G5) | ⚠ |
 
 **G1. Religia and etyka without attendance numbers — closed 2026-11-21 (RUNLOG R4).** Attendance groups are
@@ -350,10 +353,9 @@ where a group is empty.
 
 **G2. The open defect.** In a completed week, 16–18 of the 46 attendance groups
 had a one-hour window although FET had been told no windows (FEASIBILITY.md,
-"The open defect"). This is unexplained. The checker cannot see it, because R9
-looks at halves, not attendance groups. Until it is settled, S2 is not
-guaranteed for attendance groups. Halves rest on the same FET mechanism, but R9
-does check them.
+"The open defect"). This is unexplained. Since 1.4 the checker can see it: R9
+looks at each attendance group, so a week with such a window is rejected
+rather than saved. What is still unknown is whether FET 7.12.1 produces it.
 
 **G3. S4's whole-class link — closed 2026-11-21 (RUNLOG R5).** Blocks are grouped per audience, so FET and R5
 both allow a whole-class block and a half's block of one subject on the same
@@ -424,6 +426,23 @@ Found 2026-11-21; see RUNLOG.
 ---
 
 ## 8. Changelog
+
+### 1.4 — 2026-11-22
+
+No rule changed. The checker is brought in line with this file after the
+review of 2026-11-21 (REVIEW_2026-11-21 D1–D7):
+
+- **S1, S2, P2 per attendance group.** `PlanCheck` now knows each class's
+  groups of pupils: half × attendance group, the groups not entered assumed
+  to exist (G1). R1 and R9 work per group; the class-level "first or last"
+  check (R10) is folded into R9, where religia mid-day is a gap for those who
+  skip it. It wrongly rejected religia ending one half's day and starting the
+  other's. R17 measures attendance groups once attendance is entered.
+- **S3 checked** (R4). It was not, despite §6 saying "indirectly".
+- **S7 matched, not only counted** (R7); **S6/S8 bounded** (R12 now means
+  "every lesson within the week").
+- **RM2–RM4:** a soft requirement may use a classroom (R3c rejected it), and
+  every lesson must have a room (R3e).
 
 ### 1.3 — 2026-11-21
 

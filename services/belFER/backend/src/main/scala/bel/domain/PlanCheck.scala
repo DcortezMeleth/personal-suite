@@ -43,7 +43,20 @@ object PlanCheck:
     /** The room it was put in, once one has been chosen. */
     roomId: Option[UUID] = None,
     /** The kind of room it needs, when it needs a particular one. */
-    needsKind: Option[UUID] = None
+    needsKind: Option[UUID] = None,
+    /**
+     * Whether that kind is required or only wanted. A wanted kind may also
+     * be met by an ordinary classroom, which is what the export offers FET.
+     */
+    kindIsHard: Boolean = true,
+    /**
+     * Which block of what this is: the id of a lesson line, a cross-class
+     * group or a tuition lesson, and the block's index in it. Lets R7 tell a
+     * block placed twice from two blocks placed once. None on bookkeeping.
+     */
+    block: Option[(UUID, Int)] = None,
+    /** The cross-class unit and the unit's block this is part of (RULES S3). */
+    unitBlock: Option[(UUID, Int)] = None
   ):
     def positions: Range = from until (from + length)
     /** Which halves of a class this occupies — a whole-class lesson takes both. */
@@ -55,13 +68,41 @@ object PlanCheck:
   case class Rule(code: String, what: String, ok: Boolean, detail: String)
 
   /**
-   * The rules in REQUIREMENTS §2.9 this cannot speak to, and why. Reported
-   * alongside the ones it can, because "eleven of eleven" invites the reader
-   * to think sixteen were asked about.
+   * Rules of RULES.md this cannot speak to, and why. Reported alongside the
+   * ones it can, so that "all kept" is not read as more than it says.
    */
   val notChecked: List[(String, String)] = List(
-    "R6"  -> "blok wielogodzinny jest ciągły — wynika z zapisu, nie da się złamać",
-    "R10" -> "obie grupy zajęte naraz — potwierdzone, że to nie jest twarda reguła")
+    "R6"  -> "blok wielogodzinny jest ciągły — wynika z zapisu, nie da się złamać")
+
+  /**
+   * Pupils of a class who share one timetable (RULES S2): a half, and within
+   * it those attending one optional subject (`attends`), or none of them.
+   */
+  private case class Pupils(classId: UUID, half: Int, attends: Option[UUID])
+
+  /**
+   * The attendance groups of each class, by the optional subject they attend
+   * (None: none of them). A pupil attends at most one, as the school says.
+   *
+   * Where the school has entered how many attend, a group nobody is in does
+   * not exist. Where it has not, the group is assumed to (RULES G1): that is
+   * exactly what makes religia and etyka "first or last" when nothing is
+   * known, because the pupils who skip them must not wait.
+   */
+  private def attendanceGroups(s: SchoolSnapshot): Map[UUID, List[Option[UUID]]] =
+    val optional = s.subjects.filter(_.optional).map(_.id).toSet
+    val taught = (s.lessonLines.map(l => l.classId -> l.subjectId) ++
+      s.crossClassUnits.flatMap(u => u.classIds.map(_ -> u.subjectId)))
+      .filter((_, subject) => optional.contains(subject))
+      .groupMap(_._1)(_._2).view.mapValues(_.distinct).toMap
+    s.classes.map { c =>
+      val entered = taught.getOrElse(c.id, Nil).map(subject =>
+        subject -> s.optionalAttendance.get((c.id, subject)))
+      val attending = entered.collect { case (subject, n) if n.forall(_ > 0) => Some(subject) }
+      val accounted = entered.flatMap(_._2).sum
+      val nobodyElse = entered.forall(_._2.isDefined) && c.studentCount.exists(_ <= accounted)
+      c.id -> (attending ++ Option.when(!nobodyElse || attending.isEmpty)(None))
+    }.toMap
 
   case class Report(rules: List[Rule]):
     def kept: Int = rules.count(_.ok)
@@ -75,17 +116,62 @@ object PlanCheck:
       rules += Rule(code, what, bad == 0, if bad == 0 then "" else s"$bad $unit")
 
     // ── Everything that has to happen, happening once ────────────────────
+    //
+    // Counted, and matched: a count alone passes a week with one block placed
+    // twice and another not at all (REVIEW_2026-11-21 D7).
     val wanted = s.lessonLines.map(_.blocks.size).sum +
       s.crossClassUnits.map(u => u.blocks.size * u.groups.size).sum +
       s.individualPlans.flatMap(_.lessons).map(_.blocks.size).sum
-    val taught = plan.count(!_.derived)
-    rules += Rule("R7", "każdy blok ułożony dokładnie raz", taught == wanted,
-      if taught == wanted then "" else s"$taught z $wanted")
+    val known: Set[(UUID, Int)] =
+      (s.lessonLines.flatMap(l => l.blocks.indices.map(l.id -> _)) ++
+        s.crossClassUnits.flatMap(u => u.groups.flatMap(g => u.blocks.indices.map(g.id -> _))) ++
+        s.individualPlans.flatMap(_.lessons).flatMap(l => l.blocks.indices.map(l.id -> _))).toSet
+    val taughtBlocks = plan.filterNot(_.derived)
+    val ids = taughtBlocks.flatMap(_.block)
+    val repeated = ids.groupBy(identity).count(_._2.size > 1)
+    val unknown = ids.count(!known.contains(_))
+    val placedOnce = taughtBlocks.size == wanted && repeated == 0 && unknown == 0
+    rules += Rule("R7", "każdy blok ułożony dokładnie raz", placedOnce,
+      List(
+        Option.when(taughtBlocks.size != wanted)(s"${taughtBlocks.size} z $wanted"),
+        Option.when(repeated > 0)(s"$repeated ułożonych więcej niż raz"),
+        Option.when(unknown > 0)(s"$unknown spoza przydziałów")).flatten.mkString(", "))
+
+    // Every lesson inside the week: the days the school teaches, and the
+    // lessons of its day. Nothing else enforces it — a double from the last
+    // lesson runs past the end of the day, and a lesson on a sixth day is
+    // simply not looked at by the rules that count days (REVIEW D6). With it,
+    // S8 (at most a day's worth of lessons) follows from R1.
+    val outside = plan.count(x =>
+      x.day < 0 || x.day >= s.teachingDays || x.from < 0 || x.from + x.length > capacity)
+    rule("R12", s"każda lekcja mieści się w tygodniu (${s.teachingDays} dni po $capacity lekcji)",
+      outside, "lekcji")
 
     // ── Nobody in two places ─────────────────────────────────────────────
+    //
+    // Per group of pupils, not per class: religia and etyka at the same hour
+    // are two lessons for two different sets of pupils (RULES S2).
+    val groups = attendanceGroups(s)
+    def pupils(x: Scheduled): Set[Pupils] =
+      for
+        c <- x.classIds
+        h <- x.halves
+        g <- groups.getOrElse(c, List(None)).toSet
+        if !x.optional || g.contains(x.subjectId)
+      yield Pupils(c, h, g)
     val classAt = occupancy(plan)(x =>
-      for c <- x.classIds; h <- x.halves; p <- x.positions yield (c, h, x.day, p))
+      for p <- pupils(x); pos <- x.positions yield (p, x.day, pos))
     rule("R1", "oddział nigdy nie jest w dwóch miejscach naraz", classAt, "kolizji")
+
+    // RULES S3: every group of a cross-class unit's block at the same hour.
+    // The classes' side of a unit is one bookkeeping entry, at the first
+    // group's hour, so a group placed elsewhere would leave its pupils in two
+    // places with nothing else noticing (REVIEW_2026-11-21 D4).
+    val apart = plan.filterNot(_.derived)
+      .flatMap(x => x.unitBlock.map(_ -> (x.day, x.from)))
+      .groupMap(_._1)(_._2).count(_._2.distinct.size > 1)
+    rule("R4", "grupy zespołu międzyoddziałowego mają zajęcia o tej samej godzinie",
+      apart, "bloków")
 
     val teacherAt = occupancy(plan)(x =>
       for t <- x.teacherIds; p <- x.positions yield (t, x.day, p))
@@ -124,30 +210,46 @@ object PlanCheck:
     rule("R15", s"nauczyciel nie przesiaduje dłużej niż $gapLimit godz. bez lekcji",
       longGaps, "dni nauczycieli")
 
-    // ── The shape of a class's day ───────────────────────────────────────
-    // Per half, because a gap is something a student sits through, and a
-    // student is in one half. A class whose halves finish at different hours
-    // has a hole in its own column and nobody waiting in it.
-    val halfHours = plan.flatMap(x =>
-      for c <- x.classIds; h <- x.halves yield (c, h, x.day) -> x.positions.toSet)
+    // ── The shape of a pupil's day ───────────────────────────────────────
+    //
+    // Per group of pupils, because a gap is something a pupil sits through.
+    // A class whose halves finish at different hours has a hole in its own
+    // column and nobody waiting in it. And pupils who skip religia must not
+    // wait through it, which is how "religia first or last" is checked: a
+    // religia lesson mid-day is a gap in the day of those who skip it. It used
+    // to be its own rule, R10, judged against the whole class's day, which
+    // rejected religia that ends one half's day and starts the other's
+    // (REVIEW_2026-11-21 D2).
+    val pupilHours = plan.flatMap(x => pupils(x).toList.map(p => (p, x.day) -> x.positions.toSet))
       .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
-    val gaps = halfHours.count((_, hours) => longestGap(hours) > 0)
-    rule("R9", "żadna grupa nie ma okienka", gaps, "dni grup")
-
-    val tooLong = halfHours.count((_, hours) => hours.size > capacity)
-    rule("R12", s"oddział ma najwyżej $capacity lekcji dziennie", tooLong, "dni grup")
+    val gaps = pupilHours.count((_, hours) => longestGap(hours) > 0)
+    rule("R9", "żadna grupa uczniów nie ma okienka", gaps, "dni grup")
 
     // RULES P2, when the school has asked for it. A day is a pupil's, first
     // lesson to last; a day with nothing in it is a day of length zero, and
-    // so as short as a day can be.
+    // so as short as a day can be. Measured on what FET is told to bound:
+    // each attendance group, once the school has entered attendance for the
+    // class, and each half until then (REVIEW D3).
     for spread <- s.settings.optimisation.maxClassDaySpread do
-      val uneven = (for c <- s.classes; h <- List(1, 2) yield
+      val entered = s.optionalAttendance.collect { case ((c, _), n) if n > 0 => c }.toSet
+      val halfHours = plan.flatMap(x =>
+        for c <- x.classIds; h <- x.halves yield (c, h, x.day) -> x.positions.toSet)
+        .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
+      def spreadOf(hoursOn: Int => Option[Set[Int]]): Int =
         val lengths = (0 until s.teachingDays).map(d =>
-          halfHours.get((c.id, h, d)).filter(_.nonEmpty)
-            .fold(0)(hours => hours.max - hours.min + 1))
-        lengths.max - lengths.min).count(_ > spread)
+          hoursOn(d).filter(_.nonEmpty).fold(0)(hours => hours.max - hours.min + 1))
+        if lengths.isEmpty then 0 else lengths.max - lengths.min
+      val measured: List[Int => Option[Set[Int]]] =
+        for
+          c <- s.classes
+          h <- List(1, 2)
+          day <- if entered.contains(c.id)
+                 then groups.getOrElse(c.id, Nil).map(g =>
+                   (d: Int) => pupilHours.get((Pupils(c.id, h, g), d)))
+                 else List((d: Int) => halfHours.get((c.id, h, d)))
+        yield day
       rule("R17", s"najdłuższy dzień grupy jest najwyżej o $spread lekcji dłuższy od najkrótszego",
-        uneven, "grup")
+        measured.count(spreadOf(_) > spread), "grup")
 
     // ── One block of a subject a day, per audience ───────────────────────
     val twice = plan
@@ -190,16 +292,6 @@ object PlanCheck:
     rule("R16", "obie grupy są na równi, gdy zaczyna się lekcja całej klasy",
       unlevel, "lekcji całej klasy")
 
-    // ── Religia i etyka na brzegu dnia ───────────────────────────────────
-    val classHours = plan.flatMap(x => x.classIds.map(c => (c, x.day) -> x.positions.toSet))
-      .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
-    val midDay = plan.count { x =>
-      x.optional && x.classIds.exists { c =>
-        val hours = classHours.getOrElse((c, x.day), Set.empty)
-        hours.nonEmpty && x.from != hours.min && x.from + x.length - 1 != hours.max
-      }
-    }
-    rule("R10", "przedmiot nieobowiązkowy jest pierwszy albo ostatni", midDay, "zajęć")
 
     // ── Somewhere to actually be ─────────────────────────────────────────
     //
@@ -239,14 +331,20 @@ object PlanCheck:
           x.roomId.flatMap(byId.get).exists(!_.fitsWholeClass))
       rule("R3b", "cała klasa mieści się w sali, którą dostała", tooSmall, "lekcji")
 
+      // What a lesson may use, as RULES RM2–RM4 say and the export offers:
+      // its kind of room; an ordinary classroom too when the requirement is
+      // only wanted (REVIEW D1), or when the school has no room of that kind;
+      // and an ordinary classroom when it needs nothing in particular, which
+      // keeps it out of specialist rooms something else needs.
+      val kindExists = rooms.flatMap(_.kinds).map(_.id).toSet
       val wrongKind = taught.count { x =>
         x.roomId.flatMap(byId.get) match
-          case Some(room) => x.needsKind match
-            // A lesson that needs a particular kind of room has to have one.
-            case Some(kind) => !room.kinds.exists(_.id == kind)
-            // And one that needs nothing in particular should not be taking up
-            // a specialist room that something else needs.
-            case None => room.kinds.nonEmpty
+          case Some(room) =>
+            val ordinary = room.kinds.isEmpty
+            x.needsKind match
+              case Some(kind) if room.kinds.exists(_.id == kind) => false
+              case Some(kind) => !(ordinary && (!x.kindIsHard || !kindExists(kind)))
+              case None => !ordinary
           case None => false
       }
       rule("R3c", "sala specjalistyczna służy temu, do czego jest", wrongKind, "lekcji")
@@ -254,6 +352,10 @@ object PlanCheck:
       val double = taught.flatMap(x => x.roomId.toList.flatMap(r => x.positions.map((r, x.day, _))))
         .groupBy(identity).count(_._2.size > 1)
       rule("R3d", "dwie lekcje nigdy nie dzielą sali", double, "kolizji")
+
+      // A lesson FET was given no room for comes back with none, and every
+      // check above passes it (REVIEW D5).
+      rule("R3e", "każda lekcja ma salę", taught.count(_.roomId.isEmpty), "lekcji")
 
     Report(rules.result())
 

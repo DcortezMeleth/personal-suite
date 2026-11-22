@@ -166,16 +166,49 @@ class PlanCheckSpec extends AnyFunSuite:
     val week = (0 until 4).flatMap(d => List(at(a.id, d, 0), at(a.id, d, 1))).toList
     assert(broken(PlanCheck(s, week)).contains("R17"))
 
-  test("an optional subject in the middle of a day is caught"):
+  // ── Religia and etyka: those who skip them must not wait (RULES S2) ──
+
+  private val etyka = UUID.randomUUID
+  private def withEtyka(s: SchoolSnapshot, attendance: Map[(UUID, UUID), Int] = Map.empty) =
+    s.copy(subjects = s.subjects :+ Subject(etyka, "ety", "Etyka", true, None, false),
+      optionalAttendance = attendance)
+
+  test("religia in the middle of a day is a gap for those who skip it"):
     val a = cls("1A")
     val s = school(List(a), List(line(a.id), line(a.id, religia), line(a.id)))
     val mid = PlanCheck(s, List(
       at(a.id, 0, 0), at(a.id, 0, 1, religia, optional = true), at(a.id, 0, 2)))
-    assert(broken(mid).contains("R10"))
+    assert(broken(mid).contains("R9"))
 
     val last = PlanCheck(s, List(
       at(a.id, 0, 0), at(a.id, 0, 1), at(a.id, 0, 2, religia, optional = true)))
-    assert(!broken(last).contains("R10"))
+    assert(!broken(last).contains("R9"))
+
+  test("religia that ends one half's day and starts the other's is legal"):
+    // Half 1 at the first hour, religia for everyone, half 2 at the third.
+    // Nobody waits. Judged against the whole class's day, it was rejected.
+    val a = cls("1A")
+    val s = school(List(a), List(
+      line(a.id, audience = LessonAudience.GROUP_1), line(a.id, religia),
+      line(a.id, audience = LessonAudience.GROUP_2)))
+    val week = PlanCheck(s, List(
+      at(a.id, 0, 0, audience = LessonAudience.GROUP_1),
+      at(a.id, 0, 1, religia, optional = true),
+      at(a.id, 0, 2, audience = LessonAudience.GROUP_2)))
+    assert(!broken(week).contains("R9"))
+    assert(!broken(week).contains("R1"))
+
+  test("religia and etyka may share a mid-day hour when everyone attends one"):
+    val a = cls("1A").copy(studentCount = Some(30))
+    val base = school(List(a), List(line(a.id), line(a.id, religia), line(a.id, etyka), line(a.id)))
+    val week = List(
+      at(a.id, 0, 0), at(a.id, 0, 1, religia, optional = true),
+      at(a.id, 0, 1, etyka, teachers = Set(piotr), optional = true), at(a.id, 0, 2))
+    val everyone = PlanCheck(withEtyka(base, Map((a.id, religia) -> 20, (a.id, etyka) -> 10)), week)
+    assert(!broken(everyone).contains("R1"), "two lessons for two different sets of pupils")
+    assert(!broken(everyone).contains("R9"))
+    // Nothing entered: those attending neither are assumed to exist, and wait.
+    assert(broken(PlanCheck(withEtyka(base), week)).contains("R9"))
 
   test("a teacher left sitting through a long gap is caught"):
     val a = cls("1A")
@@ -206,3 +239,73 @@ class PlanCheckSpec extends AnyFunSuite:
     val s = school(List(a), List(line(a.id, blocks = List(1, 1))))
     val short = PlanCheck(s, List(at(a.id, 0, 0)))
     assert(broken(short).contains("R7"))
+
+
+  // ── Fixed after the review of 2026-11-21 ─────────────────────────────
+
+  test("class days are measured per attendance group once attendance is entered"):
+    // REVIEW D3. Religia first and etyka last on Monday: each group's day is
+    // 7 or 6, the half's is 8. Every other day is 5.
+    val a = cls("1A").copy(studentCount = Some(30))
+    val base = school(List(a), List(line(a.id), line(a.id, religia), line(a.id, etyka)))
+    val monday = at(a.id, 0, 0, religia, optional = true) ::
+      at(a.id, 0, 7, etyka, teachers = Set(piotr), optional = true) ::
+      (1 to 6).map(h => at(a.id, 0, h)).toList
+    val rest = (1 until 5).flatMap(d => (0 until 5).map(h => at(a.id, d, h))).toList
+    val s = withEtyka(base, Map((a.id, religia) -> 10, (a.id, etyka) -> 10))
+      .copy(settings = settings.copy(optimisation = Optimisation(maxClassDaySpread = Some(2))))
+    assert(!broken(PlanCheck(s, monday ++ rest)).contains("R17"))
+
+  test("a cross-class unit's groups at different hours are caught"):
+    // REVIEW D4.
+    val unit = UUID.randomUUID
+    def group(from: Int) = PlanCheck.Scheduled(Set.empty, LessonAudience.WHOLE_CLASS, maths,
+      Set(UUID.randomUUID), 0, from, 1, false, unitBlock = Some(unit -> 0))
+    val s = school(Nil, Nil)
+    assert(broken(PlanCheck(s, List(group(0), group(2)))).contains("R4"))
+    assert(!broken(PlanCheck(s, List(group(0), group(0)))).contains("R4"))
+
+  private val lab = RoomKind(UUID.randomUUID, "Pracownia")
+  private val labRoom = Room(UUID.randomUUID, "LAB", None, true, List(lab))
+  private val room12 = Room(UUID.randomUUID, "12", None, true, Nil)
+
+  test("a lesson wanting a kind of room may use an ordinary one; one requiring it may not"):
+    // REVIEW D1.
+    val a = cls("1A")
+    val s = school(List(a), List(line(a.id)))
+    def inRoom12(hard: Boolean) = at(a.id, 0, 0).copy(
+      roomId = Some(room12.id), needsKind = Some(lab.id), kindIsHard = hard)
+    assert(!broken(PlanCheck(s, List(inRoom12(hard = false)), List(labRoom, room12))).contains("R3c"))
+    assert(broken(PlanCheck(s, List(inRoom12(hard = true)), List(labRoom, room12))).contains("R3c"))
+    assert(!broken(PlanCheck(s, List(inRoom12(hard = true)), List(room12))).contains("R3c"),
+      "with no room of the kind at all, an ordinary one is what the export offers")
+
+  test("a lesson with no room is caught"):
+    // REVIEW D5.
+    val a = cls("1A")
+    val s = school(List(a), List(line(a.id)))
+    assert(broken(PlanCheck(s, List(at(a.id, 0, 0)), List(room12))).contains("R3e"))
+    assert(!broken(PlanCheck(s, List(at(a.id, 0, 0).copy(roomId = Some(room12.id))),
+      List(room12))).contains("R3e"))
+
+  test("a lesson outside the week is caught"):
+    // REVIEW D6.
+    val a = cls("1A")
+    val s = school(List(a), List(line(a.id, blocks = List(2))))
+    assert(broken(PlanCheck(s, List(at(a.id, 0, 7, length = 2)))).contains("R12"),
+      "a double from the last lesson runs past the end of the day")
+    assert(broken(PlanCheck(s, List(at(a.id, 5, 0, length = 2)))).contains("R12"),
+      "there is no sixth day")
+    assert(!broken(PlanCheck(s, List(at(a.id, 0, 6, length = 2)))).contains("R12"))
+
+  test("a block placed twice and another never is caught, though the count adds up"):
+    // REVIEW D7.
+    val a = cls("1A")
+    val maths2 = line(a.id, blocks = List(1, 1))
+    val s = school(List(a), List(maths2))
+    val twice = List(at(a.id, 0, 0).copy(block = Some(maths2.id -> 0)),
+      at(a.id, 1, 0).copy(block = Some(maths2.id -> 0)))
+    assert(broken(PlanCheck(s, twice)).contains("R7"))
+    val once = List(at(a.id, 0, 0).copy(block = Some(maths2.id -> 0)),
+      at(a.id, 1, 0).copy(block = Some(maths2.id -> 1)))
+    assert(!broken(PlanCheck(s, once)).contains("R7"))

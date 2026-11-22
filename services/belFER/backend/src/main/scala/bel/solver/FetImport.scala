@@ -81,6 +81,9 @@ object FetImport:
     val lines = s.lessonLines.map(l => l.id -> l).toMap
     val units = s.crossClassUnits.map(u => u.id -> u).toMap
     val optional = s.subjects.filter(_.optional).map(_.id).toSet
+    // Absent subject means absent requirement, and a firm one is the safe
+    // reading, as in the export.
+    def kindIsHard(subject: UUID) = s.subjects.find(_.id == subject).forall(_.roomRequirementHard)
 
     val tuition = s.individualPlans.flatMap(_.lessons).map(l => l.id -> l).toMap
 
@@ -99,7 +102,8 @@ object FetImport:
           length = lesson.blocks.lift(block).getOrElse(1),
           optional = false,
           roomId = where.flatMap(byNumber.get),
-          needsKind = tuitionKind)
+          needsKind = tuitionKind,
+          block = Some(lessonId -> block))
     }
 
     val ordinary = placed.collect {
@@ -116,7 +120,9 @@ object FetImport:
           optional = optional.contains(l.subjectId),
           roomId = where.flatMap(byNumber.get),
           needsKind = s.subjects.find(_.id == l.subjectId)
-            .flatMap(_.requiredRoomKind).map(_.id))
+            .flatMap(_.requiredRoomKind).map(_.id),
+          kindIsHard = kindIsHard(l.subjectId),
+          block = Some(lineId -> block))
     }
 
     // A cross-class block is one hour for the classes and several lessons for
@@ -141,7 +147,10 @@ object FetImport:
         length = unit.blocks.lift(ref.block).getOrElse(1),
         optional = optional.contains(unit.subjectId),
         roomId = q.room.flatMap(byNumber.get),
-        needsKind = unit.requiredRoomKindId)
+        needsKind = unit.requiredRoomKindId,
+        kindIsHard = kindIsHard(unit.subjectId),
+        block = Some(group.id -> ref.block),
+        unitBlock = Some(unit.id -> ref.block))
     }
 
     val occupancy = crossPlacements
