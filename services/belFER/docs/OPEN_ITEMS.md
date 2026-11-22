@@ -107,9 +107,11 @@ From ROADMAP "Open work", in its order:
    read today's files.
 2. **The local server on 8081** runs code from 2026-11-01. Restart it to use
    anything since.
-3. **Frontend production build in this shell:** Node is an x64 build and only
-   the arm64 rollup binary is installed, so `vite build` fails here. The
-   type-check passes. Environment, not code.
+3. ~~**Frontend production build in this shell.**~~ Solved 2026-11-22: the
+   shell's default `node` (`/usr/local/bin/node`) is an x64 build, and only
+   the arm64 rollup binary is installed. Use the arm64 Node from nvm, e.g.
+   `PATH=~/.nvm/versions/node/v22.22.3/bin:$PATH npm run build`; the dev
+   server needs it too.
 
 ## 6. Code review findings
 
@@ -126,3 +128,8 @@ In short:
 - two privacy questions sit in the anonymiser.
 
 Items from it move here as they are scheduled.
+
+**Done 2026-11-22:** "Fix first" items 1–3 (deletes, plans keeping their
+lessons plus the import preview, other rows' edits), and with them U7 and
+D16. **Still open from item 2:** a re-import still replaces hand-entered
+data; it now says so first. Upserting by code is ROADMAP 2.3.
