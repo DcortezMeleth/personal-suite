@@ -171,8 +171,9 @@ def _apply_case(pattern, letters):
     """Copy the upper/lower case pattern of the original suffix.
 
     The export contains pairs of codes that differ only in the case of their
-    suffix and are genuinely distinct classes. Preserving the pattern keeps
-    that hazard in the fixture.
+    suffix. The school says each pair is one pupil entered twice (2026-11-22),
+    and the importer merges them; preserving the pattern keeps that case in
+    the fixture for it to merge.
     """
     out = []
     for i, ch in enumerate(letters):
@@ -315,8 +316,9 @@ def build_student_mapping(classes):
     """
     pseudo = [k for k in classes if _is_pseudo_class(k["Kod"])]
 
-    # Codes equal but for the case of their suffix are distinct classes; group
-    # them so they keep sharing letters and stay distinct in the same way.
+    # Codes equal but for the case of their suffix (one pupil entered twice,
+    # which the importer merges) are kept as a pair sharing letters, so the
+    # fixture still has the case.
     groups, order = {}, []
     for k in pseudo:
         key = k["Kod"].lower()

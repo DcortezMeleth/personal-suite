@@ -283,9 +283,9 @@ object ArkuszMapper:
     // cross-class groups, and those rows are lessons with the group, not
     // tuition. Extended codes are merged into their subject like everyone
     // else's, which they were not, so r_ tuition was dropped at the database.
-    def tuitionOf(pseudoCode: String): List[PlannedIndividualLesson] =
+    def tuitionOf(pseudoCodes: Set[String]): List[PlannedIndividualLesson] =
       inRange
-        .filter(a => a.isOrdinary && a.classCode.contains(pseudoCode) && a.hours > 0)
+        .filter(a => a.isOrdinary && a.classCode.exists(pseudoCodes.contains) && a.hours > 0)
         .groupBy(_.subjectCode)
         .toList.sortBy(_._1)
         .flatMap { (code, rows) =>
@@ -305,16 +305,26 @@ object ArkuszMapper:
       .groupBy((classCode, _) => classCode)
       .toList.sortBy(_._1)
       .flatMap { (classCode, pseudos) =>
+        // Codes that differ only in case are one pupil: an error in the data,
+        // as the school confirms (2026-11-22), not two pupils who happen to
+        // share initials. Their rows are read as one plan; the same subject
+        // under both codes is the same lesson, kept once.
+        //
         // Numbered after the empty ones are dropped, so a class with one plan
         // calls it the first rather than the second.
-        pseudos
-          .map((_, pseudo) => tuitionOf(pseudo.code))
+        pseudos.map(_._2.code).groupBy(_.toLowerCase).toList.sortBy(_._1)
+          .map((_, codes) => tuitionOf(codes.toSet))
           .filter(_.nonEmpty)
           .zipWithIndex
           .map((lessons, index) => PlannedIndividualPlan(classCode, index + 1, lessons))
       }
 
-    val skipped = individual.size - individualPlans.size
+    val pupils = individual.map(_.code.toLowerCase).distinct
+    val caseVariants = individual.size - pupils.size
+    if caseVariants > 0 then
+      info(s"Kody nauczania indywidualnego różniące się tylko wielkością liter połączono " +
+        s"($caseVariants) — to ten sam uczeń")
+    val skipped = pupils.size - individualPlans.size
     if individualPlans.nonEmpty then
       info(s"Wczytano ${individualPlans.size} planów nauczania indywidualnego " +
         s"(${individualPlans.map(_.lessons.map(_.blocks.sum).sum).sum} godz.) — " +

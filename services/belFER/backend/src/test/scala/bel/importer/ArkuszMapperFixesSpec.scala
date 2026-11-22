@@ -77,3 +77,15 @@ class ArkuszMapperFixesSpec extends AnyFunSuite:
     assert(plan.classes.head.girlCount === None)
     assert(warnings(plan).exists(_.contains("AN")))
     assert(warnings(plan).exists(_.contains("1A")))
+
+
+  test("pseudo-class codes that differ only in case are one pupil"):
+    // The school confirms it is an error in the data (2026-11-22).
+    val lower = klass("1Aab", None, None)
+    val upper = klass("1AAB", None, None)
+    val plan = map(List(row("1Aab", "matematyka", 2), row("1AAB", "matematyka", 2),
+      row("1AAB", "r_matematyka", 1, teacher = None)), List(klass("1A"), lower, upper))
+    assert(plan.individualPlans.size === 1)
+    assert(plan.individualPlans.head.lessons.map(l => l.subjectCode -> l.blocks.sum).sorted ===
+      List("matematyka" -> 1, "matematyka" -> 2))
+    assert(plan.notes.exists(_.message.contains("to ten sam uczeń")))
