@@ -86,7 +86,8 @@ From ROADMAP "Open work", in its order:
    hand in RUNLOG; nothing in the app does it.
 8. **Import faults found on the first real import:**
    - *zajęcia z wychowawcą* with nobody assigned is not reported;
-   - tuition cannot be edited in the UI;
+   - tuition cannot be edited in the UI (its kind and half can, since
+     2026-11-22; the lessons themselves still come only from the arkusz);
    - the importer recreates the phantom support-teacher tuition.
    - Fixed 2026-11-22 (REVIEW I2, I4–I7, I11): tuition by week range and
      merged codes, minimal doubles, unknown references reported, the upload

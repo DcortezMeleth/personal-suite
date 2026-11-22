@@ -62,6 +62,8 @@ class ImportRepository(xa: Transactor[IO]):
       support   <- count(sql"SELECT count(*) FROM lesson_line WHERE school_id = $schoolId AND support_teacher_id IS NOT NULL")
       attending <- count(sql"""SELECT count(DISTINCT a.class_id) FROM optional_subject_attendance a
                                 JOIN school_class c ON c.id = a.class_id WHERE c.school_id = $schoolId""")
+      pupils    <- count(sql"""SELECT count(*) FROM individual_plan
+                                WHERE school_id = $schoolId AND kind IS NOT NULL""")
       kinds     <- count(sql"""SELECT (SELECT count(*) FROM subject
                                        WHERE school_id = $schoolId AND required_room_kind_id IS NOT NULL)
                                    + (SELECT count(*) FROM cross_class_unit
@@ -73,6 +75,7 @@ class ImportRepository(xa: Transactor[IO]):
       homeRooms -> s"sale własne $homeRooms nauczycieli",
       support   -> s"nauczyciela wspomagającego w $support przydziałach",
       attending -> s"frekwencję na religii i etyce w $attending oddziałach",
+      pupils    -> s"rodzaj nauczania indywidualnego (i grupę) $pupils uczniów",
       kinds     -> s"wymagany typ sali przy $kinds przedmiotach i zajęciach międzyoddziałowych"
     ).collect { case (n, what) if n > 0 => what }).transact(xa)
 

@@ -63,7 +63,7 @@ object Main extends IOApp.Simple:
               CrossClassUnitRoutes(peRepo, schoolRepo, roomRepo).routes <+>
               ImportRoutes(importRepo, schoolRepo).routes <+>
               ValidationRoutes(loader).routes <+>
-              IndividualPlanRoutes(loader).routes <+>
+              IndividualPlanRoutes(loader, individualRepo).routes <+>
               AttendanceRoutes(attendanceRepo).routes <+>
               PlanRoutes(planRepo, loader, generation).routes
 

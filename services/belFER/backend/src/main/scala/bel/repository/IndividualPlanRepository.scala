@@ -13,11 +13,11 @@ class IndividualPlanRepository(xa: Transactor[IO]):
   def findAll(schoolId: UUID): IO[List[IndividualPlan]] =
     val plans =
       sql"""
-        SELECT p.id, p.class_id, p.ordinal
+        SELECT p.id, p.class_id, p.ordinal, p.kind, p.half
         FROM individual_plan p
         WHERE p.school_id = $schoolId
         ORDER BY p.ordinal
-      """.query[(UUID, UUID, Int)].to[List]
+      """.query[(UUID, UUID, Int, Option[String], Option[Int])].to[List]
 
     val lessons =
       sql"""
@@ -32,12 +32,21 @@ class IndividualPlanRepository(xa: Transactor[IO]):
       ls <- lessons
     yield
       val byPlan = ls.groupBy(_._1)
-      ps.map { (id, classId, ordinal) =>
+      ps.map { (id, classId, ordinal, kind, half) =>
         IndividualPlan(id, classId, ordinal,
           byPlan.getOrElse(id, Nil).map((_, lid, subject, teacher, blocks) =>
-            IndividualLesson(lid, subject, teacher, blocks)))
+            IndividualLesson(lid, subject, teacher, blocks)),
+          kind.flatMap(TuitionKind.parse), half)
       }
     ).transact(xa)
+
+  /** Sets what the arkusz does not say. False when no such plan is in this school. */
+  def setKind(schoolId: UUID, planId: UUID, settings: TuitionSettings): IO[Boolean] =
+    sql"""
+      UPDATE individual_plan
+      SET kind = ${settings.kind.map(_.toString)}, half = ${settings.half}
+      WHERE id = $planId AND school_id = $schoolId
+    """.update.run.map(_ == 1).transact(xa)
 
   /** Replaces the school's individual tuition wholesale, as an import does. */
   def replaceAll(schoolId: UUID, plans: List[IndividualPlan]): IO[Int] =

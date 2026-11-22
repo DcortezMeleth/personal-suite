@@ -1,5 +1,6 @@
 package bel.domain
 
+import io.circe.{Decoder, Encoder}
 import java.util.UUID
 
 /**
@@ -26,14 +27,53 @@ object IndividualTuition:
    */
   val RoomKindName = "Nauczanie indywidualne"
 
+/**
+ * The kind of individual pupil (RULES S9). Not in the arkusz; the planner
+ * sets it. It describes the provision, not the pupil.
+ */
+enum TuitionKind:
+  /** Only individual lessons, taken remotely; windows allowed. */
+  case REMOTE
+  /** Only individual lessons, at school; no windows. */
+  case ON_SITE
+  /** Some lessons with the class (in `half`), some individually; no windows. */
+  case MIXED
+
+object TuitionKind:
+  def parse(s: String): Option[TuitionKind] = scala.util.Try(valueOf(s)).toOption
+  given Encoder[TuitionKind] = Encoder[String].contramap(_.toString)
+  given Decoder[TuitionKind] = Decoder[String].emap(s =>
+    parse(s).toRight(s"Nieznany rodzaj nauczania indywidualnego: $s"))
+
 case class IndividualPlan(
   id: UUID,
   classId: UUID,
   /** First, second, third such plan in that class. */
   ordinal: Int,
-  lessons: List[IndividualLesson]
+  lessons: List[IndividualLesson],
+  /** Unset until the planner says; see TuitionKind. */
+  kind: Option[TuitionKind] = None,
+  /** For a mixed pupil, the half of their class they are in: 1 or 2. */
+  half: Option[Int] = None
 ):
   def hours: Int = lessons.map(_.hours).sum
+
+/** What the planner sets on a plan: the two things the arkusz does not say. */
+case class TuitionSettings(kind: Option[TuitionKind], half: Option[Int])
+
+object TuitionSettings:
+  given Decoder[TuitionSettings] = Decoder.instance { c =>
+    for
+      kind <- c.getOrElse[Option[TuitionKind]]("kind")(None)
+      half <- c.getOrElse[Option[Int]]("half")(None)
+    yield TuitionSettings(kind, half)
+  }
+
+  def validate(t: TuitionSettings): Either[String, Unit] =
+    if t.half.exists(h => h != 1 && h != 2) then Left("Grupa to 1 albo 2")
+    else if t.half.isDefined && !t.kind.contains(TuitionKind.MIXED) then
+      Left("Grupę wybiera się tylko dla ucznia mieszanego — pozostali nie chodzą na lekcje z oddziałem")
+    else Right(())
 
 case class IndividualLesson(
   id: UUID,

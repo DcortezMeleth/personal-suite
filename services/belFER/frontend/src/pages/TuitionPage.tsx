@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { api, type TuitionSummary } from "../api/client";
+import { api, type TuitionKind, type TuitionPlan, type TuitionSummary } from "../api/client";
 import { useSchool } from "../hooks/useSchool";
 import { NoSchool } from "../components/NoSchool";
 
@@ -14,16 +14,73 @@ import { NoSchool } from "../components/NoSchool";
  * arkusz, and that is what this is for — grouped the way the arkusz groups
  * them, so the two can be read side by side.
  *
- * Read-only on purpose. A plan is a class and an ordinal within it, never a
- * name: the hours are the school's business and the student is not. Adding
- * one here would mean deciding what it means to record a plan for a student
- * we decline to record, and the arkusz is where that decision belongs.
+ * The lessons are read-only on purpose. A plan is a class and an ordinal
+ * within it, never a name: the hours are the school's business and the
+ * student is not. Adding one here would mean deciding what it means to record
+ * a plan for a student we decline to record, and the arkusz is where that
+ * decision belongs.
+ *
+ * Two things are set here, because the arkusz does not carry them and the
+ * week cannot be laid out without them (RULES S9): the kind of pupil, and for
+ * a mixed pupil the half of the class they are in. Saved as soon as chosen.
  */
+
+const KINDS: { value: TuitionKind; label: string }[] = [
+  { value: "ON_SITE", label: "stacjonarnie" },
+  { value: "REMOTE", label: "zdalnie" },
+  { value: "MIXED", label: "mieszane — część lekcji z oddziałem" },
+];
+
+const select = "rounded border border-neutral-300 px-2 py-1 text-sm font-normal";
+
+/** The kind and half of one pupil, as two selects. */
+function KindPicker(props: {
+  plan: TuitionPlan;
+  onChange: (kind: TuitionKind | null, half: 1 | 2 | null) => void;
+}) {
+  const { plan } = props;
+  const label = `${plan.className} / ${plan.ordinal}`;
+  return (
+    <span className="ml-4 inline-flex flex-wrap items-center gap-2">
+      <select
+        aria-label={`Rodzaj nauczania: ${label}`}
+        className={`${select} ${plan.kind === null ? "border-danger-500 text-danger-700" : ""}`}
+        value={plan.kind ?? ""}
+        onChange={(e) => {
+          const kind = (e.target.value || null) as TuitionKind | null;
+          // A half belongs only to a mixed pupil; changing away drops it.
+          props.onChange(kind, kind === "MIXED" ? plan.half : null);
+        }}
+      >
+        <option value="">— wybierz rodzaj —</option>
+        {KINDS.map((k) => (
+          <option key={k.value} value={k.value}>
+            {k.label}
+          </option>
+        ))}
+      </select>
+      {plan.kind === "MIXED" && (
+        <select
+          aria-label={`Grupa w oddziale: ${label}`}
+          className={`${select} ${plan.half === null && plan.classSplit ? "border-danger-500 text-danger-700" : ""}`}
+          value={plan.half ?? ""}
+          onChange={(e) =>
+            props.onChange("MIXED", e.target.value === "" ? null : (Number(e.target.value) as 1 | 2))
+          }
+        >
+          <option value="">— grupa —</option>
+          <option value="1">grupa 1</option>
+          <option value="2">grupa 2</option>
+        </select>
+      )}
+    </span>
+  );
+}
 export function TuitionPage() {
   const [tuition, setTuition] = useState<TuitionSummary | null>(null);
   const [filter, setFilter] = useState("");
 
-  const { school, error, setError, gate } = useSchool({
+  const { school, error, setError, reload, gate } = useSchool({
     title: "Nauczanie indywidualne",
     load: async (school) => {
       setTuition(await api.individualPlans(school.id));
@@ -49,6 +106,21 @@ export function TuitionPage() {
   if (!school) return <NoSchool title="Nauczanie indywidualne" />;
   if (!tuition) return null;
 
+  const current = school;
+  async function setKind(plan: TuitionPlan, kind: TuitionKind | null, half: 1 | 2 | null) {
+    try {
+      await api.setTuitionKind(current.id, plan.id, { kind, half });
+      setError(null);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  const unset = tuition.byClass.filter(
+    (p) => p.kind === null || (p.kind === "MIXED" && p.half === null && p.classSplit),
+  ).length;
+
   const withoutTeacher = tuition.byClass
     .flatMap((p) => p.lessons)
     .filter((l) => l.teacher === null).length;
@@ -62,6 +134,14 @@ export function TuitionPage() {
           level="warning"
           message={`${withoutTeacher} godz. nauczania indywidualnego nie ma przypisanego nauczyciela —
                     te godziny nie zablokują nikomu czasu przy układaniu planu.`}
+        />
+      )}
+
+      {unset > 0 && (
+        <AlertBanner
+          level="warning"
+          message={`U ${unset} uczniów nie wybrano rodzaju nauczania (albo grupy ucznia mieszanego).
+                    Do tego czasu taki uczeń jest planowany jak stacjonarny — bez lekcji z oddziałem.`}
         />
       )}
 
@@ -120,6 +200,10 @@ export function TuitionPage() {
                     <td colSpan={3} className="pt-3 pb-1 font-medium text-neutral-800">
                       {plan.className}
                       <span className="ml-1 text-neutral-400">/ {plan.ordinal}</span>
+                      <KindPicker
+                        plan={plan}
+                        onChange={(kind, half) => setKind(plan, kind, half)}
+                      />
                     </td>
                     <td className="pt-3 pb-1 text-right font-medium text-neutral-800">
                       {plan.hours}
@@ -147,8 +231,9 @@ export function TuitionPage() {
       </DataCard>
 
       <p className="text-xs text-neutral-500">
-        Lista pochodzi z arkusza i nie da się jej tu zmienić. Poprawki nanieś w arkuszu
-        i zaimportuj go ponownie.
+        Lekcje pochodzą z arkusza i nie da się ich tu zmienić — poprawki nanieś w arkuszu
+        i zaimportuj go ponownie. Rodzaj nauczania i grupę ucznia ustawia się tutaj, bo arkusz
+        ich nie zawiera; ponowny import je wyczyści.
       </p>
     </div>
   );

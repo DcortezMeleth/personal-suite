@@ -429,12 +429,26 @@ export interface TuitionLesson {
   hours: number;
 }
 
+/** RULES S9: the kind of individual pupil, which the arkusz does not say. */
+export type TuitionKind = "REMOTE" | "ON_SITE" | "MIXED";
+
 export interface TuitionPlan {
   id: string;
   className: string;
   ordinal: number;
   hours: number;
   lessons: TuitionLesson[];
+  /** Unset until the planner chooses; planned as on-site until then. */
+  kind: TuitionKind | null;
+  /** A mixed pupil's half of the class. */
+  half: 1 | 2 | null;
+  /** Whether the class has lessons in halves, so the half matters. */
+  classSplit: boolean;
+}
+
+export interface TuitionSettings {
+  kind: TuitionKind | null;
+  half: 1 | 2 | null;
 }
 
 export interface TuitionSummary {
@@ -487,6 +501,9 @@ export const api = {
 
   setAttendance: (schoolId: string, entry: Attendance) =>
     sendNoContent("PUT", `/schools/${schoolId}/attendance`, entry),
+
+  setTuitionKind: (schoolId: string, planId: string, settings: TuitionSettings) =>
+    sendNoContent("PUT", `/schools/${schoolId}/individual-plans/${planId}`, settings),
 
   updateSubject: (id: string, input: SubjectInput) => send<Subject>("PUT", `/subjects/${id}`, input),
   deleteSubject: (id: string) => sendNoContent("DELETE", `/subjects/${id}`),

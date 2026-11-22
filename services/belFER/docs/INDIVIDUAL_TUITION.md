@@ -194,7 +194,11 @@ hours.
 
 ---
 
-## 7. Steps, once the questions are answered
+## 7. Steps
+
+Done so far (2026-11-22): 1 (RULES S9), RM3's rooms (`79d0b86`), 2 (`d72a945`)
+and 3. Kinds and halves are set on the Nauczanie indywidualne page; all 24
+plans are unset until the planner chooses.
 
 1. RULES.md gets S9.
 2. **Import:** merge case-variant pseudo-class codes.

@@ -87,7 +87,8 @@ object Validation:
       // already shows the figure for anyone who wants it.
       teacherSubjects(s) ++
       homeroomHour(s) ++
-      crossClassBalance(s)
+      crossClassBalance(s) ++
+      individualPupils(s)
 
   // ── Classes ───────────────────────────────────────────────────────────────
 
@@ -430,4 +431,30 @@ object Validation:
         else None
 
       tooManyGroups.toList ++ sameTeacherTwice.toList ++ noTeacher.toList
+    }
+
+
+  // ── Individual pupils (RULES S9) ──────────────────────────────────────────
+
+  /**
+   * What the planner still has to say about each individual pupil: the kind,
+   * and for a mixed pupil whose class has lessons in halves, which half. The
+   * arkusz carries neither. Until the kind is set the pupil is planned as
+   * on-site, which never double-books them and never leaves them waiting but
+   * misses a mixed pupil's lessons with the class — hence blocking.
+   */
+  private def individualPupils(s: SchoolSnapshot): List[Finding] =
+    val classes = s.classes.map(c => c.id -> c.name).toMap
+    val split = s.lessonLines.filter(_.audience != LessonAudience.WHOLE_CLASS).map(_.classId).toSet
+    s.individualPlans.sortBy(p => (classes.getOrElse(p.classId, "?"), p.ordinal)).flatMap { plan =>
+      val who = s"${classes.getOrElse(plan.classId, "?")} / ${plan.ordinal}"
+      plan.kind match
+        case None => List(Finding(Severity.Blocking, who,
+          "Nie wybrano rodzaju nauczania indywidualnego (zdalne, stacjonarne, mieszane) — " +
+            "do tego czasu uczeń jest planowany jak stacjonarny", Some(plan.classId)))
+        case Some(TuitionKind.MIXED) if plan.half.isEmpty && split.contains(plan.classId) =>
+          List(Finding(Severity.Blocking, who,
+            "Uczeń mieszany bez wybranej grupy — nie wiadomo, na które lekcje w grupach chodzi " +
+              "z oddziałem", Some(plan.classId)))
+        case _ => Nil
     }
