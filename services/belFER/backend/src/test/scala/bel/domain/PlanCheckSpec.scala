@@ -309,3 +309,44 @@ class PlanCheckSpec extends AnyFunSuite:
     val once = List(at(a.id, 0, 0).copy(block = Some(maths2.id -> 0)),
       at(a.id, 1, 0).copy(block = Some(maths2.id -> 1)))
     assert(!broken(PlanCheck(s, once)).contains("R7"))
+
+  // ── Teachers' free periods: run, day, week (RULES T5) ────────────────
+
+  private def withGaps(day: Option[Int], week: Option[Int], run: Int = 1) =
+    settings.copy(maxConsecutiveTeacherGaps = run,
+      optimisation = Optimisation(maxTeacherGapsPerDay = day, maxTeacherGapsPerWeek = week))
+
+  test("separate free periods are counted per day, though no run is too long"):
+    // First, third and fifth hour: two single free periods, never two in a row.
+    val classes = List(cls("1A"), cls("1B"), cls("1C"))
+    val s = school(classes, classes.map(c => line(c.id)))
+      .copy(settings = withGaps(day = Some(1), week = None))
+    val week = classes.zip(List(0, 2, 4)).map((c, h) => at(c.id, 0, h))
+    val report = PlanCheck(s, week)
+    assert(!broken(report).contains("R15"))
+    assert(broken(report).contains("R15b"))
+    assert(!PlanCheck(s.copy(settings = withGaps(day = Some(2), week = None)), week)
+      .broken.exists(_.code == "R15b"))
+
+  test("free periods are counted across the week when the school sets a cap"):
+    // One free period on each of three days, against a weekly cap of two.
+    val a = cls("1A")
+    val b = cls("1B")
+    val s = school(List(a, b), List(line(a.id, blocks = List(1, 1, 1)), line(b.id, blocks = List(1, 1, 1))))
+    val week = (0 until 3).flatMap(d => List(at(a.id, d, 0), at(b.id, d, 2))).toList
+    assert(broken(PlanCheck(s.copy(settings = withGaps(Some(1), Some(2))), week)).contains("R15c"))
+    assert(!broken(PlanCheck(s.copy(settings = withGaps(Some(1), Some(3))), week)).contains("R15c"))
+    assert(!PlanCheck(s.copy(settings = withGaps(Some(1), None)), week).rules.exists(_.code == "R15c"),
+      "no weekly cap set, nothing to check")
+
+  test("an hour the teacher is away is not a free period"):
+    // Lessons at the first and third hour, away for the second: not waiting.
+    val a = cls("1A")
+    val b = cls("1B")
+    val s = school(List(a, b), List(line(a.id), line(b.id)),
+      teachers = List(teacher(anna, away = List(UnavailabilityBlock(1, 2, 2))), teacher(piotr)))
+      .copy(settings = withGaps(day = Some(0), week = Some(0), run = 0))
+    val report = PlanCheck(s, List(at(a.id, 0, 0), at(b.id, 0, 2)))
+    assert(!broken(report).contains("R15"))
+    assert(!broken(report).contains("R15b"))
+    assert(!broken(report).contains("R15c"))

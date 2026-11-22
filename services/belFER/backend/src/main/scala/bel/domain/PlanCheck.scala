@@ -201,14 +201,38 @@ object PlanCheck:
     }
     rule("R14", "nauczyciel nie ma więcej lekcji dziennie, niż może", overLoad, "nauczycieli")
 
-    // A free period in the middle of a teacher's day is tolerable; a stretch of
-    // them is what the school objects to.
+    // ── Teachers' free periods (RULES T5) ────────────────────────────────
+    //
+    // A free period is an hour between a teacher's first and last lesson of a
+    // day with nothing to teach. An hour the teacher is away is not one: they
+    // are not waiting at school, and FET does not count it either.
+    //
+    // Three limits, as the school's settings and FET have them: a run of free
+    // periods (the rule as the school states it), how many in a day, and how
+    // many in a week. Only the first used to be checked; the other two were
+    // FET's word (OPEN_ITEMS 2.4).
     val gapLimit = s.settings.maxConsecutiveTeacherGaps
     val teacherHours = plan.flatMap(x => x.teacherIds.map(t => (t, x.day) -> x.positions.toSet))
       .groupBy(_._1).view.mapValues(_.flatMap(_._2).toSet).toMap
-    val longGaps = teacherHours.count((_, hours) => longestGap(hours) > gapLimit)
+    def freePeriods(teacher: UUID, day: Int, hours: Set[Int]): Set[Int] =
+      if hours.isEmpty then Set.empty
+      else (hours.min to hours.max).filterNot(p => hours.contains(p) || away((teacher, day, p))).toSet
+    val free = teacherHours.map { case ((t, day), hours) => (t, day) -> freePeriods(t, day, hours) }
+
+    val longGaps = free.count((_, idle) => longestRun(idle) > gapLimit)
     rule("R15", s"nauczyciel nie przesiaduje dłużej niż $gapLimit godz. bez lekcji",
       longGaps, "dni nauczycieli")
+
+    // The daily count FET is told: the planner's setting, or the run length
+    // standing in for it, as the export does.
+    val dailyLimit = s.settings.optimisation.maxTeacherGapsPerDay.getOrElse(gapLimit)
+    rule("R15b", s"nauczyciel ma najwyżej ${okienka(dailyLimit)} dziennie",
+      free.count((_, idle) => idle.size > dailyLimit), "dni nauczycieli")
+
+    for weeklyLimit <- s.settings.optimisation.maxTeacherGapsPerWeek do
+      val weekly = free.toList.groupMapReduce(_._1._1)(_._2.size)(_ + _)
+      rule("R15c", s"nauczyciel ma najwyżej ${okienka(weeklyLimit)} w tygodniu",
+        weekly.count(_._2 > weeklyLimit), "nauczycieli")
 
     // ── The shape of a pupil's day ───────────────────────────────────────
     //
@@ -362,6 +386,21 @@ object PlanCheck:
   /** How many (thing, hour) pairs are claimed by more than one lesson. */
   private def occupancy[A](plan: List[Scheduled])(keys: Scheduled => Iterable[A]): Int =
     plan.flatMap(keys).groupBy(identity).count(_._2.size > 1)
+
+  /** "1 okienko", "2 okienka", "5 okienek". */
+  private def okienka(n: Int): String =
+    val word =
+      if n == 1 then "okienko"
+      else if n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14) then "okienka"
+      else "okienek"
+    s"$n $word"
+
+  /** The longest run of consecutive hours in a set. */
+  private def longestRun(hours: Set[Int]): Int =
+    hours.toList.sorted.foldLeft((0, 0, Int.MinValue)) { case ((run, best, last), h) =>
+      val next = if h == last + 1 then run + 1 else 1
+      (next, math.max(best, next), h)
+    }._2
 
   /** The longest run of free hours between the first and last lesson of a day. */
   private def longestGap(hours: Set[Int]): Int =

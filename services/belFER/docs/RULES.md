@@ -1,6 +1,6 @@
 # belFER — scheduling rules
 
-**Version 1.4 · 2026-11-22**
+**Version 1.5 · 2026-11-22**
 
 The rules a generated timetable must obey, and the preferences it should try to
 meet. **This file is the source of truth for rules.** REQUIREMENTS §9 is where
@@ -328,7 +328,7 @@ table.
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
 | T4 | `TeachersMaxHoursDaily` + `TeacherMaxHoursDaily` | R14 | ⚠ G7 |
-| T5 | `TeachersMaxGapsPerDay` and `TeachersMaxGapsPerWeek` from the school's settings, now 1 and 2, stricter than T5 | R15, run length only | ✅ while the daily setting is 1; ⚠ G5 above it |
+| T5 | `TeachersMaxGapsPerDay` and `TeachersMaxGapsPerWeek` from the school's settings, now 1 and 2, stricter than T5 | R15 run length, R15b per day, R15c per week (when set); an hour the teacher is unavailable is not a free period, as FET counts | ✅ |
 | RM1 | Built in | R3, R3d | ✅ |
 | RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
 | RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type | R3c | ✅ |
@@ -372,7 +372,9 @@ and the reasoning are under S5 above. Same-day pairing was rejected in 1.1.
 never the length of a run. At 2 a day it can still leave a 2-hour hole. R15
 catches that afterwards, but nothing checks the daily or weekly counts.
 **Moot since 2026-11-21** while the daily setting is 1 (RUNLOG R6): one free
-period a day cannot be two in a row. Open again if it is raised.
+period a day cannot be two in a row. Open again if it is raised. Since 1.5 the
+checker counts the daily and weekly free periods itself (R15b, R15c), so
+whatever FET is told, a week over either setting is rejected.
 
 **G6. PE in classrooms — fixed in the data, 2026-11-21.** Wychowanie fizyczne
 and its 14 PE units (of 17 cross-class units; the other 3 are religia and
@@ -426,6 +428,13 @@ Found 2026-11-21; see RUNLOG.
 ---
 
 ## 8. Changelog
+
+### 1.5 — 2026-11-22
+
+No rule changed. T5's daily and weekly counts are checked (R15b, R15c), not
+only its run length; they had been FET's word alone. Free periods exclude hours
+the teacher is unavailable, as FET counts them, and R15's run length now does
+too.
 
 ### 1.4 — 2026-11-22
 

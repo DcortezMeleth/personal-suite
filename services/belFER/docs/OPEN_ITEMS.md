@@ -5,7 +5,7 @@ where its detail lives; this file is the list, not the explanation. When an
 item is done, strike it through with the date and the commit or run, and
 leave it for a while before deleting it.
 
-Rules are in [RULES.md](RULES.md) (1.4), runs in [RUNLOG.md](RUNLOG.md), the
+Rules are in [RULES.md](RULES.md) (1.5), runs in [RUNLOG.md](RUNLOG.md), the
 product phases in [ROADMAP.md](ROADMAP.md).
 
 ---
@@ -13,7 +13,7 @@ product phases in [ROADMAP.md](ROADMAP.md).
 ## Where things stand
 
 A complete eight-slot week is generated through the app in about 2–3
-minutes and keeps all 19 checks (RUNLOG R12, 2026-11-22); it is saved as the
+minutes and keeps all 19 checks (RUNLOG R12, 2026-11-22; 21 since RULES 1.5); it is saved as the
 school's current plan. Settings: teacher free periods at most 1 a day and 2 a
 week, class days at most 3 lessons apart. **The data it runs on is
 incomplete** (section 1), so those runs are easier than the real school.
@@ -57,9 +57,8 @@ at a time and log a run after each.
 3. **Attendance-group student counts.** A cohort group is written with the
    number of subgroups (2) rather than the pupils. Harmless while room
    capacity is not modelled (every room is written as 10000). FEASIBILITY.
-4. **Teacher free-period counts are not checked.** FET enforces the daily and
-   weekly caps; `PlanCheck` checks only the run length (R15). A count check
-   would make the checker independent of FET here too.
+4. ~~**Teacher free-period counts are not checked.**~~ Checked since RULES
+   1.5 (R15b per day, R15c per week).
 5. **G5 returns if the daily teacher setting goes above 1.** FET cannot say
    "never 2 in a row". RULES G5.
 6. **G6 remainder.** A re-import loses the PE room requirement unless the
