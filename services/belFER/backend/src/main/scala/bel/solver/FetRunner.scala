@@ -426,14 +426,15 @@ object FetRunner:
    */
   def placements(result: FetImport.Result, rooms: List[Room]): List[Placement] =
     val byName = rooms.map(r => r.number -> r.id).toMap
-    result.placed.flatMap { p =>
+    result.placed.map { p =>
       val room = p.room.flatMap(byName.get)
+      // Every kind of reference is a placement now that the class-side
+      // bookkeeping reference is gone, so the compiler checks this is all.
       p.what match
         case LessonRef.Line(lineId, block) =>
-          Some(Placement(Some(lineId), None, None, block, p.day + 1, p.position + 1, room))
+          Placement(Some(lineId), None, None, block, p.day + 1, p.position + 1, room)
         case LessonRef.CrossClassGroupRef(_, groupId, block) =>
-          Some(Placement(None, Some(groupId), None, block, p.day + 1, p.position + 1, room))
+          Placement(None, Some(groupId), None, block, p.day + 1, p.position + 1, room)
         case LessonRef.Individual(lessonId, block) =>
-          Some(Placement(None, None, Some(lessonId), block, p.day + 1, p.position + 1, room))
-        case _ => None
+          Placement(None, None, Some(lessonId), block, p.day + 1, p.position + 1, room)
     }

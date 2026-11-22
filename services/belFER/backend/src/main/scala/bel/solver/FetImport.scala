@@ -30,6 +30,72 @@ object FetImport:
   case class Result(placed: List[Placed], unplaced: Int):
     def complete: Boolean = unplaced == 0
 
+  private def parse(xml: String): org.w3c.dom.Document =
+    val factory = DocumentBuilderFactory.newInstance()
+    // Nothing in a timetable needs a DTD, and a parser that will fetch one is
+    // a parser that will fetch anything it is pointed at.
+    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
+    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+    factory.newDocumentBuilder().parse(java.io.ByteArrayInputStream(xml.getBytes("UTF-8")))
+
+  private def child(e: Element, name: String): Option[String] =
+    val found = e.getElementsByTagName(name)
+    Option.when(found.getLength > 0)(found.item(0).getTextContent.trim)
+
+  private def children(e: Element, name: String): List[String] =
+    val found = e.getElementsByTagName(name)
+    (0 until found.getLength).toList.map(found.item(_).getTextContent.trim)
+
+  /** An activity as the file states it: its number, its comment, and what it is. */
+  private case class Stated(id: Int, comment: String, signature: (String, List[String], List[String], String))
+
+  private def activities(fetXml: String): List[Stated] =
+    val nodes = parse(fetXml).getElementsByTagName("Activity")
+    (0 until nodes.getLength).toList.flatMap { i =>
+      val e = nodes.item(i).asInstanceOf[Element]
+      child(e, "Id").flatMap(_.toIntOption).map(id => Stated(id, child(e, "Comments").getOrElse(""),
+        (child(e, "Subject").getOrElse(""), children(e, "Teacher").sorted,
+          children(e, "Students").sorted, child(e, "Duration").getOrElse(""))))
+    }
+
+  /**
+   * What each activity of a past run was, from the run's own copy of its input
+   * (FET writes `school_data_and_timetable.fet` beside its answer).
+   *
+   * Reading an answer by exporting the school again and matching numbers is
+   * only right while nothing has changed: the export numbers lessons in the
+   * order the database returns them, and an edit can change that order. It
+   * did (REVIEW_2026-11-21 F2): after a day's edits a past week read back with
+   * 158 of 1331 lessons attributed to the wrong lines, and the checker blamed
+   * the teachers.
+   *
+   * Since activities carry their `LessonRef` in their comment, that is read
+   * directly. A run from before that has none, so its activities are matched
+   * to today's export by what they are (subject, teachers, students,
+   * duration). Activities alike in all four are interchangeable for every
+   * check. If the two do not contain the same activities, the school has
+   * changed and the answer cannot be read; that is said rather than guessed.
+   */
+  def recover(runInput: String, written: FetExport.Written): Either[String, Map[Int, LessonRef]] =
+    val stated = activities(runInput)
+    val carried = stated.flatMap(a => LessonRef.parse(a.comment).map(a.id -> _))
+    if carried.nonEmpty then Right(carried.toMap)
+    else
+      val ours = activities(written.xml)
+      val theirsBy = stated.groupBy(_.signature)
+      val oursBy = ours.groupBy(_.signature)
+      val differing = (theirsBy.keySet ++ oursBy.keySet)
+        .count(k => theirsBy.get(k).map(_.size) != oursBy.get(k).map(_.size))
+      if differing > 0 then
+        Left(s"$differing rodzajów zajęć różni się między tym przebiegiem a obecnymi danymi — " +
+          "szkoła zmieniła się od tego przebiegu, więc jego odpowiedzi nie da się odczytać")
+      else
+        Right(theirsBy.toList.flatMap { (signature, theirs) =>
+          theirs.sortBy(_.id).zip(oursBy(signature).sortBy(_.id))
+            .flatMap((t, o) => written.means.get(o.id).map(t.id -> _))
+        }.toMap)
+
   /**
    * @param days the day names written into the file, in order, because FET
    *     answers with the names it was given rather than with indices
@@ -37,18 +103,7 @@ object FetImport:
   def apply(xml: String, means: Map[Int, LessonRef],
             days: List[String]): Result =
     val byName = days.zipWithIndex.toMap
-    val factory = DocumentBuilderFactory.newInstance()
-    // Nothing in a timetable needs a DTD, and a parser that will fetch one is
-    // a parser that will fetch anything it is pointed at.
-    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
-    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
-    val doc = factory.newDocumentBuilder()
-      .parse(java.io.ByteArrayInputStream(xml.getBytes("UTF-8")))
-
-    def child(e: Element, name: String): Option[String] =
-      val found = e.getElementsByTagName(name)
-      Option.when(found.getLength > 0)(found.item(0).getTextContent.trim)
+    val doc = parse(xml)
 
     val nodes = doc.getElementsByTagName("Activity")
     val placed = (0 until nodes.getLength).toList.flatMap { i =>

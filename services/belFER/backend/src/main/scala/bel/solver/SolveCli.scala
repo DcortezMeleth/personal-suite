@@ -217,12 +217,37 @@ object SolveCli extends IOApp:
           yield ExitCode.Success
     yield code
 
-  /** FET's answer, read back and counted. */
+  /**
+   * FET's answer, read back and counted.
+   *
+   * What each of FET's activities was comes from the run's own copy of its
+   * input, beside the answer, not from exporting the school again: see
+   * FetImport.recover. Without that copy, today's export is the only guide,
+   * and it is said so.
+   */
   private def readFet(snapshot: SchoolSnapshot, rooms: List[Room], path: String): IO[ExitCode] =
+    val answer = java.nio.file.Path.of(path)
+    val runInput = answer.resolveSibling("school_data_and_timetable.fet")
     for
       written <- IO.pure(FetExport(snapshot, rooms))
-      xml <- IO.blocking(java.nio.file.Files.readString(java.nio.file.Path.of(path)))
-      result = FetImport(xml, written.means, FetExport.dayNames(snapshot.teachingDays))
+      xml <- IO.blocking(java.nio.file.Files.readString(answer))
+      input <- IO.blocking(Option.when(java.nio.file.Files.exists(runInput))(
+                 java.nio.file.Files.readString(runInput)))
+      mapping = input.fold[Either[String, Map[Int, LessonRef]]](Right(written.means))(
+                  FetImport.recover(_, written))
+      code <- mapping match
+        case Left(why) => IO.println(s"nie da się odczytać: $why").as(ExitCode(1))
+        case Right(means) =>
+          IO.whenA(input.isEmpty)(IO.println(
+            "brak kopii danych wejściowych obok odpowiedzi — zajęcia odczytane według " +
+              "dzisiejszego eksportu, co jest pewne tylko, jeśli od przebiegu nic się nie zmieniło")) *>
+            checkAnswer(snapshot, rooms, xml, means)
+    yield code
+
+  private def checkAnswer(snapshot: SchoolSnapshot, rooms: List[Room], xml: String,
+                          means: Map[Int, LessonRef]): IO[ExitCode] =
+    for
+      result <- IO.pure(FetImport(xml, means, FetExport.dayNames(snapshot.teachingDays)))
       _ <- IO.println(f"odczytano ${result.placed.size} zajęć, " +
              f"${result.unplaced} bez godziny")
       report = PlanCheck(snapshot, FetImport.expand(snapshot, result.placed, rooms), rooms)

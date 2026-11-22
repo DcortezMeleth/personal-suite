@@ -266,7 +266,9 @@ object FetExport:
       b ++= s"\t\t<Total_Duration>${a.duration}</Total_Duration>\n"
       b ++= s"\t\t<Id>${a.id}</Id>\n"
       b ++= s"\t\t<Activity_Group_Id>${a.groupId}</Activity_Group_Id>\n"
-      b ++= "\t\t<Active>true</Active>\n\t\t<Comments></Comments>\n\t</Activity>\n"
+      // What the activity is, so an answer can be read without trusting that
+      // a later export numbers lessons the same way (LessonRef).
+      b ++= s"\t\t<Active>true</Active>\n\t\t<Comments>${a.means.fold("")(m => esc(m.key))}</Comments>\n\t</Activity>\n"
     b ++= "</Activities_List>\n\n"
 
     b ++= "<Buildings_List>\n</Buildings_List>\n\n"

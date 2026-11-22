@@ -182,6 +182,30 @@ class FetRoundTripSpec extends AnyFunSuite:
     assert(allowedRooms(tuitionBlock) === Set("IND", "12", "13"))
     assert(!allowedRooms(mathsSingle).contains("IND"))
 
+  // ── Reading a past run (REVIEW_2026-11-21 F2) ──────────────────────────
+
+  test("each activity carries what it is, and a past run is read by that"):
+    assert(FetImport.recover(written.xml, written) === Right(written.means))
+
+  test("an older run without it is matched by what each activity is, not its number"):
+    // A run from before the comments, numbered in a different order, as a
+    // school edited since would be.
+    val ids = raw"<Id>(\d+)</Id>".r.findAllMatchIn(written.xml).map(_.group(1).toInt).toList
+    val top = ids.max + 1
+    val older = raw"<Id>(\d+)</Id>".r
+      .replaceAllIn(written.xml.replaceAll("<Comments>[^<]*\\|[^<]*</Comments>", "<Comments></Comments>"),
+        m => s"<Id>${top - m.group(1).toInt}</Id>")
+    val read = FetImport.recover(older, written).toOption.get
+    assert(read.values.toList.sortBy(_.toString) === written.means.values.toList.sortBy(_.toString))
+    // The tuition hour is the only activity of its kind, so it is matched exactly.
+    val tuitionId = written.means.collectFirst { case (n, r) if r == tuitionBlock => n }.get
+    assert(read(top - tuitionId) === tuitionBlock)
+
+  test("a run of a school that has changed since is refused, not misread"):
+    val older = written.xml.replaceAll("<Comments>[^<]*\\|[^<]*</Comments>", "<Comments></Comments>")
+    val oneLess = older.replaceFirst("(?s)<Activity>.*?</Activity>", "")
+    assert(FetImport.recover(oneLess, written).isLeft)
+
   test("the room FET names is the room we asked about"):
     assert(result.placed.find(_.what == tuitionBlock).get.room === Some("IND"))
 
