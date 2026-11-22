@@ -47,9 +47,11 @@ at a time and log a run after each.
 
 ## 2. Rules and model
 
-1. **Individual sessions and the pupil's own class** (*rewalidacja*,
-   *zajęcia wyrównawcze*). Tuition books its teacher and a tuition room, not
-   the pupil, so it can clash with the pupil's class lessons. RULES §7.
+1. **Individual tuition.** Design and open questions in
+   [INDIVIDUAL_TUITION.md](INDIVIDUAL_TUITION.md). Today FET does not know
+   the pupil exists: in RUNLOG R12, 22 pupil-days with two individual lessons
+   at once, 39 with windows, and rewalidacja during class lessons. Needs each
+   pupil's half, entered by the planner.
 2. **G2: attendance-group windows.** 16–18 of 46 groups had a one-hour window
    on FET 6.8.5 despite the no-gaps rule. Re-check on FET 7 once attendance is
    entered. Since RULES 1.4 `PlanCheck` checks each attendance group, so such a

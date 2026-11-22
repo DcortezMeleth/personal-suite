@@ -406,9 +406,12 @@ Found 2026-11-21; see RUNLOG.
 
 ## 7. Open questions and TODO
 
-- **TODO — individual sessions for a pupil who is also in a class**
-  (*rewalidacja*, *zajęcia wyrównawcze*). Must they avoid that class's
-  lessons? Today they book only the teacher and a room. Deferred 2026-11-21.
+- **Individual tuition** — how the school runs it, the data, what is wrong
+  today and the designs: [INDIVIDUAL_TUITION.md](INDIVIDUAL_TUITION.md)
+  (draft, 2026-11-22). A pupil stays in their class and takes some subjects
+  individually; today FET does not know the pupil exists, and the week of
+  RUNLOG R12 double-books pupils on 22 pupil-days. The rule (S9) waits on the
+  open questions there.
 - **Reconsider CP-SAT against FET** once the rules here are settled. ADR 0004
   compared the two on different rule sets: CP-SAT was carrying "starts at slot
   1", which FET could not express. See SOLVER_EVALUATION's addendum. The code
