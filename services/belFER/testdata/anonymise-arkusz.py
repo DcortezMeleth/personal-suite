@@ -170,9 +170,9 @@ def _provisions(name):
 def _apply_case(pattern, letters):
     """Copy the upper/lower case pattern of the original suffix.
 
-    The export contains pairs such as 3Fal and 3FAL that differ only in case
-    and are genuinely distinct classes. Preserving the pattern keeps that
-    hazard in the fixture.
+    The export contains pairs of codes that differ only in the case of their
+    suffix and are genuinely distinct classes. Preserving the pattern keeps
+    that hazard in the fixture.
     """
     out = []
     for i, ch in enumerate(letters):
@@ -315,8 +315,8 @@ def build_student_mapping(classes):
     """
     pseudo = [k for k in classes if _is_pseudo_class(k["Kod"])]
 
-    # Codes equal but for case (3Fal / 3FAL) are distinct classes; group them so
-    # they keep sharing letters and stay distinct in the same way.
+    # Codes equal but for the case of their suffix are distinct classes; group
+    # them so they keep sharing letters and stay distinct in the same way.
     groups, order = {}, []
     for k in pseudo:
         key = k["Kod"].lower()
@@ -324,8 +324,8 @@ def build_student_mapping(classes):
             groups[key] = len(order)
             order.append(key)
 
-    # A generated suffix must not happen to reproduce a real one — "al" would
-    # turn 3FAL back into 3FAL and quietly republish a student's initials.
+    # A generated suffix must not happen to reproduce a real one: drawing the
+    # original letters again would quietly republish a student's initials.
     banned = {k["Kod"].lower() for k in pseudo}
     letters_for, cursor = {}, 0
     for key in order:
