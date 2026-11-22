@@ -5,18 +5,18 @@ where its detail lives; this file is the list, not the explanation. When an
 item is done, strike it through with the date and the commit or run, and
 leave it for a while before deleting it.
 
-Rules are in [RULES.md](RULES.md) (1.3), runs in [RUNLOG.md](RUNLOG.md), the
+Rules are in [RULES.md](RULES.md) (1.4), runs in [RUNLOG.md](RUNLOG.md), the
 product phases in [ROADMAP.md](ROADMAP.md).
 
 ---
 
 ## Where things stand
 
-A complete eight-slot week is generated in about 2–3 minutes and keeps all 18
-rules our checker covers (RUNLOG R11). Settings: teacher free periods at most
-1 a day and 2 a week, class days at most 3 lessons apart. **The data it runs
-on is incomplete** (section 1), so those runs are easier than the real
-school.
+A complete eight-slot week is generated through the app in about 2–3
+minutes and keeps all 19 checks (RUNLOG R12, 2026-11-22); it is saved as the
+school's current plan. Settings: teacher free periods at most 1 a day and 2 a
+week, class days at most 3 lessons apart. **The data it runs on is
+incomplete** (section 1), so those runs are easier than the real school.
 
 ---
 
@@ -107,8 +107,8 @@ From ROADMAP "Open work", in its order:
    x86-64 host, or use upstream's prebuilt binary. **Do not redeploy the home
    lab until this is settled:** the image there has FET 6.8.5, which cannot
    read today's files.
-2. **The local server on 8081** runs code from 2026-11-01. Restart it to use
-   anything since.
+2. ~~**The local server on 8081** runs code from 2026-11-01.~~ Restarted on
+   2026-11-22 with current code; log in `~/.belfer/server.log`.
 3. ~~**Frontend production build in this shell.**~~ Solved 2026-11-22: the
    shell's default `node` (`/usr/local/bin/node`) is an x64 build, and only
    the arm64 rollup binary is installed. Use the arm64 Node from nvm, e.g.
@@ -118,23 +118,48 @@ From ROADMAP "Open work", in its order:
 ## 6. Code review findings
 
 The full review of 2026-11-21 is in
-[REVIEW_2026-11-21.md](REVIEW_2026-11-21.md), with its own "Fix first" list.
-In short:
+[REVIEW_2026-11-21.md](REVIEW_2026-11-21.md). Its "Fix first" items 1–7 are
+done (2026-11-22). Still open from item 2: a re-import replaces hand-entered
+data, though it now says so first; upserting by code is ROADMAP 2.3.
 
-- deleting any teacher, room or room kind in use fails;
-- edits and re-imports delete lessons from saved plans;
-- saving one row on four pages discards edits in the others;
-- the checker both rejects some legal weeks and misses some broken ones;
-- errors are invisible;
-- the importer has week-range and reference faults;
-- two privacy questions sit in the anonymiser.
+What remains, grouped (IDs are the review's):
 
-Items from it move here as they are scheduled.
-
-**Done 2026-11-22:** "Fix first" items 1–5: deletes, plans keeping their
-lessons plus the import preview, other rows' edits (and with them U7 and
-D16), the checker (RULES 1.4: D1–D7), and — items 6 and 7 — readable errors
-with logging, and the importer's week ranges, tuition codes, doubles,
-references and upload cap. **Still open from item 2:** a
-re-import still replaces hand-entered data; it now says so first. Upserting
-by code is ROADMAP 2.3.
+1. **Privacy.**
+   - The anonymiser's roll "noise" can be reversed (I8).
+   - Its `verify()` checks less than it says (I12).
+   - A failed clean-up leaves `.fet` files with staff names in
+     `~/.belfer/fet` (F10).
+   - The API has no login and compose publishes 8081 directly (A13).
+2. **Generation robustness.**
+   - A stop hides complete weeks that broke a rule (F1).
+   - `--read` maps by lesson order, which no query fixes (F2).
+   - Edits during a run are not noticed (F3).
+   - A stop or timeout loses FET's diagnosis (F5–F7).
+   - FET can outlive the server (F8).
+   - Stop is heard only while FET runs (F11).
+   - A cancelled start can stick (F13).
+3. **Validation before generating.**
+   - Teacher load leaves out tuition (D8).
+   - The block count ignores S4's whole/half link (D9).
+   - S5's assumptions are unchecked (D10).
+   - Unequal half hours are marked blocking against S2 (D11).
+   - Settings can be relaxed past T5 (D12).
+   - Room supply counts PE and tuition rooms (D13).
+   - One overload gives three blockades (D15).
+4. **API and data.**
+   - Routes do not stay inside one school (A4).
+   - Nothing is tested against the database or over HTTP (A6).
+   - Smaller items: A7–A12.
+5. **Frontend.**
+   - Switching class quickly can show the wrong lessons (U2).
+   - A failed plan load reads as "no plan" (U3).
+   - Overloads are reported twice (U4).
+   - Most inputs have no accessible name (U5).
+   - The homeroom list is empty without the report (U6).
+   - About a dozen small UX items (U8).
+6. **Importer, low.**
+   - Week windows are right only within a suggested segment (I9, I10).
+   - Parsing edge cases (I11).
+   - Missing tests (I14).
+7. **Clean-up.** Dead code and comments that are now false: F18–F20, D14,
+   D16–D18, A14, I13, U9.
