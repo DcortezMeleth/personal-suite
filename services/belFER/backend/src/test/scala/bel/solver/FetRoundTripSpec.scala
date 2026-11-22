@@ -167,6 +167,21 @@ class FetRoundTripSpec extends AnyFunSuite:
     assert(monday.day === 0)
     assert(monday.position === 0)
 
+  /** The rooms an activity may use, as the file lists them. */
+  private def allowedRooms(ref: LessonRef): Set[String] =
+    val id = written.means.collectFirst { case (n, r) if r == ref => n }.get
+    raw"(?s)<ConstraintActivityPreferredRooms>(.*?)</ConstraintActivityPreferredRooms>".r
+      .findAllMatchIn(written.xml).map(_.group(1))
+      .find(_.contains(s"<Activity_Id>$id</Activity_Id>"))
+      .map(c => raw"<Preferred_Room>(.*?)</Preferred_Room>".r.findAllMatchIn(c).map(_.group(1)).toSet)
+      .getOrElse(Set.empty)
+
+  test("tuition may use a tuition room or a classroom; a class never a tuition room"):
+    // RULES RM3 since 1.6. It used to be the tuition rooms alone: six of them
+    // for 203 hours a week.
+    assert(allowedRooms(tuitionBlock) === Set("IND", "12", "13"))
+    assert(!allowedRooms(mathsSingle).contains("IND"))
+
   test("the room FET names is the room we asked about"):
     assert(result.placed.find(_.what == tuitionBlock).get.room === Some("IND"))
 

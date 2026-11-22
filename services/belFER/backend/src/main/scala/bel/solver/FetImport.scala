@@ -103,6 +103,8 @@ object FetImport:
           optional = false,
           roomId = where.flatMap(byNumber.get),
           needsKind = tuitionKind,
+          // A tuition room or an ordinary classroom (RULES RM3), as exported.
+          kindIsHard = false,
           block = Some(lessonId -> block))
     }
 

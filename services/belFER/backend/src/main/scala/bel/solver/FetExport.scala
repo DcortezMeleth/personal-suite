@@ -656,8 +656,8 @@ object FetExport:
     //
     // One student, so no student set: the class is not busy, because the
     // student is not in it. What it does book is the teacher — which is the
-    // whole reason for carrying these at all — and one of the rooms the school
-    // keeps for it.
+    // whole reason for carrying these at all — and a room: one the school keeps
+    // for it, or an ordinary classroom.
     val individualKind = snapshot.roomsOfKind.keys.find(id =>
       kindNames.get(id).exists(_.equalsIgnoreCase(IndividualTuition.RoomKindName)))
     for
@@ -674,7 +674,11 @@ object FetExport:
         subjects.getOrElse(lesson.subjectId, "?"), Nil, length, mine,
         optional = false, sameTimeAs = None,
         means = Some(LessonRef.Individual(lesson.id, block)),
-        roomKind = individualKind, roomHard = true, wholeClass = false)
+        // A tuition room or any ordinary classroom (RULES RM3, S9): the kind is
+        // wanted rather than required, which the room constraints below turn
+        // into "these rooms or a classroom". Whole classes stay out of tuition
+        // rooms, because their lessons do not ask for that kind at all.
+        roomKind = individualKind, roomHard = false, wholeClass = false)
       next += 1
 
     out.result()

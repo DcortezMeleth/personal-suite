@@ -355,7 +355,7 @@ table.
 | T5 | `TeachersMaxGapsPerDay` and `TeachersMaxGapsPerWeek` from the school's settings, now 1 and 2, stricter than T5 | R15 run length, R15b per day, R15c per week (when set); an hour the teacher is unavailable is not a free period, as FET counts | ✅ |
 | RM1 | Built in | R3, R3d | ✅ |
 | RM2 | `ActivityPreferredRooms`: the six PE spaces, hard (data fixed 2026-11-21) | R3c could not catch the old fault | ⚠ G6 |
-| RM3 | `ActivityPreferredRooms`: rooms of the individual-tuition type only (ordinary classrooms not yet allowed) | R3c | ⚠ G11 |
+| RM3 | `ActivityPreferredRooms`: the individual-tuition rooms and every ordinary classroom; class lessons are offered ordinary rooms only | R3c | ✅ |
 | RM4 | `ActivityPreferredRooms`: rooms with no type; whole-class lessons only those that fit | R3b, R3c (a wanted kind may use a classroom too), R3e (every lesson has a room) | ✅ |
 | P1 | Off (weight 0, and no home rooms in the data) | — | — |
 | P2 | Per class, a range of day lengths N wide around its own average: `StudentsSetMinHoursDaily` and `StudentsSetMaxHoursDaily`, per subgroup where loads differ. Stronger than the rule | R17, per half, and per attendance group once attendance is entered, as FET is told | ✅ stronger than the rule |
