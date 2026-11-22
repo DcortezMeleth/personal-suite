@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { useSchool } from "../hooks/useSchool";
+import { rowKey, useSchool } from "../hooks/useSchool";
 import { NoSchool } from "../components/NoSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import {
@@ -158,7 +158,7 @@ export function ResourcesPage() {
             <tbody>
               {rooms.map((room) => (
                 <RoomRow
-                  key={room.id}
+                  key={rowKey(room.id, room)}
                   room={room}
                   kinds={kinds}
                   onSave={(input) => run(() => api.updateRoom(school.id, room.id, input))}
@@ -211,7 +211,7 @@ export function ResourcesPage() {
             <tbody>
               {subjects.map((subject) => (
                 <SubjectRow
-                  key={subject.id}
+                  key={rowKey(subject.id, subject)}
                   kinds={kinds}
                   initial={subjectToInput(subject)}
                   onSave={(input) => run(() => api.updateSubject(subject.id, input))}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { useSchool } from "../hooks/useSchool";
+import { rowKey, useSchool } from "../hooks/useSchool";
 import { NoSchool } from "../components/NoSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import {
@@ -110,7 +110,7 @@ export function CrossClassPage() {
 
       {units.map((unit) => (
         <CrossClassUnitCard
-          key={unit.id}
+          key={rowKey(unit.id, unit)}
           unit={unit}
           classes={classes}
           subjects={subjects}

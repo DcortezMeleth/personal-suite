@@ -60,7 +60,12 @@ export function useSchool(options: {
     reload();
   }, [reload]);
 
-  const gate = loading ? (
+  // Only the first load stands in for the page. A refresh after a save keeps
+  // the page on screen: replacing it with this line unmounted every row, and
+  // every row's unsaved edits went with it — save 1B and 1A's typing was gone
+  // (REVIEW_2026-11-21 U1). Rows that must start again from what the server
+  // now says are keyed on their data instead (see rowKey).
+  const gate = loading && !school ? (
     <p className="text-neutral-500">{busy}</p>
   ) : error && !school ? (
     // Nothing was loaded, so there is no page to put a banner on top of. Say
@@ -78,4 +83,13 @@ export function useSchool(options: {
   ) : null;
 
   return { school, setSchool, loading, error, setError, reload, gate };
+}
+
+/**
+ * A key for a row that edits one record. It changes exactly when that record
+ * changes on the server, so the row whose save just landed starts again from
+ * what was stored, and every other row keeps what is being typed into it.
+ */
+export function rowKey(id: string, data: unknown): string {
+  return `${id}:${JSON.stringify(data)}`;
 }

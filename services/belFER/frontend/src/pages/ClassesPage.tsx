@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { useSchool } from "../hooks/useSchool";
+import { rowKey, useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import { useFindings } from "../hooks/useFindings";
 import { FindingMark } from "../components/FindingMark";
@@ -205,7 +205,7 @@ function ClassYear(props: {
       </tr>
       {props.classes.map((cls) => (
         <ClassRow
-          key={cls.id}
+          key={rowKey(cls.id, cls)}
           cls={cls}
           teachers={props.teachers}
           optional={props.optional}
@@ -326,7 +326,11 @@ function ClassRow(props: {
         const at = props.attending.get(`${props.cls.id}:${subject.id}`);
         return (
           <td key={subject.id} className="w-20 py-2 pr-2">
+            {/* Keyed on the stored value, so only the cell just saved picks
+                up what the server kept; the one being typed into next is
+                left alone, focus included. */}
             <input
+              key={at ?? ""}
               type="number"
               min={0}
               className={field}

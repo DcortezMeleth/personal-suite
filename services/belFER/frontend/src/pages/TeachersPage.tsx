@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AlertBanner, DataCard } from "@delfin/ui";
-import { useSchool } from "../hooks/useSchool";
+import { rowKey, useSchool } from "../hooks/useSchool";
 import { useConfirm } from "../hooks/useConfirm";
 import { useFindings } from "../hooks/useFindings";
 import { FindingMark } from "../components/FindingMark";
@@ -148,7 +148,7 @@ export function TeachersPage() {
       <tbody>
         {rows.map((teacher) => (
           <TeacherRow
-            key={teacher.id}
+            key={rowKey(teacher.id, teacher)}
             teacher={teacher}
             rooms={rooms}
             subjects={subjects}
