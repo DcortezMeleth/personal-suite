@@ -76,6 +76,7 @@ is in `out/logs/difficult_activities.txt`.
 | R10 | 2026-11-21 | 1331 | R9 + teacher free periods ≤2 a week (was 3) | **complete**, 144 s and 183 s, 2 of 2 seeds; 17 of 17 rules; 0 classes over | **yes — avg 1.6–1.7 free periods a week** |
 | R11 | 2026-11-21 | 1331 | R10, written by the app itself (setting `max_class_day_spread` = 3) | **complete**, 135 s and 181 s; **18 of 18** rules, R17 new; the same weeks as R10 | **confirms the app** |
 | R12 | 2026-11-22 | 1331 | the app's own Generate path after the review fixes (RULES 1.4 checker, V19–V20, error handling, importer) | **complete**, 139 s, 4 seeds raced; **19 of 19**; saved as the current plan | **nothing broken** |
+| R13 | 2026-11-22 | 1331 | individual pupils known to FET: each a student set of their own, on-site (none has a kind yet); tuition may use classrooms; free periods counted | **complete**, 220 s; **23 of 23**, incl. R18 and R19 | **yes — no pupil double-booked or waiting** |
 
 ---
 
@@ -534,6 +535,31 @@ read-back, check, save), not by hand.
   cap; no two in a row. As R10–R11.
 - **Verdict:** nothing broken. No files kept: the app's runs work in a
   temporary directory, and the plan is in the database.
+
+## R13 — 2026-11-22, individual pupils as FET student sets
+
+The first run in which FET knows individual pupils exist (RULES S9,
+INDIVIDUAL_TUITION.md steps 1–5).
+
+- **Rules:** 1.6 · **App:** `864fbb8` · **Engine:** FET 7.12.1
+- **Changed since R12 (app):**
+  - every pupil on individual tuition is a FET year of their own. No kind is
+    set yet, so all 24 are planned as on-site: no two lessons at once, no
+    windows;
+  - individual lessons may use ordinary classrooms as well as the 6 tuition
+    rooms;
+  - the checker counts teachers' free periods per day and week (R15b, R15c)
+    and checks pupils (R18, R19);
+  - case-variant pseudo-classes merge (import only; no re-import was done).
+- **Settings:** as R12. 4 workers, 30-minute backstop.
+- **Result:** **complete in 220 s; 23 of 23 checks**; saved as the current
+  plan. R12 took 139 s, so knowing the pupils cost about 80 s.
+- **Before, measured on R12's week:** 22 pupil-days with two individual
+  lessons at once and 39 with windows. Now none (R18, R19).
+- **Wall clock:** 73 minutes, because the laptop went to sleep on battery
+  part-way; the search itself took 220 s.
+- **Next:** mixed pupils inside their class's timetable (step 6). Then a run
+  once the planner has set kinds and halves.
 
 ---
 

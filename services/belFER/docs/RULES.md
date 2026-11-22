@@ -347,7 +347,7 @@ table.
 | S6 | Activity duration | Contiguous by construction; R12 checks it ends within the day | ✅ |
 | S7 | Built in | R7: counted and matched block by block | ✅ |
 | S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 (every lesson within the week's days and hours) with R1 | ✅ |
-| S9 | Nothing yet: individual lessons book only a teacher and a tuition room; the pupil is unknown to FET | Nothing yet | ❌ G11 |
+| S9 | Remote and on-site pupils (and any not yet set) are FET years of their own; on-site get no-gaps. Mixed pupils not yet inside their class | R18 (no two at once), R19 (no windows, except remote) | ⚠ G11: mixed pupils |
 | T1 | Built in; support teacher and tuition are named on the activity | R2 | ✅ |
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
@@ -426,10 +426,10 @@ group number of the last cross-class unit. FET is therefore told to keep that
 lesson on a different day from the unit's blocks, a rule nobody asked for.
 Found 2026-11-21; see RUNLOG.
 
-**G11. Individual pupils (S9) are not modelled.** FET and the checker know
-only a lesson's teacher and room. In RUNLOG R12's week a pupil has two
-individual lessons at once on 22 pupil-days and windows on 39. To be built as
-INDIVIDUAL_TUITION.md §7 describes.
+**G11. Mixed individual pupils (S9) are not yet in their class's timetable.**
+Remote and on-site pupils are modelled since RUNLOG R13 (no double bookings,
+no windows); a mixed pupil is checked as attending their class (R18, R19) but
+FET does not yet know it. Step 6 of INDIVIDUAL_TUITION.md §7.
 
 ---
 
