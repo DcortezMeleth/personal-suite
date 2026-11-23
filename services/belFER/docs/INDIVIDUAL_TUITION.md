@@ -196,9 +196,18 @@ hours.
 
 ## 7. Steps
 
-Done so far (2026-11-22): 1 (RULES S9), RM3's rooms (`79d0b86`), 2 (`d72a945`)
-and 3. Kinds and halves are set on the Nauczanie indywidualne page; all 24
-plans are unset until the planner chooses.
+Done (2026-11-22):
+- 1: RULES S9; RM3's rooms (`79d0b86`).
+- 2: import merges case variants (`d72a945`).
+- 3: kind and half on the Nauczanie indywidualne page.
+- 4: the checker, R18 and R19 (`731eb62`).
+- 5: remote and on-site pupils in FET (`864fbb8`); RUNLOG R13 complete in
+  220 s against R12's 139 s, with no pupil double-booked or waiting.
+- 6: mixed pupils as subgroups of their half.
+
+**What remains: the planner sets each pupil's kind (and half), then a run
+measures mixed pupils on real data.** All 24 plans are unset today and so
+planned as on-site.
 
 1. RULES.md gets S9.
 2. **Import:** merge case-variant pseudo-class codes.

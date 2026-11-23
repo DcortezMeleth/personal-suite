@@ -101,10 +101,12 @@ object FetExport:
    */
   private def subgroups(snapshot: SchoolSnapshot, cls: SchoolClass): Map[String, List[String]] =
     val cohorts = attendanceCohorts(snapshot, cls, cls.studentCount.getOrElse(30))
+    val pupils = mixedIn(snapshot, cls)
     val halves = List(1, 2).map { half =>
       val halfName = s"${cls.name}/$half"
-      halfName -> (if cohorts.isEmpty then List(s"${halfName}s")
-                   else cohorts.map((label, _) => s"${halfName}s-$label"))
+      halfName -> ((if cohorts.isEmpty then List(s"${halfName}s")
+                    else cohorts.map((label, _) => s"${halfName}s-$label")) ++
+                   pupils.filter(_._2 == half).map((plan, h) => pupilSubgroup(cls, plan, h)))
     }
     val optional = optionalCohortLabels(snapshot, cls).map((subjectId, label, _) =>
       cohortGroup(cls, subjectId) -> List(1, 2).map(half => s"${cls.name}/${half}s-$label"))
@@ -128,6 +130,39 @@ object FetExport:
   private def apart(snapshot: SchoolSnapshot): List[IndividualPlan] =
     val split = splitClasses(snapshot)
     snapshot.individualPlans.filter(p => p.plannedKind(split.contains(p.classId)) != TuitionKind.MIXED)
+
+  /**
+   * Mixed pupils of a class, with the half they sit in (RULES S9): a
+   * subgroup of their own inside that half. Lessons of the class and the half
+   * include them, as their pupils; lessons of a subject taught to them
+   * individually are addressed to the class's other subgroups instead, so
+   * they are free then, and FET's no-gaps rule — already on every subgroup —
+   * keeps their day whole: an individual lesson where the class has that
+   * subject, or a free hour at the start or end of their day. A class without
+   * halves needs no half; such a pupil is put in the first.
+   */
+  private def mixedIn(snapshot: SchoolSnapshot, cls: SchoolClass): List[(IndividualPlan, Int)] =
+    val split = splitClasses(snapshot)
+    snapshot.individualPlans
+      .filter(p => p.classId == cls.id && p.plannedKind(split.contains(cls.id)) == TuitionKind.MIXED)
+      .sortBy(_.ordinal)
+      .map(p => p -> p.half.getOrElse(1))
+
+  private def pupilSubgroup(cls: SchoolClass, plan: IndividualPlan, half: Int): String =
+    s"${cls.name}/${half}s-i${plan.ordinal}"
+
+  /**
+   * The sets a class activity is addressed to, leaving out the mixed pupils
+   * taught this subject on their own: the named set, or else its subgroups
+   * without theirs.
+   */
+  private def withoutOwnPupils(snapshot: SchoolSnapshot, cls: SchoolClass, set: String,
+                               subjectId: UUID, halves: Set[Int]): List[String] =
+    val away = mixedIn(snapshot, cls)
+      .filter((plan, half) => halves.contains(half) && plan.lessons.exists(_.subjectId == subjectId))
+      .map((plan, half) => pupilSubgroup(cls, plan, half)).toSet
+    if away.isEmpty then List(set)
+    else subgroups(snapshot, cls).getOrElse(set, List(set)).filterNot(away.contains)
 
   /** A pupil's student set: the class and the plan's ordinal, never a name. */
   private def pupilSet(classNames: Map[UUID, String], plan: IndividualPlan): String =
@@ -267,6 +302,9 @@ object FetExport:
             // Halved, because the division by attendance cuts across the
             // division by language group rather than replacing it.
             subgroup(s"${halfName}s-$label", (whole / 2).max(1), "\t\t\t")
+        // A mixed individual pupil of this half (RULES S9).
+        for (plan, h) <- mixedIn(snapshot, cls) if h == half do
+          subgroup(pupilSubgroup(cls, plan, h), 1, "\t\t\t")
         b ++= "\t\t</Group>\n"
 
       // One group per optional subject, naming only those who attend it.
@@ -331,9 +369,14 @@ object FetExport:
           val load = subgroupLoads(snapshot, acts)
           def rangeFor(l: Int) = ClassDays.range(l, snapshot.teachingDays, snapshot.slotsPerDay, spread)
           snapshot.classes.flatMap { cls =>
-            val subs = subgroups(snapshot, cls)(cls.name)
+            // Not for a mixed individual pupil: P2 is about classes, and the
+            // checker measures it for classes only. A range written for the
+            // class would reach them too, so a class with such a pupil gets
+            // one per subgroup.
+            val pupils = mixedIn(snapshot, cls).map((plan, half) => pupilSubgroup(cls, plan, half)).toSet
+            val subs = subgroups(snapshot, cls)(cls.name).filterNot(pupils.contains)
             val loads = subs.map(load.getOrElse(_, 0)).distinct
-            if loads.size == 1 then rangeFor(loads.head).map(cls.name -> _).toList
+            if loads.size == 1 && pupils.isEmpty then rangeFor(loads.head).map(cls.name -> _).toList
             else subs.flatMap(s => rangeFor(load.getOrElse(s, 0)).map(s -> _))
           }.toMap
 
@@ -627,8 +670,15 @@ object FetExport:
       // sixty-three places.
       val key = (line.classId, line.subjectId, line.audience)
       val mine = lineGroups.getOrElseUpdate(key, { group += 1; group })
+      val lineHalves = line.audience match
+        case LessonAudience.GROUP_1 => Set(1)
+        case LessonAudience.GROUP_2 => Set(2)
+        case _                      => Set(1, 2)
+      val addressed = snapshot.classes.find(_.id == line.classId)
+        .filter(_ => cohort.isEmpty)
+        .fold(List(who))(cls => withoutOwnPupils(snapshot, cls, who, line.subjectId, lineHalves))
       for (length, block) <- line.blocks.zipWithIndex do
-        out += Act(next, staff, subject, List(who), length, mine,
+        out += Act(next, staff, subject, addressed, length, mine,
           optional = snapshot.subjects.find(_.id == line.subjectId).exists(_.optional),
           sameTimeAs = None,
           means = Some(LessonRef.Line(line.id, block)),
@@ -668,9 +718,11 @@ object FetExport:
       // Addressed to the pupils who attend, class by class, where the school
       // has said who they are — so that the rest of each class is visibly free
       // and FET will not strand them mid-day.
-      val busy = unit.classIds.toList.flatMap(id => snapshot.classes.find(_.id == id)).map(c =>
+      val busy = unit.classIds.toList.flatMap(id => snapshot.classes.find(_.id == id)).flatMap(c =>
         if snapshot.optionalAttendance.get((c.id, unit.subjectId)).exists(_ > 0)
-        then cohortGroup(c, unit.subjectId) else c.name)
+        then List(cohortGroup(c, unit.subjectId))
+        // A mixed pupil taught this subject on their own is not in the unit.
+        else withoutOwnPupils(snapshot, c, c.name, unit.subjectId, Set(1, 2)))
       out += Act(anchor, Nil, subject, busy.distinct.sorted,
         length, mine, optional, sameTimeAs = None, means = None, roomKind = None,
         roomHard = true, wholeClass = false,
@@ -711,10 +763,11 @@ object FetExport:
       val mine = group
       out += Act(next, lesson.teacherId.toList.flatMap(teachers.get),
         subjects.getOrElse(lesson.subjectId, "?"),
-        // Addressed to the pupil, so FET knows they exist (RULES S9). A mixed
-        // pupil's set is part of their class, which comes next; until then
-        // their lessons name no student set, as all of them used to.
-        if apartIds.contains(plan.id) then List(pupilSet(classes, plan)) else Nil,
+        // Addressed to the pupil, so FET knows they exist (RULES S9): their
+        // own year, or for a mixed pupil their subgroup inside the class.
+        if apartIds.contains(plan.id) then List(pupilSet(classes, plan))
+        else snapshot.classes.find(_.id == plan.classId).toList.flatMap(cls =>
+          mixedIn(snapshot, cls).collect { case (p, half) if p.id == plan.id => pupilSubgroup(cls, p, half) }),
         length, mine,
         optional = false, sameTimeAs = None,
         means = Some(LessonRef.Individual(lesson.id, block)),

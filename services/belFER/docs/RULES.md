@@ -347,7 +347,7 @@ table.
 | S6 | Activity duration | Contiguous by construction; R12 checks it ends within the day | ✅ |
 | S7 | Built in | R7: counted and matched block by block | ✅ |
 | S8 | 8 hours in the file, plus `StudentsSetMaxHoursDaily` | R12 (every lesson within the week's days and hours) with R1 | ✅ |
-| S9 | Remote and on-site pupils (and any not yet set) are FET years of their own; on-site get no-gaps. Mixed pupils not yet inside their class | R18 (no two at once), R19 (no windows, except remote) | ⚠ G11: mixed pupils |
+| S9 | Remote and on-site pupils (and any not yet set) are FET years of their own; on-site get no-gaps. A mixed pupil is a subgroup in their half; lessons of their own subjects are addressed to the class's other subgroups | R18 (no two at once), R19 (no windows, except remote) | ✅ once kinds and halves are entered (Walidacja lists missing ones) |
 | T1 | Built in; support teacher and tuition are named on the activity | R2 | ✅ |
 | T2 | `TeacherNotAvailableTimes` | R11 | ✅ |
 | T3 | `TeacherMaxDaysPerWeek`, per-teacher overrides only | R13 | ⚠ G7 |
@@ -426,10 +426,10 @@ group number of the last cross-class unit. FET is therefore told to keep that
 lesson on a different day from the unit's blocks, a rule nobody asked for.
 Found 2026-11-21; see RUNLOG.
 
-**G11. Mixed individual pupils (S9) are not yet in their class's timetable.**
-Remote and on-site pupils are modelled since RUNLOG R13 (no double bookings,
-no windows); a mixed pupil is checked as attending their class (R18, R19) but
-FET does not yet know it. Step 6 of INDIVIDUAL_TUITION.md §7.
+**G11. Individual pupils (S9) — closed 2026-11-22 (RUNLOG R13).** Every
+pupil is known to FET and the checker. Until the planner sets a pupil's kind
+(and a mixed pupil's half), the pupil is planned as on-site; Walidacja lists
+them. Mixed pupils are not yet measured on real data, because none is set.
 
 ---
 
