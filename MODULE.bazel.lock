@@ -420,7 +420,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "lelyH+ipPCv8jwxYCLAC/eiW4Ml3DDaIwwAOjNQh2Ag=",
-        "usagesDigest": "9miWWajL2YvitZ2noAGvY6viHuReNtWUnZZ/O8AV2hA=",
+        "usagesDigest": "YzkPJkBffEzT+gXUM87WcRC7+m3uKRRmHSmRk4XwnrI=",
         "recordedInputs": [
           "REPO_MAPPING:aspect_bazel_lib+,bazel_lib bazel_lib+",
           "REPO_MAPPING:aspect_bazel_lib+,bazel_tools bazel_tools",
@@ -472,7 +472,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/nginx",
-              "identifier": "1.27-alpine",
+              "identifier": "1.30-alpine",
               "platform": "linux/amd64",
               "target_name": "nginx_base_linux_amd64",
               "bazel_tags": []
@@ -485,7 +485,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/nginx",
-              "identifier": "1.27-alpine",
+              "identifier": "1.30-alpine",
               "platform": "linux/arm64/v8",
               "target_name": "nginx_base_linux_arm64_v8",
               "bazel_tags": []
@@ -499,7 +499,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/nginx",
-              "identifier": "1.27-alpine",
+              "identifier": "1.30-alpine",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@nginx_base_linux_amd64",
                 "@@platforms//cpu:arm64": "@nginx_base_linux_arm64_v8"
