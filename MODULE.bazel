@@ -115,15 +115,15 @@ npm.npm_translate_lock(
 )
 use_repo(npm, "npm")
 
-rules_ts_ext = use_extension(
+typescript = use_extension(
     "@aspect_rules_ts//ts:extensions.bzl",
-    "ext",
+    "typescript",
     dev_dependency = True,
 )
-rules_ts_ext.deps(
-    ts_version_from = "//:package.json",
+typescript.deps(
+    version_from = "//:package.json",
 )
-use_repo(rules_ts_ext, "npm_typescript")
+use_repo(typescript, "npm_typescript")
 
 # ── Container images ──────────────────────────────────────────────────────────
 
