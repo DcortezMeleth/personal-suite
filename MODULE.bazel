@@ -15,19 +15,18 @@ bazel_dep(name = "platforms", version = "1.1.0")
 # written in Java. 9.3.0 is the version rules_scala and rules_jvm_external
 # already resolve to, so this pins what is in the graph rather than adding to it.
 bazel_dep(name = "rules_java", version = "9.9.0")
-bazel_dep(name = "rules_scala", version = "7.4.0")
+bazel_dep(name = "rules_scala", version = "7.4.1")
 bazel_dep(name = "rules_jvm_external", version = "7.2")
 
 scala_config = use_extension(
     "@rules_scala//scala/extensions:config.bzl",
     "scala_config",
 )
-# 3.3.8 LTS: the http4s / cats-effect 3.5.x ecosystem was compiled against 3.3.x.
+# 3.3.x LTS, the line the Typelevel libraries below are published against.
 # The exact patch is not free to choose — rules_scala pins one per release and
-# fails the build if scala_config disagrees.
-# Downgrading from 3.7.0 to 3.5.7 avoids the cats-core 2.12+ TupleParallelSyntax
-# TASTy crash that affects all Scala 3 versions when reading cats 2.12+/2.13 TASTy.
-scala_config.settings(scala_version = "3.3.8")
+# fails the build if scala_config disagrees. The old cats TASTy crash that once
+# held this back no longer reproduces; TECH_STACK.md has the history.
+scala_config.settings(scala_version = "3.3.9")
 
 scala_deps = use_extension(
     "@rules_scala//scala/extensions:deps.bzl",
@@ -105,7 +104,7 @@ use_repo(maven, "maven")
 
 # ── JavaScript / TypeScript frontend ──────────────────────────────────────────
 
-bazel_dep(name = "aspect_rules_js", version = "3.5.2")
+bazel_dep(name = "aspect_rules_js", version = "3.6.1")
 bazel_dep(name = "aspect_rules_ts", version = "3.10.1")
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
@@ -128,7 +127,7 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 # ── Container images ──────────────────────────────────────────────────────────
 
-bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "rules_oci", version = "2.3.5")
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
