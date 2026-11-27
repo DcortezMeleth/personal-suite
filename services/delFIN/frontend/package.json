@@ -10,20 +10,20 @@
   },
   "dependencies": {
     "@delfin/ui": "workspace:*",
-    "react": "^19.3.0",
+    "react": "^19.3.1",
     "react-calendar": "^6.0.1",
-    "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4",
-    "recharts": "^3.10.1"
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.7",
+    "recharts": "^3.11.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/lodash": "^4.17.25",
-    "@types/react": "^19.3.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/lodash": "^4.17.27",
+    "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.1.0",
-    "postcss": "^8.5.29",
-    "tailwindcss": "^4.3.3",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^4.3.5",
     "vite": "^7.1.14"
   }
 }
